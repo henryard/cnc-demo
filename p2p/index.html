@@ -188,7 +188,7 @@ canvas{ flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0; }
 .scr::-webkit-scrollbar-thumb{background:var(--border2); border-radius:3px;}
 
 /* ========================================= */
-/* ===== 移动端及小屏幕深度自适应适配 ===== */
+/* ===== 移动端深度优化：全屏网格与iOS底栏 ===== */
 /* ========================================= */
 @media (max-width: 1024px) {
   body { height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 100px; }
@@ -234,7 +234,7 @@ canvas{ flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0; }
   .twrap { height: 400px; overflow-y: auto; }
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
 
-  /* 横向单排控制栏：极致 iOS 毛玻璃设计 */
+  /* ★ 横向单排控制栏：极致 iOS 毛玻璃设计 ★ */
   .action-area {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background: rgba(255, 255, 255, 0.85);
@@ -681,9 +681,9 @@ function drawGrid(){
   ctx.font = isMobile ? 'bold 13px Noto Sans SC,sans-serif' : 'bold 14px Noto Sans SC,sans-serif';
   ctx.fillStyle = '#64748b';
   
-  // ★ 重构 X/Y 字母防重叠锚点（彻底解决 X 重叠）
+  // ★ 重构 X/Y 字母防重叠锚点（向右进一步推远，彻底解决 X 重叠）
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillText('X', gRight + axExt + 4, oy); 
+  ctx.fillText('X', gRight + axExt + (isMobile ? 8 : 12), oy); 
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
   ctx.fillText('Y', ox, gTop - axExt - 4);
   
@@ -694,14 +694,14 @@ function drawGrid(){
   if(mc > 12) step = 2;
   if(mc > 25) step = 5;
 
-  // ★ 原点 0 已隐藏
-  for(let i = -mc; i <= mc; i++){
-    if(i === 0 || i % step !== 0) continue;
+  // ★ 去除所有负数和0，只渲染正半轴数字，让坐标系更纯净
+  for(let i = 1; i <= mc; i++){
+    if(i % step !== 0) continue;
     ctx.fillText(i, ox + i*gs, oy + 12); 
   }
   ctx.textAlign = 'right';
-  for(let i = -mc; i <= mc; i++){
-    if(i === 0 || i % step !== 0) continue;
+  for(let i = 1; i <= mc; i++){
+    if(i % step !== 0) continue;
     ctx.fillText(i, ox - 6, oy - i*gs); 
   }
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -764,6 +764,7 @@ function drawScene(idx){
     ctx.strokeText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
     ctx.fillStyle='#7c3aed'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
   }
+  let orig=toC(0,0);ctx.fillStyle='#4b5563';ctx.beginPath();ctx.arc(orig.cx,orig.cy,isMobile?3:5,0,Math.PI*2);ctx.fill();
 }
 
 window.addEventListener('resize',resize);
