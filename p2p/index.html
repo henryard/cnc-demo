@@ -53,7 +53,7 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 }
 .mode-btn{
   padding:8px 4px; background:transparent; color:var(--text-mid); border:none; border-radius:6px; cursor:pointer;
-  font-size:14px; font-weight:600; font-family:'Noto Sans SC',sans-serif; transition:all .2s ease;
+  font-size:14px; font-weight:600; transition:all .2s ease;
 }
 .mode-btn.active{background:var(--accent); color:#ffffff; box-shadow:var(--shadow-sm);}
 .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm);}
@@ -80,10 +80,11 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 .spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none;}
 .spslider::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
 
+/* 按钮区 */
 .action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
 .brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .btn{
-  padding:12px 6px; border-radius:8px; border:none; cursor:pointer; font-family:'Noto Sans SC',sans-serif; 
+  padding:12px 6px; border-radius:8px; border:none; cursor:pointer; 
   font-size:14px; font-weight:600; transition:all .2s ease; display:flex; align-items:center; justify-content:center; gap:6px;
 }
 .btn-p{background:var(--accent); color:#fff; box-shadow:var(--shadow-sm);}
@@ -94,11 +95,25 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 /* ── 中间面板 ── */
 .panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
 .ctoolbar{
-  height: 64px; padding: 0 24px; background:var(--surface); border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 5; flex: 0 0 auto;
+  height: 60px; padding: 0 24px; background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto;
 }
 .ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
 
+.c-actions { display: flex; align-items: center; gap: 12px; }
+.top-badge { display: none; }
+.desktop-only { display: flex; }
+
+/* 状态栏 & 图例重构至顶部 */
+.sbar{
+  padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; gap:24px; align-items:center; z-index: 5; flex: 0 0 auto;
+}
+.si{display:flex; gap:8px; align-items:center;}
+.sk{font-size:13px; color:var(--text-dim); font-weight:600;}
+.sv{font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text);}
+
+.legend-wrap { padding: 12px 24px; background: var(--surface2); z-index: 4; flex: 0 0 auto; }
 .legend-group {display:flex; align-items:center; gap:16px; white-space:nowrap;}
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
@@ -112,18 +127,10 @@ canvas{
   min-height: 0;
 }
 
-.sbar{
-  padding:14px 24px; background:var(--surface); border-top:1px solid var(--border);
-  display:flex; gap:24px; flex-wrap:wrap; box-shadow: 0 -1px 2px rgba(0,0,0,0.02); z-index: 5; flex: 0 0 auto;
-}
-.si{display:flex; gap:8px; align-items:center;}
-.sk{font-size:13px; color:var(--text-dim); font-weight:600;}
-.sv{font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent);}
-
 /* ── 右侧面板 ── */
 .panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
 .rhead{
-  height: 64px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; 
+  height: 60px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; 
   border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto;
 }
 .rhead-actions {display: flex; align-items: center; gap: 12px;}
@@ -174,87 +181,67 @@ canvas{
 /* ===== 移动端及小屏幕深度自适应适配 ===== */
 /* ========================================= */
 @media (max-width: 1024px) {
-  body {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
-    padding-bottom: 100px; /* 缩小底部留白 */
-  }
-  .layout {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-  }
+  body { height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 100px; }
+  .layout { display: flex; flex-direction: column; height: auto; }
   
   .panel-left {
-    order: 1;
-    width: 100%;
-    height: auto;
-    display: block; 
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    box-shadow: none;
-    overflow: visible;
-    padding: 20px 12px 24px 12px; 
+    order: 1; width: 100%; height: auto; display: block; border-right: none;
+    border-bottom: 1px solid var(--border); box-shadow: none; overflow: visible; padding: 24px 16px 32px 16px; 
   }
-  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
+  .panel-top { display: flex; flex-direction: column; gap: 24px; height: auto; overflow: visible; }
 
-  /* 画布区域全宽拉满 */
+  /* 居中画板排在最上方 */
   .panel-center {
-    order: 2;
-    width: 100%;
-    height: 55vh; 
-    min-height: 380px;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 0; /* 确保无内边距 */
+    order: 0; width: 100%; height: 60vh; min-height: 420px;
+    border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column;
   }
   
-  .ctoolbar {
-    height: auto;
-    padding: 12px;
-    flex-wrap: wrap; 
-    gap: 10px;
+  /* 顶部标识栏 */
+  .ctoolbar { padding: 12px 16px; height: auto; }
+  .top-badge { 
+    display: inline-block; background: var(--accent-lt); color: var(--accent); 
+    padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; 
   }
-  .legend-group { flex-wrap: wrap; white-space: normal; gap: 8px 12px; line-height: 1.6; }
-  
-  .sbar { padding: 12px; gap: 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-  .sbar::-webkit-scrollbar { display: none; }
+  .desktop-only { display: none !important; }
 
+  /* 移动端数据网格 */
+  .sbar.mobile-data-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 12px 0;
+    border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .mobile-data-grid .si {
+    flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid var(--border2);
+  }
+  .mobile-data-grid .si:last-child { border-right: none; }
+  .mobile-data-grid .sk { font-size: 11px; margin-bottom: 4px; }
+  .mobile-data-grid .sv { font-size: 14px; }
+
+  /* 图例区 */
+  .legend-wrap { padding: 10px 8px; border-bottom: none; background: transparent; }
+  .legend-group { justify-content: center; gap: 12px; font-size: 11px; flex-wrap: wrap; line-height: 1.6;}
+
+  /* 隐藏移动端全屏按钮 */
+  .fs-btn { display: none !important; }
+
+  /* 表格区 */
   .panel-right { order: 3; width: 100%; height: auto; display: block; }
   .rhead { padding: 16px; height: auto; }
   .twrap { height: 400px; overflow-y: auto; }
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
 
-  /* 隐藏移动端全屏按钮 */
-  .fs-btn { display: none !important; }
-
-  /* ★ 底部按钮横向一排分布 ★ */
+  /* ★ 横向排列底部 4 按钮 ★ */
   .action-area {
-    position: fixed;
-    bottom: 0; left: 0; width: 100%;
+    position: fixed; bottom: 0; left: 0; width: 100%;
     background: var(--surface);
-    padding: 8px 12px; /* 减小内边距 */
-    padding-bottom: calc(8px + env(safe-area-inset-bottom)); 
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1); 
-    z-index: 1000;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: row; /* 横向排列 */
-    gap: 8px; /* 减小按钮间距 */
+    padding: 10px 8px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1); 
+    z-index: 1000; border-top: 1px solid var(--border);
+    display: flex; flex-direction: row; gap: 0;
   }
-  .action-area .brow {
-    display: contents; /* 将内部按钮提权到顶级 flex 中 */
-  }
-  .btn {
-    flex: 1; /* 均分剩余空间 */
-    padding: 10px 0; /* 减小高度 */
-    font-size: 13px; /* 减小字号 */
-    border-radius: 6px;
-    gap: 4px;
-  }
+  .action-area .brow { display: contents; }
+  .btn { flex: 1; padding: 12px 0; margin: 0 4px; font-size: 14px; border-radius: 8px; justify-content: center;}
 }
 </style>
 </head>
@@ -263,6 +250,7 @@ canvas{
 <div class="layout">
 
 <div class="panel-left">
+  
   <div class="panel-top">
     <div>
       <div class="stitle">插补类型</div>
@@ -341,29 +329,43 @@ canvas{
       <button class="btn btn-s" onclick="stepOnce()">⏭ 单步</button>
     </div>
   </div>
+
 </div>
 
 <div class="panel-center">
   <div class="ctoolbar">
-    <span class="ctitle">逐点比较法轨迹推演</span>
-    <div style="flex:1"></div>
-    <div class="legend-group">
-      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>理想轨迹</div>
-      <div class="leg"><span class="lline" style="background:var(--accent)"></span>实际路径</div>
-      <div class="leg"><span class="ldot" style="background:var(--orange); border: 1.5px solid #fff; box-shadow: 0 0 0 1px var(--border2)"></span>刀具</div>
-      <div class="leg"><span class="ldot" style="background:var(--x-color)"></span>±X进给</div>
-      <div class="leg"><span class="ldot" style="background:var(--y-color)"></span>±Y进给</div>
+    <span class="ctitle">📐 逐点比较法插补</span>
+    <div class="c-actions">
+       <span class="top-badge" id="st-badge">等待开始</span>
+       <button id="fsBtn" class="fs-btn" onclick="toggleFullScreen()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+        <span>全屏</span>
+      </button>
     </div>
   </div>
-  <canvas id="cv"></canvas>
-  <div class="sbar">
-    <div class="si"><span class="sk">第</span><span class="sv" id="ss" style="color:var(--text)">—</span><span class="sk">步</span></div>
-    <div class="si"><span class="sk">坐标</span><span class="sv" style="color:var(--text-mid)">(<span id="sx" style="color:var(--x-color)">—</span>, <span id="sy" style="color:var(--y-color)">—</span>)</span></div>
+  
+  <div class="sbar mobile-data-grid">
+    <div class="si"><span class="sk">步骤</span><span class="sv" id="ss">—</span></div>
+    <div class="si"><span class="sk">X 坐标</span><span class="sv" id="sx" style="color:var(--x-color)">—</span></div>
+    <div class="si"><span class="sk">Y 坐标</span><span class="sv" id="sy" style="color:var(--y-color)">—</span></div>
     <div class="si"><span class="sk">偏差 F</span><span class="sv" id="sf">—</span></div>
     <div class="si"><span class="sk">剩余 N</span><span class="sv" id="sn">—</span></div>
-    <div style="flex:1"></div>
-    <div class="si"><span class="sv" id="st" style="color:var(--text-dim);font-size:15px;font-weight:600;">等待开始</span></div>
+    <div class="si desktop-only" style="flex:1; justify-content:flex-end;"><span class="sv" id="st" style="color:var(--text-dim);font-size:15px;font-weight:600;">等待开始</span></div>
   </div>
+
+  <div class="legend-wrap">
+    <div class="legend-group">
+      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>理想</div>
+      <div class="leg"><span class="lline" style="background:var(--accent)"></span>实际</div>
+      <div class="leg"><span class="ldot" style="background:var(--orange); border: 1.5px solid #fff; box-shadow: 0 0 0 1px var(--border2)"></span>刀具</div>
+      <div class="leg"><span class="ldot" style="background:var(--x-color)"></span>±X</div>
+      <div class="leg"><span class="ldot" style="background:var(--y-color)"></span>±Y</div>
+    </div>
+  </div>
+
+  <canvas id="cv"></canvas>
 </div>
 
 <div class="panel-right">
@@ -371,12 +373,6 @@ canvas{
     <span>插补步骤记录</span>
     <div class="rhead-actions">
       <span class="rhead-badge">动态更新</span>
-      <button id="fsBtn" class="fs-btn" onclick="toggleFullScreen()" title="全屏显示">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-        </svg>
-        <span>全屏</span>
-      </button>
     </div>
   </div>
   <div class="twrap scr">
@@ -409,8 +405,8 @@ const ctx=cv.getContext('2d');
 let mode='line', arcDir='NR';
 let steps=[],cur=-1,timer=null,running=false,inited=false;
 
-const enterFsIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
-const exitFsIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
+const enterFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
+const exitFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
 
 function toggleFullScreen() {
   if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.error(`全屏失败: ${err.message}`); }); }
@@ -419,8 +415,10 @@ function toggleFullScreen() {
 
 document.addEventListener('fullscreenchange', () => {
   const btn = document.getElementById('fsBtn');
-  if (document.fullscreenElement) { btn.innerHTML = `${exitFsIcon}<span>退出</span>`; }
-  else { btn.innerHTML = `${enterFsIcon}<span>全屏</span>`; }
+  if(btn) {
+    if (document.fullscreenElement) { btn.innerHTML = `${exitFsIcon}<span>退出</span>`; }
+    else { btn.innerHTML = `${enterFsIcon}<span>全屏</span>`; }
+  }
   setTimeout(resize, 100);
 });
 
@@ -528,7 +526,10 @@ function resetSim(){
   setSt('等待开始'); drawGrid();
 }
 
-function setSt(t){document.getElementById('st').innerHTML=t;}
+function setSt(t){
+  let e1 = document.getElementById('st'); if(e1) e1.innerHTML=t;
+  let e2 = document.getElementById('st-badge'); if(e2) e2.innerHTML=t;
+}
 
 function renderStep(idx){
   let s=steps[idx];
@@ -579,7 +580,7 @@ function updTbl(idx){
   }
 }
 
-/* ★ 移动端极致放大版：图纸网格引擎 */
+/* ★ 高级坐标纸网格引擎（自适应全屏边距） */
 function gp(){
   let xe,ye,xs=0,ys=0;
   if(mode==='line'){
@@ -596,33 +597,25 @@ function gp(){
   let mc = Math.max(maxCoord + 1, isMobile ? 6 : 8); 
   
   let span = mc * 2;
-  // ★ 极限压榨手机端边距，让画布全宽
-  let mg = isMobile ? 16 : 50; 
+  // ★ 极限压缩手机边距（仅留 5px）使图形全宽拉满
+  let mg = isMobile ? 5 : 50; 
   let gs = Math.min((w - mg*2) / span, (h - mg*2) / span);
   
   let ox = w / 2;
   let oy = h / 2;
-  
-  return { mc, gs, ox, oy, isMobile, w, h };
+  return { mc, gs, ox, oy, isMobile };
 }
 
 function toC(gx,gy){
-  let {gs, ox, oy} = gp();
-  return {cx: ox + gx*gs, cy: oy - gy*gs};
+  let {gs, ox, oy} = gp(); return {cx: ox + gx*gs, cy: oy - gy*gs};
 }
 
 function resize(){
-  let w = cv.clientWidth;
-  let h = cv.clientHeight;
+  let w = cv.clientWidth; let h = cv.clientHeight;
   if(w===0 || h===0) return; 
-
   let dpr = window.devicePixelRatio || 1;
-  cv.width = w * dpr;
-  cv.height = h * dpr;
-  
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.scale(dpr, dpr);
-
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
   if(inited) drawScene(cur); else drawGrid();
 }
 
@@ -647,14 +640,11 @@ function drawGrid(){
     if(i === 0) continue; 
     ctx.moveTo(ox + i*gs, gTop); ctx.lineTo(ox + i*gs, gBottom);
     ctx.moveTo(gLeft, oy - i*gs); ctx.lineTo(gRight, oy - i*gs);
-  }
-  ctx.stroke();
+  } ctx.stroke();
   
-  ctx.strokeStyle = '#94a3b8'; 
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  // ★ 手机端动态缩短延伸线，防止越界
-  let axExt = isMobile ? 8 : 20; 
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath();
+  // ★ 手机端延伸线变短防止出界
+  let axExt = isMobile ? 6 : 20; 
   ctx.moveTo(gLeft - axExt, oy); ctx.lineTo(gRight + axExt, oy); 
   ctx.moveTo(ox, gBottom + axExt); ctx.lineTo(ox, gTop - axExt); 
   ctx.stroke();
@@ -666,21 +656,18 @@ function drawGrid(){
     if(d==='r'){ctx.moveTo(x-arrSize/2,y-arrSize/2);ctx.lineTo(x+arrSize,y);ctx.lineTo(x-arrSize/2,y+arrSize/2);}
     else{ctx.moveTo(x-arrSize/2,y+arrSize/2);ctx.lineTo(x,y-arrSize);ctx.lineTo(x+arrSize/2,y+arrSize/2);}
     ctx.fill();
-  };
-  ar(gRight + axExt, oy, 'r');
-  ar(ox, gTop - axExt, 'u');
+  }; ar(gRight + axExt, oy, 'r'); ar(ox, gTop - axExt, 'u');
   
   ctx.font = isMobile ? 'bold 12px Noto Sans SC,sans-serif' : 'bold 14px Noto Sans SC,sans-serif';
   ctx.fillStyle = '#64748b';
-  // ★ 手机端微调字母位置
-  ctx.fillText('X', gRight + axExt + (isMobile ? 2 : 6), oy + (isMobile ? 10 : 5));
+  ctx.fillText('X', gRight + axExt + (isMobile ? 2 : 6), oy + (isMobile ? 10 : 5)); 
   ctx.fillText('Y', ox + (isMobile ? 6 : 10), gTop - axExt - (isMobile ? 2 : 6));
   
+  // ★ 重新启用坐标数值绘制
   ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace';
-  ctx.fillStyle = '#94a3b8';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
+  // 步长控制避免拥挤
   let step = 1;
   if(mc > 12) step = 2;
   if(mc > 25) step = 5;
@@ -689,52 +676,40 @@ function drawGrid(){
     if(i === 0 || i % step !== 0) continue;
     ctx.fillText(i, ox + i*gs, oy + 12); 
   }
-  
   ctx.textAlign = 'right';
   for(let i = -mc; i <= mc; i++){
     if(i === 0 || i % step !== 0) continue;
     ctx.fillText(i, ox - 6, oy - i*gs); 
   }
   
-  ctx.textAlign = 'right';
-  ctx.fillText('0', ox - 6, oy + 12);
-  
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'right'; ctx.fillText('0', ox - 6, oy + 12);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
 }
 
 function drawScene(idx){
   if(!inited||!steps.length) return;
-  drawGrid();
-  let { gs, isMobile } = gp();
+  drawGrid(); let { gs, isMobile } = gp();
 
   if(mode==='line'){
-    let xe=num('lxe',6), ye=num('lye',4);
-    let p0=toC(0,0),pe=toC(xe,ye);
+    let xe=num('lxe',6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(p0.cx,p0.cy);ctx.lineTo(pe.cx,pe.cy);ctx.stroke();ctx.restore();
-    let{cx,cy}=pe;
-    ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC';
-    ctx.textAlign='center'; ctx.fillText('终',cx,cy+(isMobile?3:4));ctx.textAlign='left';
+    let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('终',cx,cy+(isMobile?3:4));ctx.textAlign='left';
   } else {
     let xs=num('axs',5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
-    ctx.beginPath();
-    ctx.arc(cc.cx,cc.cy,R*gs,-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR');
-    ctx.stroke();ctx.restore();
+    ctx.beginPath();ctx.arc(cc.cx,cc.cy,R*gs,-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR'); ctx.stroke();ctx.restore();
     let ps=toC(xs,ys),pe=toC(xe,ye);
     ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(ps.cx,ps.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#16a34a'; ctx.beginPath();ctx.arc(pe.cx,pe.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC';
-    ctx.textAlign='center'; ctx.fillText('起',ps.cx,ps.cy+(isMobile?3:4));ctx.fillText('终',pe.cx,pe.cy+(isMobile?3:4));ctx.textAlign='left';
+    ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('起',ps.cx,ps.cy+(isMobile?3:4));ctx.fillText('终',pe.cx,pe.cy+(isMobile?3:4));ctx.textAlign='left';
   }
 
   if(idx>0){
     ctx.strokeStyle='#7c3aed';ctx.lineWidth=isMobile?2.5:3.5;
-    ctx.beginPath();
-    let s0=toC(steps[0].x,steps[0].y);ctx.moveTo(s0.cx,s0.cy);
+    ctx.beginPath(); let s0=toC(steps[0].x,steps[0].y);ctx.moveTo(s0.cx,s0.cy);
     for(let i=1;i<=idx;i++){let p=toC(steps[i].x,steps[i].y);ctx.lineTo(p.cx,p.cy);}
     ctx.stroke();
 
@@ -751,29 +726,23 @@ function drawScene(idx){
       ctx.strokeStyle=isX?'#2563eb':'#0d9488';ctx.lineWidth=isMobile?3:4;
       ctx.beginPath();ctx.moveTo(pp.cx,pp.cy);ctx.lineTo(cp.cx,cp.cy);ctx.stroke();
       let ang=Math.atan2(cp.cy-pp.cy,cp.cx-pp.cx);
-      ctx.fillStyle=isX?'#2563eb':'#0d9488';
+      ctx.fillStyle=isX?'#2563eb':'#0d9488'; ctx.beginPath(); ctx.moveTo(cp.cx,cp.cy);
       let arrSpan = isMobile ? 10 : 14;
-      ctx.beginPath(); ctx.moveTo(cp.cx,cp.cy);
       ctx.lineTo(cp.cx-arrSpan*Math.cos(ang-0.4),cp.cy-arrSpan*Math.sin(ang-0.4));
-      ctx.lineTo(cp.cx-arrSpan*Math.cos(ang+0.4),cp.cy-arrSpan*Math.sin(ang+0.4));
-      ctx.fill();
+      ctx.lineTo(cp.cx-arrSpan*Math.cos(ang+0.4),cp.cy-arrSpan*Math.sin(ang+0.4)); ctx.fill();
     }
 
     let sc=steps[idx],pc=toC(sc.x,sc.y);
     ctx.fillStyle='#ea580c'; 
     let toolR = isMobile ? 5 : 7.5;
     ctx.beginPath();ctx.arc(pc.cx,pc.cy,toolR,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#ffffff';ctx.lineWidth=2;
-    ctx.beginPath();ctx.arc(pc.cx,pc.cy,toolR,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=2; ctx.beginPath();ctx.arc(pc.cx,pc.cy,toolR,0,Math.PI*2);ctx.stroke();
     
-    ctx.font = isMobile ? 'bold 13px JetBrains Mono,monospace' : 'bold 15px JetBrains Mono,monospace';
-    ctx.strokeStyle='#ffffff';
-    ctx.lineWidth=3;
+    ctx.font=isMobile?'bold 13px JetBrains Mono,monospace':'bold 15px JetBrains Mono,monospace'; 
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=3;
     ctx.strokeText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
-    ctx.fillStyle='#7c3aed';
-    ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
+    ctx.fillStyle='#7c3aed'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
   }
-  
   let orig=toC(0,0);ctx.fillStyle='#4b5563';ctx.beginPath();ctx.arc(orig.cx,orig.cy,isMobile?3:5,0,Math.PI*2);ctx.fill();
 }
 
