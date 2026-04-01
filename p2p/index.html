@@ -9,7 +9,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
 
 :root {
-  /* 现代极简色板 */
   --bg:        #f3f4f6;
   --surface:   #ffffff;
   --surface2:  #f9fafb;
@@ -41,56 +40,56 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 
 /* ── Left Panel ── */
 .panel-left{
-  background:var(--surface); border-right:1px solid var(--border); padding:12px 16px; 
+  background:var(--surface); border-right:1px solid var(--border); padding:16px; 
   display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10;
 }
 .panel-top {
-  display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-height: 0;     
-  overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 4px; 
+  display: flex; flex-direction: column; gap: 12px; flex: 1 1 0; min-height: 0;     
+  overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; 
 }
 .panel-top::-webkit-scrollbar { display: none; }
 .stitle{
-  font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:4px; display:flex; align-items:center; gap:6px;
+  font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:6px; display:flex; align-items:center; gap:6px;
 }
 .stitle::before{content:''; width:4px; height:12px; background:var(--accent); border-radius:2px;}
 .mode-sw{
-  background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius); padding:2px; display:grid; grid-template-columns:1fr 1fr; gap:2px;
+  background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius); padding:4px; display:grid; grid-template-columns:1fr 1fr; gap:4px;
 }
 .mode-btn{
-  padding:6px 4px; background:transparent; color:var(--text-mid); border:none; border-radius:6px; cursor:pointer;
+  padding:8px 4px; background:transparent; color:var(--text-mid); border:none; border-radius:6px; cursor:pointer;
   font-size:14px; font-weight:600; font-family:'Noto Sans SC',sans-serif; transition:all .2s ease;
 }
 .mode-btn.active{background:var(--accent); color:#ffffff; box-shadow:var(--shadow-sm);}
-.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:8px 10px; box-shadow:var(--shadow-sm);}
-.ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:2px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm);}
+.ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:4px;}
 .ifield{
-  background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 6px; color:var(--text); 
+  background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; color:var(--text); 
   font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700; width:100%; transition:all .2s;
 }
 .ifield:focus{outline:none; background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lt);}
 
 .fbox{
-  background:var(--accent-lt); border:1px solid #bfdbfe; border-radius:6px; padding:8px 10px; 
-  font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.5; color:var(--text-mid);
+  background:var(--accent-lt); border:1px solid #bfdbfe; border-radius:6px; padding:10px 12px; 
+  font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top: 8px;
 }
-.fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:4px;}
+.fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:6px;}
 .fvx{color:var(--red); font-weight:700;}
 .fvy{color:var(--orange); font-weight:700;}
 .qbtn{
-  padding:4px 2px; background:var(--surface2); border:1px solid var(--border); color:var(--text-mid); 
+  padding:6px 2px; background:var(--surface2); border:1px solid var(--border); color:var(--text-mid); 
   border-radius:4px; cursor:pointer; font-size:13px; font-weight:600; font-family:'Noto Sans SC',sans-serif; transition:all .2s;
 }
 .qbtn.active{border-color:var(--accent); color:var(--accent); background:var(--accent-lt);}
 
 .spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none;}
-.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
+.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
 
 /* 控制区锁定底部 */
-.action-area {flex: 0 0 auto; padding-top: 8px; display: flex; flex-direction: column; gap: 8px;}
-.brow{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.action-area {flex: 0 0 auto; padding-top: 12px; display: flex; flex-direction: column; gap: 10px;}
+.brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .btn{
-  padding:10px 6px; border-radius:6px; border:none; cursor:pointer; font-family:'Noto Sans SC',sans-serif; 
-  font-size:14px; font-weight:600; transition:all .2s ease; display:flex; align-items:center; justify-content:center; gap:4px;
+  padding:12px 6px; border-radius:8px; border:none; cursor:pointer; font-family:'Noto Sans SC',sans-serif; 
+  font-size:14px; font-weight:600; transition:all .2s ease; display:flex; align-items:center; justify-content:center; gap:6px;
 }
 .btn-p{background:var(--accent); color:#fff; box-shadow:var(--shadow-sm);}
 .btn-p:hover{background:#1d4ed8; box-shadow:var(--shadow);}
@@ -102,19 +101,19 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 /* ── Center Panel ── */
 .panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
 .ctoolbar{
-  height: 60px; padding: 0 24px; background:var(--surface); border-bottom:1px solid var(--border);
+  height: 64px; padding: 0 24px; background:var(--surface); border-bottom:1px solid var(--border);
   display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 5; flex: 0 0 auto;
 }
 .ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
 
-.legend-group {display:flex; align-items:center; gap:12px; white-space:nowrap;}
-.leg{display:flex; align-items:center; gap:5px; font-size:13px; color:var(--text-mid); font-weight:500;}
+.legend-group {display:flex; align-items:center; gap:16px; white-space:nowrap;}
+.leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
 .lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
 canvas{flex:1; width:100%; display:block;}
 .sbar{
-  padding:12px 20px; background:var(--surface); border-top:1px solid var(--border);
-  display:flex; gap:20px; flex-wrap:wrap; box-shadow: 0 -1px 2px rgba(0,0,0,0.02); z-index: 5; flex: 0 0 auto;
+  padding:14px 24px; background:var(--surface); border-top:1px solid var(--border);
+  display:flex; gap:24px; flex-wrap:wrap; box-shadow: 0 -1px 2px rgba(0,0,0,0.02); z-index: 5; flex: 0 0 auto;
 }
 .si{display:flex; gap:8px; align-items:center;}
 .sk{font-size:13px; color:var(--text-dim); font-weight:600;}
@@ -123,7 +122,7 @@ canvas{flex:1; width:100%; display:block;}
 /* ── Right Panel ── */
 .panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
 .rhead{
-  height: 60px; padding: 0 20px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; 
+  height: 64px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; 
   border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto;
 }
 /* 右侧标题栏动作区 */
@@ -139,7 +138,7 @@ canvas{flex:1; width:100%; display:block;}
   background: var(--surface);
   border: 1px solid var(--border2);
   color: var(--text-mid);
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
@@ -164,31 +163,31 @@ canvas{flex:1; width:100%; display:block;}
 }
 
 .twrap{flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: auto; padding: 0;}
-.stab{width:100%; border-collapse:collapse; font-size:13px;}
+.stab{width:100%; border-collapse:collapse; font-size:14px;}
 .stab th{
-  padding:10px 4px; background:var(--surface2); color:var(--text-dim); font-weight:600;
-  text-align:center; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:12px; position:sticky; top:0; z-index:1;
+  padding:12px 6px; background:var(--surface2); color:var(--text-dim); font-weight:600;
+  text-align:center; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:13px; position:sticky; top:0; z-index:1;
 }
-.stab td{padding:8px 4px; text-align:center; font-family:'JetBrains Mono',monospace; border-bottom:1px solid var(--border); font-size:13.5px; white-space:nowrap;}
+.stab td{padding:10px 6px; text-align:center; font-family:'JetBrains Mono',monospace; border-bottom:1px solid var(--border); font-size:14px; white-space:nowrap;}
 .stab tr:hover td{background:var(--surface2);}
 .stab tr.cur td{background:var(--accent-lt); color:var(--accent); font-weight:700;}
 .stab tr.done td{color:var(--text-mid);}
 
 .sdetail{
-  flex: 0 0 250px; height: 250px; box-sizing: border-box; overflow-y: auto; 
-  border-top:1px solid var(--border); padding:16px 20px; background:var(--surface); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 10;
+  flex: 0 0 280px; height: 280px; box-sizing: border-box; overflow-y: auto; 
+  border-top:1px solid var(--border); padding:20px 24px; background:var(--surface); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 10;
 }
-.sdtitle{font-size:14px; font-weight:700; letter-spacing:1px; color:var(--orange); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:6px;}
-.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px;}
-.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:8px; font-weight: 500;}
+.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--orange); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;}
+.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
 .dnum{
-  width:20px; height:20px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%;
-  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;
+  width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0;
 }
-.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px;}
+.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px;}
 .dnote{
-  margin-top:8px; padding:8px 12px; background:var(--surface2); border-left:4px solid var(--accent); border-radius:4px 8px 8px 4px;
-  font-size:12px; color:var(--text-mid); font-family:'JetBrains Mono',monospace; line-height:1.6;
+  margin-top:12px; padding:10px 14px; background:var(--surface2); border-left:4px solid var(--accent); border-radius:4px 8px 8px 4px;
+  font-size:13px; color:var(--text-mid); font-family:'JetBrains Mono',monospace; line-height:1.6;
 }
 
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
@@ -202,73 +201,75 @@ canvas{flex:1; width:100%; display:block;}
 /* ===== 移动端及小屏幕深度自适应适配 ===== */
 /* ========================================= */
 @media (max-width: 1024px) {
-  /* 恢复页面自然滚动，给底部悬浮操作栏留出空间 */
   body {
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
-    padding-bottom: 130px; 
+    padding-bottom: 140px; 
   }
   
-  /* 将网格强制转为单列垂直流 */
   .layout {
     display: flex;
     flex-direction: column;
     height: auto;
   }
   
-  /* 1. 左侧面板 (参数设置) - 彻底修复高度塌陷导致重叠的Bug */
+  /* 左侧面板：增加间距，舒缓排版 */
   .panel-left {
     order: 1;
     width: 100%;
     height: auto;
-    display: block; /* 核心修复点：取消 flex 行为，强制撑开高度 */
+    display: block; 
     border-right: none;
     border-bottom: 1px solid var(--border);
     box-shadow: none;
     overflow: visible;
-    padding-bottom: 24px;
+    padding: 20px 16px 32px 16px; /* 加大内边距 */
   }
   .panel-top {
-    display: block; /* 核心修复点：取消 flex: 1 1 0，防止计算高度为 0 */
+    display: flex; 
+    flex-direction: column;
+    gap: 20px; /* ★ 加大卡片之间的纵向间距 */
     height: auto;
     overflow: visible;
   }
 
-  /* 2. 中间面板 (画布区域) - 给出稳定的高度比例 */
+  /* 中间画布：稳定高度 */
   .panel-center {
     order: 2;
     width: 100%;
-    height: 50vh; /* 稳定高度供 JS 获取，计算 Canvas 尺寸 */
+    height: 48vh; 
     min-height: 380px;
     border-right: none;
     border-bottom: 1px solid var(--border);
     display: flex;
     flex-direction: column;
   }
-  /* 修复图例重叠挤压 */
+  
+  /* 图例工具栏：优化行距和折行体验 */
   .ctoolbar {
     height: auto;
-    padding: 12px 16px;
+    padding: 16px;
     flex-wrap: wrap; 
-    gap: 12px;
+    gap: 14px;
   }
   .legend-group {
     flex-wrap: wrap; 
     white-space: normal; 
-    gap: 8px 12px;
+    gap: 12px 16px; /* ★ 增加图例项目的间距 */
+    line-height: 1.8;
   }
-  /* 状态栏横向滑动 */
+  
   .sbar {
-    padding: 12px 16px;
-    gap: 12px;
+    padding: 16px;
+    gap: 16px;
     overflow-x: auto; 
     white-space: nowrap;
     scrollbar-width: none;
   }
   .sbar::-webkit-scrollbar { display: none; }
 
-  /* 3. 右侧面板 (表格记录) */
+  /* 右侧表格区 */
   .panel-right {
     order: 3;
     width: 100%;
@@ -276,37 +277,38 @@ canvas{flex:1; width:100%; display:block;}
     display: block;
   }
   .rhead {
-    padding: 0 16px;
+    padding: 16px;
+    height: auto;
   }
   .twrap {
-    height: 350px; /* 控制表格最大高度，实现内部滚动 */
+    height: 350px; 
     overflow-y: auto;
   }
   .sdetail {
     height: auto;
     max-height: none;
-    padding-bottom: 24px;
+    padding: 24px 16px;
   }
 
-  /* 4. 底部操作栏 (悬浮吸底) */
+  /* 底部悬浮操作栏：加大按钮更易触控 */
   .action-area {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     background: var(--surface);
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* 适配 iPhone 黑条 */
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15); /* 明显阴影划分层级 */
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12); 
     z-index: 1000;
     border-top: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
   .btn {
-    padding: 12px 6px; 
-    font-size: 15px;
+    padding: 14px 8px; /* ★ 按钮更高，触控面积更大 */
+    font-size: 16px;
   }
 }
 </style>
@@ -329,7 +331,7 @@ canvas{flex:1; width:100%; display:block;}
     <div id="lc">
       <div class="stitle">直线参数</div>
       <div class="card">
-        <div style="display:flex; gap:6px; margin-bottom:8px">
+        <div style="display:flex; gap:10px; margin-bottom:12px">
           <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield" type="number" id="lxe" value="6"></div>
           <div style="flex:1"><div class="ilabel">终点 Ye</div><input class="ifield" type="number" id="lye" value="4"></div>
         </div>
@@ -337,7 +339,7 @@ canvas{flex:1; width:100%; display:block;}
           <div class="fh">偏差 F = Xe·Y − Ye·X</div>
           <div>F ≥ 0 → 偏上，进给 <span class="fvx">+X</span>，F<sub>新</sub>=F<span class="fvx">−Ye</span></div>
           <div>F &lt; 0 → 偏下，进给 <span class="fvy">+Y</span>，F<sub>新</sub>=F<span class="fvy">+Xe</span></div>
-          <div style="color:var(--text-dim);margin-top:4px;font-size:11px">总步数 N = Xe + Ye</div>
+          <div style="color:var(--text-dim);margin-top:6px;font-size:12px">总步数 N = Xe + Ye</div>
         </div>
       </div>
     </div>
@@ -346,11 +348,11 @@ canvas{flex:1; width:100%; display:block;}
       <div class="stitle">圆弧参数 (第一象限)</div>
       <div class="card">
         <div class="ilabel">圆弧走向</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:8px">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px">
           <button class="qbtn active" onclick="setDir('NR',this)">↺ 逆圆</button>
           <button class="qbtn" onclick="setDir('SR',this)">↻ 顺圆</button>
         </div>
-        <div style="display:flex; gap:4px; margin-bottom:8px">
+        <div style="display:flex; gap:8px; margin-bottom:12px">
           <div style="flex:1"><div class="ilabel">起X</div><input class="ifield" type="number" id="axs" value="5"></div>
           <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield" type="number" id="ays" value="0"></div>
           <div style="flex:1"><div class="ilabel">终X</div><input class="ifield" type="number" id="axe" value="0"></div>
@@ -358,14 +360,14 @@ canvas{flex:1; width:100%; display:block;}
         </div>
         
         <div class="fbox">
-          <div class="fh" style="font-family:'JetBrains Mono',monospace; margin-bottom:6px;">偏差 F = (X<sub>i</sub>²+Y<sub>i</sub>²) - (X<sub>0</sub>²+Y<sub>0</sub>²)</div>
-          <div style="display:grid; gap:6px;">
-            <div style="background:var(--surface); padding:6px 8px; border-radius:4px; border:1px solid var(--border);">
+          <div class="fh" style="font-family:'JetBrains Mono',monospace; margin-bottom:8px;">偏差 F = X<sub>i</sub>² + Y<sub>i</sub>² - R²</div>
+          <div style="display:grid; gap:8px;">
+            <div style="background:var(--surface); padding:8px 10px; border-radius:6px; border:1px solid var(--border);">
               <strong style="color:var(--accent); font-size:12px;">【逆圆 NR】</strong><br>
               <span style="font-size:12px;">F≥0 → 进给 <span class="fvx">-X</span>, F<sub>新</sub> = F - 2X<sub>i</sub> + 1</span><br>
               <span style="font-size:12px;">F&lt;0 → 进给 <span class="fvy">+Y</span>, F<sub>新</sub> = F + 2Y<sub>i</sub> + 1</span>
             </div>
-            <div style="background:var(--surface); padding:6px 8px; border-radius:4px; border:1px solid var(--border);">
+            <div style="background:var(--surface); padding:8px 10px; border-radius:6px; border:1px solid var(--border);">
               <strong style="color:var(--accent); font-size:12px;">【顺圆 SR】</strong><br>
               <span style="font-size:12px;">F≥0 → 进给 <span class="fvy">-Y</span>, F<sub>新</sub> = F - 2Y<sub>i</sub> + 1</span><br>
               <span style="font-size:12px;">F&lt;0 → 进给 <span class="fvx">+X</span>, F<sub>新</sub> = F + 2X<sub>i</sub> + 1</span>
@@ -377,10 +379,10 @@ canvas{flex:1; width:100%; display:block;}
 
     <div>
       <div class="stitle">演示速度</div>
-      <div class="card" style="padding:6px 12px; display:flex; align-items:center; gap:10px;">
-        <span style="font-size:12px;color:var(--text-dim);font-weight:600">慢</span>
+      <div class="card" style="padding:10px 16px; display:flex; align-items:center; gap:12px;">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600">慢</span>
         <input type="range" class="spslider" id="speed" min="100" max="2000" value="800">
-        <span style="font-size:12px;color:var(--text-dim);font-weight:600">快</span>
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600">快</span>
       </div>
     </div>
   </div>
@@ -429,7 +431,7 @@ canvas{flex:1; width:100%; display:block;}
     <div class="rhead-actions">
       <span class="rhead-badge">动态更新</span>
       <button id="fsBtn" class="fs-btn" onclick="toggleFullScreen()" title="全屏显示">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
         </svg>
         <span>全屏</span>
@@ -464,8 +466,8 @@ const ctx=cv.getContext('2d');
 let mode='line', arcDir='NR';
 let steps=[],cur=-1,timer=null,running=false,inited=false;
 
-const enterFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
-const exitFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
+const enterFsIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
+const exitFsIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
 
 function toggleFullScreen() {
   if (!document.fullscreenElement) {
@@ -608,7 +610,7 @@ function renderStep(idx){
 
   let dc=document.getElementById('dc');
   if(idx===0){
-    dc.innerHTML=`<div style="color:var(--text-mid);font-size:14px;line-height:1.9;font-weight:600;padding:8px 0">${s.det}</div>`;
+    dc.innerHTML=`<div style="color:var(--text-mid);font-size:15px;line-height:1.9;font-weight:600;padding:8px 0">${s.det}</div>`;
   } else {
     let pos=s.oF>=0;
     let fc=s.feed.includes('X')?'var(--x-color)':'var(--y-color)';
@@ -617,7 +619,7 @@ function renderStep(idx){
         <div class="dlbl"><div class="dnum">1</div>偏差判别</div>
         <div class="dval" style="color:${pos?'var(--accent)':'var(--red)'}">F = ${s.oF} &nbsp; ${pos?'≥ 0':'< 0'}</div>
       </div>
-      <div style="margin:0 0 8px 28px;font-size:12px;color:var(--text-dim)">${s.judge}</div>
+      <div style="margin:0 0 10px 32px;font-size:13px;color:var(--text-dim)">${s.judge}</div>
       <div class="drow">
         <div class="dlbl"><div class="dnum">2</div>坐标进给</div>
         <div class="dval" style="color:${fc}">进给 &nbsp;${s.feed}</div>
@@ -723,37 +725,32 @@ function drawGrid(){
     ctx.beginPath();ctx.moveTo(ox-mc*gs,oy-i*gs);ctx.lineTo(ox+mc*gs,oy-i*gs);ctx.stroke();
   }
   
-  // Main Axes - Lightened to slate-400
+  // Main Axes
   ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;
   ctx.beginPath();
   ctx.moveTo(ox-mc*gs-14,oy);ctx.lineTo(ox+mc*gs+14,oy);
   ctx.moveTo(ox,oy+mc*gs+14);ctx.lineTo(ox,oy-mc*gs-14);
   ctx.stroke();
   
-  // Arrows - Lightened
+  // Arrows
   ctx.fillStyle='#94a3b8';
   let ar=(x,y,d)=>{ctx.beginPath();
     if(d==='r'){ctx.moveTo(x,y-5);ctx.lineTo(x+10,y);ctx.lineTo(x,y+5);}
     else{ctx.moveTo(x-5,y);ctx.lineTo(x,y-10);ctx.lineTo(x+5,y);}ctx.fill();};
   ar(ox+mc*gs+14,oy,'r');ar(ox,oy-mc*gs-14,'u');
   
-  // Labels X Y - Lightened
+  // Labels X Y
   ctx.font='bold 16px Noto Sans SC,sans-serif';ctx.fillStyle='#64748b';
   ctx.fillText('X',ox+mc*gs+28,oy+6); 
   ctx.fillText('Y',ox+12,oy-mc*gs-16); 
   
-  // Tick Marks - Lightened
-  ctx.font='600 14px JetBrains Mono,monospace';ctx.fillStyle='#94a3b8';ctx.textAlign='center';
+  // Tick Marks (★ 数字已在此处精简，仅保留刻度线以维持极简外观)
+  ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1.5;
   for(let i=-mc;i<=mc;i++){
     if(i===0||Math.abs(i)>=mc-1) continue;
-    ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1.5;
     ctx.beginPath();ctx.moveTo(ox+i*gs,oy-4);ctx.lineTo(ox+i*gs,oy+4);ctx.stroke();
     ctx.beginPath();ctx.moveTo(ox-4,oy-i*gs);ctx.lineTo(ox+4,oy-i*gs);ctx.stroke();
-    
-    ctx.fillText(i,ox+i*gs,oy+22);
-    ctx.textAlign='right';ctx.fillText(i,ox-10,oy-i*gs+5);ctx.textAlign='center';
   }
-  ctx.textAlign='left';
 }
 
 function drawScene(idx){
@@ -818,6 +815,7 @@ function drawScene(idx){
     ctx.strokeStyle='#ffffff';ctx.lineWidth=2.5;
     ctx.beginPath();ctx.arc(pc.cx,pc.cy,7.5,0,Math.PI*2);ctx.stroke();
     
+    // 刀具旁边依然保留当前的动态坐标，方便教学和观察
     ctx.font='bold 15px JetBrains Mono,monospace';
     ctx.strokeStyle='#ffffff';
     ctx.lineWidth=4;
