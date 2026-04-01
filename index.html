@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数控插补原理可视化演示系统</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root {
+  /* 现代极简色板 - 与子页面保持一致 */
+  --bg:        #f3f4f6;
+  --surface:   #ffffff;
+  --surface2:  #f9fafb;
+  --border:    #e5e7eb;
+  --border2:   #d1d5db;
+  --text:      #111827;
+  --text-mid:  #4b5563;
+  --text-dim:  #6b7280;
+  
+  --p2p-color: #2563eb; /* 逐点比较法的主色调 */
+  --p2p-bg:    #eff6ff;
+  --dda-color: #7c3aed; /* 数字积分法的主色调 */
+  --dda-bg:    #f5f3ff;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --radius:    12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); 
+  color: var(--text); 
+  font-family: 'Noto Sans SC', sans-serif; 
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-image: radial-gradient(var(--border2) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.header p {
+  font-size: 16px;
+  color: var(--text-mid);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.nav-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  transition: height 0.3s ease;
+}
+
+.card-p2p::before { background: var(--p2p-color); }
+.card-dda::before { background: var(--dda-color); }
+
+.nav-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: transparent;
+}
+
+.nav-card:hover::before {
+  height: 6px;
+}
+
+.icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.card-p2p .icon-wrapper { background: var(--p2p-bg); }
+.card-dda .icon-wrapper { background: var(--dda-bg); }
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-p2p:hover .card-title { color: var(--p2p-color); }
+.card-dda:hover .card-title { color: var(--dda-color); }
+
+.card-desc {
+  font-size: 14px;
+  color: var(--text-mid);
+  flex-grow: 1;
+  margin-bottom: 24px;
+}
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.arrow-icon {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.nav-card:hover .arrow-icon {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.footer {
+  margin-top: 60px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .header h1 { font-size: 24px; }
+  .nav-card { padding: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>数控技术插补原理演示</h1>
+    <p>交互式动态推演系统，直观展示数控加工中核心插补算法的运行轨迹与寄存器状态，辅助数控编程与机床原理教学。</p>
+  </div>
+
+  <div class="nav-grid">
+    <a href="/p2p" class="nav-card card-p2p">
+      <div class="icon-wrapper">📐</div>
+      <div class="card-title">
+        逐点比较法 (P2P)
+        <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </div>
+      <div class="card-desc">
+        基于逐点计算偏差并决定进给方向的经典硬件插补算法。演示包含每一步的偏差判别、坐标进给及新偏差的动态计算过程。
+      </div>
+      <div class="tags">
+        <span class="tag">直线插补</span>
+        <span class="tag">圆弧插补</span>
+        <span class="tag">步进控制</span>
+      </div>
+    </a>
+
+    <a href="/dda" class="nav-card card-dda">
+      <div class="icon-wrapper">⚡</div>
+      <div class="card-title">
+        数字积分法 (DDA)
+        <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </div>
+      <div class="card-desc">
+        利用数字积分器进行累加求和，根据溢出脉冲进行插补计算的高效算法。动态展示多位寄存器的累加、溢出判定及脉冲分配逻辑。
+      </div>
+      <div class="tags">
+        <span class="tag">被积函数</span>
+        <span class="tag">寄存器溢出</span>
+        <span class="tag">脉冲分配</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">
+    为数控技术教学与探索提供交互式支持
+  </div>
+</div>
+
+</body>
+</html>
