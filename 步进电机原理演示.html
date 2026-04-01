@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>步进电机通电节拍演示</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg:        #f3f4f6;
+  --surface:   #ffffff;
+  --surface2:  #f9fafb;
+  --border:    #e5e7eb;
+  --border2:   #d1d5db;
+  --text:      #111827;
+  --text-mid:  #4b5563;
+  --text-dim:  #6b7280;
+  
+  --accent:    #2563eb; 
+  --accent-lt: #eff6ff;
+  --red:       #ef4444; 
+  --red-lt:    #fef2f2;
+  --blue:      #3b82f6; 
+  --green:     #10b981; 
+  --green-lt:  #ecfdf5;
+  --orange:    #f59e0b;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --radius:    8px;
+  
+  /* iOS 风格色彩 */
+  --ios-blue:    #007AFF;
+  --ios-orange:  #FF9500;
+  --ios-gray:    #F2F2F7;
+  --ios-text:    #1C1C1E;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html, body { 
+  background:var(--bg); color:var(--text); 
+  font-family:'Noto Sans SC',sans-serif; font-size:15px; 
+  line-height:1.5; 
+  -webkit-text-size-adjust: 100%;
+}
+body { height: 100vh; overflow: hidden; }
+button, input, select, a { touch-action: manipulation; }
+
+/* 桌面端网格 */
+.layout {
+  display: grid;
+  grid-template-columns: clamp(260px, 22vw, 330px) minmax(400px, 1fr) clamp(340px, 28vw, 480px);
+  height: 100vh;
+}
+
+.panel-left{ background:var(--surface); border-right:1px solid var(--border); padding:16px; display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10; }
+.panel-top { display: flex; flex-direction: column; gap: 14px; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; }
+.panel-top::-webkit-scrollbar { display: none; }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none; 
+  padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);
+}
+.back-link:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-lt); }
+
+.stitle{ font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.stitle::before{content:''; width:4px; height:12px; background:var(--accent); border-radius:2px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm);}
+
+/* 单选按钮组 */
+.radio-group { display: flex; flex-direction: column; gap: 8px; }
+.radio-lbl { 
+  display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text);
+  cursor: pointer; padding: 8px 12px; border: 1px solid var(--border2); border-radius: 8px; transition: all 0.2s ease;
+}
+.radio-lbl:hover { background: var(--surface2); }
+.radio-lbl.active { border-color: var(--accent); background: var(--accent-lt); color: var(--accent); }
+.radio-lbl input { display: none; }
+
+.mode-sw{ background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius); padding:4px; display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom: 12px;}
+.mode-btn{ padding:8px 4px; background:transparent; color:var(--text-mid); border:none; border-radius:6px; cursor:pointer; font-size:14px; font-weight:600; transition:all .2s ease; }
+.mode-btn.active{background:var(--accent); color:#ffffff; box-shadow:var(--shadow-sm);}
+
+.fbox{ background:var(--accent-lt); border:1px solid #bfdbfe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
+.fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:4px;}
+
+.spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none; width: 100%; margin-top: 6px;}
+.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
+
+.action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
+.brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.btn{ 
+  padding:12px 10px; border-radius:14px; border:none; cursor:pointer; user-select: none;
+  font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; 
+  font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; 
+  display:flex; align-items:center; justify-content:center; gap:6px; 
+}
+.btn:active { transform: scale(0.95); }
+.btn-reset { background: var(--ios-gray); color: #8E8E93; }
+.btn-reset:hover { background: #E5E5EA; color: var(--ios-text); }
+.btn-p { background: var(--ios-blue); color: #fff; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2); }
+.btn-p:hover { background: #0062CC; box-shadow: 0 6px 14px rgba(0, 122, 255, 0.3); }
+.btn-s { background: var(--ios-orange); color: #fff; box-shadow: 0 4px 10px rgba(255, 149, 0, 0.2); }
+.btn-s:hover { background: #E08300; box-shadow: 0 6px 14px rgba(255, 149, 0, 0.3); }
+
+/* ── 中间面板 ── */
+.panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
+.ctoolbar{ height: 60px; padding: 0 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
+.ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
+
+.c-actions { display: flex; align-items: center; gap: 12px; }
+.top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; }
+.desktop-only { display: flex; }
+
+.sbar { 
+  height: 64px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
+  display: flex; justify-content: space-around; align-items: center; 
+  z-index: 5; flex: 0 0 auto; overflow: hidden; 
+}
+.si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+.sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+.sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
+
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.legend-group { display: flex; align-items: center; gap: 24px; white-space: nowrap; flex-shrink: 0; }
+.leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:600;}
+.ldot{width:14px; height:14px; border-radius:4px; display:inline-block; flex-shrink:0;}
+
+.canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; }
+canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+/* ── 右侧面板 ── */
+.panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
+.rhead{ height: 60px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+
+.twrap{flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: auto; padding: 0;}
+.stab{width:100%; border-collapse:collapse; font-size:13px;}
+.stab th{ padding:10px 4px; background:var(--surface2); color:var(--text-dim); font-weight:600; text-align:center; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:12px; position:sticky; top:0; z-index:1; }
+.stab td{padding:10px 4px; text-align:center; font-family:'JetBrains Mono',monospace; border-bottom:1px solid var(--border); font-size:14px; white-space:nowrap;}
+.stab tr:hover td{background:var(--surface2);}
+.stab tr.cur td{background:var(--accent-lt); font-weight:700;}
+
+.phase-dot { display: inline-block; width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 4px; color: #fff; font-weight: bold; font-size: 12px; }
+.p-a { background: var(--red); }
+.p-b { background: var(--blue); }
+.p-c { background: var(--green); }
+.p-off { background: var(--border); color: transparent; }
+
+.sdetail{ flex: 0 0 280px; height: 280px; box-sizing: border-box; overflow-y: auto; border-top:1px solid var(--border); padding:20px 24px; background:var(--surface); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 10; }
+.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--orange); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;}
+.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
+.dnum{ width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color: var(--accent);}
+.dnote{ margin-top:12px; padding:10px 14px; background:var(--surface2); border-left:4px solid var(--accent); border-radius:4px 8px 8px 4px; font-size:13px; color:var(--text-mid); font-family:'Noto Sans SC',sans-serif; line-height:1.6; }
+
+@media (max-width: 1024px) {
+  html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 100px; }
+  .layout { display: flex; flex-direction: column; height: auto; }
+  .panel-left, .panel-center, .panel-right { height: auto !important; overflow: visible !important; }
+  .panel-left { order: 1; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
+  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
+  .panel-center { order: 0; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  
+  .ctoolbar { padding: 12px 16px; height: auto; }
+  .desktop-only { display: none !important; }
+
+  .sbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; padding: 12px 0; height: auto; }
+  .si { border-right: 1px solid var(--border2); padding: 0; }
+  .si:last-child { border-right: none; }
+  .sk { font-size: 10px; }
+  .sv { font-size: 14px; }
+
+  .legend-wrap { padding: 10px 8px; height: auto; min-height: 48px; border-bottom: none; background: transparent; }
+  .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; font-size: 11px; }
+  
+  .canvas-wrap { flex: none; height: 380px !important; }
+
+  .panel-right { order: 3; display: block; }
+  .rhead { padding: 16px; height: auto; }
+  .twrap { max-height: 400px; overflow-y: auto; } 
+  .sdetail { height: auto; max-height: none; padding: 24px 16px; }
+
+  .action-area { 
+    position: fixed; bottom: 0; left: 0; width: 100%; 
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); 
+    display: flex; flex-direction: row; gap: 0; 
+  }
+  .action-area .brow { display: contents; }
+  .btn { flex: 1; padding: 12px 0; margin: 0 4px; font-size: 14px; border-radius: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+<div class="panel-left">
+  <div class="panel-top">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      返回导航主页
+    </a>
+    
+    <div>
+      <div class="stitle">通电节拍设置 (Z_r = 4)</div>
+      <div class="card radio-group" id="mode-group">
+        <label class="radio-lbl active" onclick="setMode('1-3', this)">
+            <input type="radio" name="mode" value="1-3" checked> 三相单三拍 (A→B→C)
+        </label>
+        <label class="radio-lbl" onclick="setMode('2-3', this)">
+            <input type="radio" name="mode" value="2-3"> 三相双三拍 (AB→BC→CA)
+        </label>
+        <label class="radio-lbl" onclick="setMode('6', this)">
+            <input type="radio" name="mode" value="6"> 单双六拍 (A→AB→B→BC...)
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <div class="stitle">旋转方向</div>
+      <div class="mode-sw">
+        <button class="mode-btn active" id="d-fwd" onclick="setDir(1)">正转 (CW)</button>
+        <button class="mode-btn" id="d-rev" onclick="setDir(-1)">反转 (CCW)</button>
+      </div>
+    </div>
+
+    <div class="fbox">
+      <div class="fh">步距角公式：θ_b = 360° / (m · Zr · K)</div>
+      <div>m: 相数 (3相) &nbsp;|&nbsp; Zr: 转子齿数 (4齿)</div>
+      <div>K: 状态系数 (单双拍 K=1, 六拍 K=2)</div>
+      <div style="margin-top:6px; font-weight: bold; color: var(--accent)" id="f-res">当前步距角：30°</div>
+    </div>
+
+    <div>
+      <div class="stitle">演示速度</div>
+      <div class="card" style="padding:14px 16px; display:flex; align-items:center; gap:16px;">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600">慢</span>
+        <input type="range" class="spslider" id="speed" min="100" max="1000" value="600">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600">快</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-area">
+    <div class="brow">
+      <button class="btn btn-reset" onclick="resetSim()">↺ 归零重置</button>
+      <button class="btn btn-p" id="bta" onclick="startAuto()">▶ 自动连播</button>
+    </div>
+    <div class="brow" style="grid-column: span 2; display: flex;">
+      <button class="btn btn-s" style="flex: 1;" onclick="stepOnce()">⏭ 脉冲单步执行</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel-center">
+  <div class="ctoolbar">
+    <span class="ctitle">⚙️ 步进电机磁场与旋转推演</span>
+    <div class="c-actions">
+       <span class="top-badge" id="st-badge" style="display:inline-block;">等待输入脉冲</span>
+    </div>
+  </div>
+  
+  <div class="sbar">
+    <div class="si"><span class="sk">当前步数</span><span class="sv" id="s-step">0</span></div>
+    <div class="si"><span class="sk">激磁相</span><span class="sv" id="s-phase" style="color:var(--accent)">A</span></div>
+    <div class="si"><span class="sk">步距角</span><span class="sv" id="s-angle">30°</span></div>
+    <div class="si"><span class="sk">转子总绝对角度</span><span class="sv" id="s-total" style="color:var(--orange)">0°</span></div>
+  </div>
+
+  <div class="legend-wrap">
+    <div class="legend-group">
+      <div class="leg"><span class="lsq p-a"></span>A 相极</div>
+      <div class="leg"><span class="lsq p-b"></span>B 相极</div>
+      <div class="leg"><span class="lsq p-c"></span>C 相极</div>
+      <div class="leg" style="margin-left: 10px; color: var(--orange)">* 高亮代表线圈通电建立磁场</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="cv"></canvas>
+  </div>
+</div>
+
+<div class="panel-right">
+  <div class="rhead">
+    <span>时序脉冲状态记录</span>
+  </div>
+  <div class="twrap scr">
+    <table class="stab">
+      <thead><tr>
+        <th>步数</th><th>激磁状态</th>
+        <th style="color:var(--red)">A 相</th>
+        <th style="color:var(--blue)">B 相</th>
+        <th style="color:var(--green)">C 相</th>
+        <th>转子角度</th>
+      </tr></thead>
+      <tbody id="tb">
+        </tbody>
+    </table>
+  </div>
+  
+  <div class="sdetail scr">
+    <div class="sdtitle">📍 磁阻最小原理分析</div>
+    <div class="drow"><div class="dlbl"><div class="dnum">1</div>当前通电磁极</div><div class="dval" id="d-poles">A、A' 极</div></div>
+    <div class="drow"><div class="dlbl"><div class="dnum">2</div>磁力线路径</div><div class="dval" style="font-size: 13px; font-weight:normal; color:var(--text-mid);">定子 → 气隙 → 转子齿</div></div>
+    <div class="drow"><div class="dlbl"><div class="dnum">3</div>转矩产生</div><div class="dval" style="color:var(--orange)">吸引最近转子齿对齐</div></div>
+    <div class="dnote" id="d-note">
+      初始化状态，A相通电产生磁场，转子齿在磁场吸引下转动至与A相磁极完全对齐（磁阻最小位置）。
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+// 核心参数
+let mode = '1-3'; // '1-3', '2-3', '6'
+let dir = 1; // 1 FWD (CW), -1 REV (CCW)
+
+// 六拍循环基准 (A=0, AB=15, B=30, BC=45, C=60, CA=75)
+const seq6 = [
+  { p: ['A'], a: 0, desc: 'A相通电，定子A极产生磁场，吸引最近的转子齿转至 0° 对齐。' },
+  { p: ['A', 'B'], a: 15, desc: 'A、B两相同时通电，转子齿受到两侧磁场均衡拉力，停在 A 与 B 的中点 (15°)。' },
+  { p: ['B'], a: 30, desc: 'B相通电，定子B极产生磁场，吸引最近的转子齿（原位于15°或0°）转至 30° 对齐。' },
+  { p: ['B', 'C'], a: 45, desc: 'B、C两相同时通电，转子齿受均衡拉力，停在 B 与 C 的中点 (45°)。' },
+  { p: ['C'], a: 60, desc: 'C相通电，定子C极产生磁场，吸引最近的转子齿转至 60° 对齐。' },
+  { p: ['C', 'A'], a: 75, desc: 'C、A两相同时通电，转子齿受均衡拉力，停在 C 与 A 的中点 (75°)。' }
+];
+
+let curIdx = 0; 
+let stepCount = 0;
+let totalAngle = 0; // 绝对角度
+let displayAngle = 0; // 动画平滑渲染角度
+let running = false;
+let timer = null;
+let history = [];
+
+// DOM 事件
+function setMode(m, el) {
+  mode = m;
+  document.querySelectorAll('.radio-lbl').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  
+  let deg = (mode === '6') ? 15 : 30;
+  document.getElementById('f-res').textContent = `当前步距角：${deg}°`;
+  document.getElementById('s-angle').textContent = `${deg}°`;
+  resetSim();
+}
+
+function setDir(d) {
+  dir = d;
+  document.getElementById('d-fwd').classList.toggle('active', d === 1);
+  document.getElementById('d-rev').classList.toggle('active', d === -1);
+  if(!running && stepCount > 0) setSt('方向已切换', 'var(--orange)', 'var(--orange-lt)');
+}
+
+function mod(n, m) { return ((n % m) + m) % m; }
+
+function getPhaseData(idx) {
+  return seq6[mod(idx, 6)];
+}
+
+function initSim() {
+  curIdx = (mode === '2-3') ? 1 : 0;
+  stepCount = 0;
+  totalAngle = 0;
+  displayAngle = 0;
+  history = [];
+  pushHistory();
+  updateUI();
+}
+
+function resetSim() {
+  stopAuto();
+  initSim();
+  setSt('等待输入脉冲', 'var(--text-mid)', 'var(--surface2)');
+}
+
+function stepOnce() {
+  if (stepCount === 0 && history.length === 0) initSim();
+  
+  let stepAmt = (mode === '6') ? 1 : 2;
+  curIdx += stepAmt * dir;
+  totalAngle += (stepAmt * 15 * dir);
+  stepCount++;
+  
+  pushHistory();
+  updateUI();
+  if(!running) setSt('👣 单步执行中...', 'var(--accent)', 'var(--accent-lt)');
+}
+
+function startAuto() {
+  if (stepCount === 0 && history.length === 0) initSim();
+  if (running) { stopAuto(); return; }
+  running = true;
+  document.getElementById('bta').innerHTML = '⏸ 暂停';
+  document.getElementById('bta').style.background = '#ef4444';
+  setSt('▶ 自动连续脉冲', 'var(--accent)', 'var(--accent-lt)');
+  tick();
+}
+
+function stopAuto() {
+  running = false;
+  clearTimeout(timer);
+  let bta = document.getElementById('bta');
+  bta.innerHTML = '▶ 自动连播';
+  bta.style.background = 'var(--ios-blue)';
+  if (stepCount > 0) setSt('⏸ 已暂停', 'var(--orange)', 'var(--orange-lt)');
+}
+
+function tick() {
+  if (!running) return;
+  stepOnce();
+  let speed = document.getElementById('speed').value;
+  timer = setTimeout(tick, 1200 - speed);
+}
+
+function setSt(text, color, bg) {
+  let badge = document.getElementById('st-badge');
+  badge.textContent = text;
+  badge.style.color = color;
+  badge.style.background = bg;
+}
+
+function pushHistory() {
+  let d = getPhaseData(curIdx);
+  history.unshift({
+    s: stepCount,
+    p: d.p.join(''),
+    a: d.p.includes('A') ? 1 : 0,
+    b: d.p.includes('B') ? 1 : 0,
+    c: d.p.includes('C') ? 1 : 0,
+    ang: totalAngle
+  });
+  if(history.length > 50) history.pop();
+}
+
+function updateUI() {
+  let d = getPhaseData(curIdx);
+  
+  document.getElementById('s-step').textContent = stepCount;
+  document.getElementById('s-phase').textContent = d.p.join('');
+  document.getElementById('s-total').textContent = totalAngle + '°';
+  
+  document.getElementById('d-poles').textContent = d.p.map(x => `${x}、${x}' 极`).join(' 和 ');
+  document.getElementById('d-note').innerHTML = d.desc;
+
+  let tb = document.getElementById('tb');
+  tb.innerHTML = '';
+  history.forEach((h, i) => {
+    let tr = document.createElement('tr');
+    if(i === 0) tr.classList.add('cur');
+    tr.innerHTML = `
+      <td>${h.s}</td>
+      <td style="font-weight:bold">${h.p}</td>
+      <td><span class="phase-dot ${h.a ? 'p-a' : 'p-off'}">${h.a}</span></td>
+      <td><span class="phase-dot ${h.b ? 'p-b' : 'p-off'}">${h.b}</span></td>
+      <td><span class="phase-dot ${h.c ? 'p-c' : 'p-off'}">${h.c}</span></td>
+      <td style="color:var(--orange); font-family:monospace">${h.ang}°</td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+// === Canvas 绘图引擎 ===
+let canvasW = 0, canvasH = 0;
+function resize() {
+  let wrap = cv.parentElement;
+  let w = wrap.clientWidth, h = wrap.clientHeight;
+  if(w===0 || h===0) return;
+  canvasW = w; canvasH = h;
+  let dpr = window.devicePixelRatio || 1;
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+}
+
+function drawMotor() {
+  ctx.clearRect(0, 0, canvasW, canvasH);
+  let cx = canvasW / 2;
+  let cy = canvasH / 2;
+  let sScale = Math.min(canvasW, canvasH) / 400; // 基准缩放
+  
+  let d = getPhaseData(curIdx);
+  let activeP = d ? d.p : [];
+
+  // 平滑动画插值
+  displayAngle += (totalAngle - displayAngle) * 0.15;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(sScale, sScale);
+
+  // 1. 画定子铁芯外壳
+  ctx.beginPath();
+  ctx.arc(0, 0, 160, 0, Math.PI*2);
+  ctx.arc(0, 0, 120, 0, Math.PI*2, true);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fill();
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 定子6个极分布: A(0), C'(60), B(120), A'(180), C(240), B'(300)
+  // 对应颜色: A红, B蓝, C绿
+  const poles = [
+    { name: 'A', ang: 0, phase: 'A', color: '#ef4444' },
+    { name: "C'", ang: 60, phase: 'C', color: '#10b981' },
+    { name: 'B', ang: 120, phase: 'B', color: '#3b82f6' },
+    { name: "A'", ang: 180, phase: 'A', color: '#ef4444' },
+    { name: 'C', ang: 240, phase: 'C', color: '#10b981' },
+    { name: "B'", ang: 300, phase: 'B', color: '#3b82f6' }
+  ];
+
+  poles.forEach(p => {
+    ctx.save();
+    ctx.rotate(p.ang * Math.PI / 180);
+    
+    // 磁极
+    ctx.beginPath();
+    ctx.moveTo(120, -15);
+    ctx.lineTo(75, -12);
+    ctx.lineTo(75, 12);
+    ctx.lineTo(120, 15);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fill();
+    ctx.stroke();
+
+    // 线圈
+    let isActive = activeP.includes(p.phase);
+    ctx.beginPath();
+    ctx.roundRect(85, -20, 25, 40, 4);
+    if(isActive) {
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = p.color;
+    } else {
+      ctx.fillStyle = '#94a3b8';
+      ctx.shadowBlur = 0;
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0; // reset
+
+    // 文字
+    ctx.translate(140, 0);
+    ctx.rotate(-p.ang * Math.PI / 180); // 字正向显示
+    ctx.fillStyle = isActive ? '#fff' : '#64748b';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.name, 0, 0);
+    
+    ctx.restore();
+  });
+
+  // 2. 画转子 (4齿)
+  ctx.save();
+  // 注意：在步进电机中，定子产生磁场，转子被吸引对齐。
+  // 我们动画的 displayAngle 是机械绝对角度。
+  ctx.rotate(displayAngle * Math.PI / 180);
+  
+  // 转子中心轴
+  ctx.beginPath();
+  ctx.arc(0, 0, 15, 0, Math.PI*2);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fill();
+
+  // 转子本体及4齿 (间隔90度)
+  ctx.fillStyle = '#cbd5e1';
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 2;
+  
+  for(let i=0; i<4; i++) {
+    ctx.save();
+    ctx.rotate(i * 90 * Math.PI / 180);
+    ctx.beginPath();
+    ctx.moveTo(15, -15);
+    ctx.lineTo(71, -10); // 气隙 4px (75-71)
+    ctx.lineTo(71, 10);
+    ctx.lineTo(15, 15);
+    ctx.fill();
+    ctx.stroke();
+    
+    // 转子上的红点标示，方便看旋转
+    if(i===0) {
+      ctx.fillStyle = '#ea580c';
+      ctx.beginPath();
+      ctx.arc(60, 0, 4, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  ctx.restore(); // 转子结束
+
+  ctx.restore(); // 全局结束
+}
+
+function animLoop() {
+  drawMotor();
+  requestAnimationFrame(animLoop);
+}
+
+// 启动
+window.addEventListener('resize', resize);
+resize();
+initSim();
+animLoop();
+</script>
+</body>
+</html>
