@@ -129,27 +129,24 @@ button, input, select, a { touch-action: manipulation; }
 /* 状态胶囊全局显示 */
 .top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; }
 
-/* ★ DDA桌面端数据栏终极防抖：固定高度，垂直排列，坚如磐石 ★ */
+/* 桌面端数据栏 */
 .sbar { 
   height: 64px; /* 绝对锁死高度 */
-  padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); 
-  display: flex; justify-content: space-between; align-items: center; 
+  padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
+  display: flex; justify-content: space-around; align-items: center; 
   z-index: 5; flex: 0 0 auto; overflow: hidden; 
 }
-.si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 1; }
+.si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
 .sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
-/* 固定数值区域的高度和最小宽度，彻底杜绝文字变化引起的排版抖动 */
-.sv { font-size: 15px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); height: 22px; display: flex; align-items: center; justify-content: center; min-width: 48px; }
+.sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
 
-/* 图例区：定高防抖，自动换行缩放 */
-.legend-wrap { height: 50px; padding: 0 16px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden;}
-.legend-group { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 14px; line-height: 1.5; width: 100%;}
-.leg{display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text-mid); font-weight:500; white-space: nowrap;}
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden; }
+.legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
+.leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
-.lline{width:20px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
+.lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
 .lsq{width:12px; height:12px; border-radius:2px; display:inline-block; flex-shrink:0;}
 
-/* ★ Canvas 物理隔离外壳 ★ */
 .canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; }
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 
@@ -199,8 +196,9 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   
   .ctoolbar { padding: 12px 16px; height: auto; }
   .top-badge { font-size: 11px; padding: 4px 8px; }
+  .desktop-only { display: none !important; }
 
-  /* 移动端 7等分强制锁宽网格，文字自动缩小防溢出 */
+  /* ★ 彻底去除隐藏的第8个DOM元素，保证7列网格完美对齐不换行 ★ */
   .sbar { 
     display: grid; 
     grid-template-columns: repeat(7, minmax(0, 1fr)); 
@@ -211,15 +209,14 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     border-right: 1px solid var(--border2); padding: 0 1px; min-width: 0; overflow: hidden;
   }
   .si:last-child { border-right: none; }
-  .sk { font-size: clamp(9px, 2vw, 11px); margin-bottom: 2px; }
-  .sv { font-size: clamp(11px, 2.5vw, 14px); height: auto; }
+  .sk { font-size: clamp(9px, 2vw, 11px); margin-bottom: 2px; color: var(--text-dim); white-space: nowrap; }
+  .sv { font-size: clamp(11px, 2.5vw, 14px); height: auto; font-weight: bold; white-space: nowrap; letter-spacing: -0.5px;}
 
   .legend-wrap { padding: 10px 8px; height: auto; min-height: 48px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
   .legend-group { font-size: 10px; gap: 6px 10px; }
   .ldot, .lsq { width: 10px; height: 10px; }
   .lline { width: 16px; }
   
-  /* 强制锁定物理高度防塌陷 */
   .canvas-wrap { flex: none; height: 380px !important; width: 100%; }
 
   .fs-btn { display: none !important; }
@@ -356,7 +353,6 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     <div class="si"><span class="sk">Ry</span><span class="sv" id="sry">—</span></div>
     <div class="si"><span class="sk">ΔX</span><span class="sv" id="spx" style="color:var(--x-color)">—</span></div>
     <div class="si"><span class="sk">ΔY</span><span class="sv" id="spy" style="color:var(--y-color)">—</span></div>
-    <div class="si desktop-only" style="flex:1; justify-content:flex-end;"><span class="sv" id="st" style="color:var(--text-dim);font-size:15px;font-weight:600;">等待开始</span></div>
   </div>
 
   <div class="legend-wrap">
@@ -542,14 +538,14 @@ function resetSim(){
 }
 
 function setSt(t){
-  let e1 = document.getElementById('st'); if(e1) e1.innerHTML=t;
-  let e2 = document.getElementById('st-badge'); 
-  if(e2) {
-    e2.innerHTML=t;
-    if(t.includes('完成')) { e2.style.background = 'var(--green-lt)'; e2.style.color = 'var(--green)'; }
-    else if(t.includes('运行') || t.includes('推演') || t.includes('执行')) { e2.style.background = 'var(--accent-lt)'; e2.style.color = 'var(--accent)'; }
-    else if(t.includes('重置') || t.includes('⚠️')) { e2.style.background = 'var(--orange-lt)'; e2.style.color = 'var(--orange)'; }
-    else { e2.style.background = 'var(--surface2)'; e2.style.color = 'var(--text-mid)'; }
+  let e1 = document.getElementById('st-badge'); 
+  if(e1) {
+    e1.style.display = 'inline-block';
+    e1.innerHTML=t;
+    if(t.includes('完成')) { e1.style.background = 'var(--green-lt)'; e1.style.color = 'var(--green)'; }
+    else if(t.includes('运行') || t.includes('推演') || t.includes('执行')) { e1.style.background = 'var(--accent-lt)'; e1.style.color = 'var(--accent)'; }
+    else if(t.includes('重置') || t.includes('⚠️')) { e1.style.background = 'var(--orange-lt)'; e1.style.color = 'var(--orange)'; }
+    else { e1.style.background = 'var(--surface2)'; e1.style.color = 'var(--text-mid)'; }
   }
 }
 
@@ -623,7 +619,6 @@ function gp(){
   if (h < 100) h = 380;
   
   let isMobile = w < 600;
-  
   let maxCoord = Math.max(Math.abs(xe), Math.abs(ye), Math.abs(xs), Math.abs(ys));
   let mc = Math.max(maxCoord + 1, isMobile ? 6 : 8); 
   
@@ -634,7 +629,7 @@ function gp(){
   
   let ox = w / 2;
   let oy = h / 2;
-  return { mc, gs, ox, oy, isMobile, w, h };
+  return { mc, gs, ox, oy, isMobile };
 }
 
 function toC(gx,gy){
@@ -642,8 +637,8 @@ function toC(gx,gy){
 }
 
 function drawGrid(){
-  let { mc, gs, ox, oy, isMobile, w, h } = gp();
-  ctx.clearRect(0,0,w,h);
+  let { mc, gs, ox, oy, isMobile } = gp();
+  ctx.clearRect(0,0,canvasW,canvasH);
 
   let gLeft = ox - mc * gs;
   let gRight = ox + mc * gs;
@@ -682,10 +677,9 @@ function drawGrid(){
   ctx.fillStyle = '#64748b';
   
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillText('X', gRight + axExt + (isMobile ? 10 : 14), oy); 
+  ctx.fillText('X', gRight + axExt + (isMobile ? 12 : 16), oy); 
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  // ★ 修改点：将Y轴的Y字向上提升 12px 增加距离防重叠
-  ctx.fillText('Y', ox, gTop - axExt - (isMobile ? 14 : 12));
+  ctx.fillText('Y', ox, gTop - axExt - (isMobile ? 8 : 12));
   
   ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace';
   ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
