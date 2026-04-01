@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>数控伺服系统 PID 控制与跟随误差演示</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg:        #f3f4f6;
+  --surface:   #ffffff;
+  --surface2:  #f9fafb;
+  --border:    #e5e7eb;
+  --border2:   #d1d5db;
+  --text:      #111827;
+  --text-mid:  #4b5563;
+  --text-dim:  #6b7280;
+  
+  --accent:    #7c3aed; 
+  --accent-lt: #f5f3ff;
+  --red:       #ef4444; 
+  --blue:      #3b82f6; 
+  --blue-lt:   #eff6ff;
+  --green:     #10b981; 
+  --orange:    #f59e0b;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --radius:    8px;
+  
+  /* iOS 风格色彩 */
+  --ios-blue:    #007AFF;
+  --ios-orange:  #FF9500;
+  --ios-green:   #34C759;
+  --ios-gray:    #F2F2F7;
+  --ios-text:    #1C1C1E;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html, body { 
+  background:var(--bg); color:var(--text); 
+  font-family:'Noto Sans SC',sans-serif; font-size:15px; 
+  line-height:1.5; 
+  -webkit-text-size-adjust: 100%;
+}
+body { height: 100vh; overflow: hidden; }
+button, input, select, a { touch-action: manipulation; }
+
+/* ── 桌面端三栏网格 ── */
+.layout {
+  display: grid;
+  grid-template-columns: clamp(260px, 23vw, 340px) minmax(400px, 1fr) clamp(300px, 25vw, 420px);
+  height: 100vh;
+}
+
+.panel-left{ background:var(--surface); border-right:1px solid var(--border); padding:16px; display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10; }
+.panel-top { display: flex; flex-direction: column; gap: 14px; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; }
+.panel-top::-webkit-scrollbar { display: none; }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none; 
+  padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);
+}
+.back-link:hover { color: var(--ios-blue); border-color: var(--ios-blue); background: var(--blue-lt); }
+
+.stitle{ font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.stitle::before{content:''; width:4px; height:12px; background:var(--ios-blue); border-radius:2px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm);}
+
+.radio-group { display: flex; flex-direction: column; gap: 8px; }
+.radio-lbl { 
+  display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text);
+  cursor: pointer; padding: 8px 12px; border: 1px solid var(--border2); border-radius: 8px; transition: all 0.2s ease;
+}
+.radio-lbl:hover { background: var(--surface2); }
+.radio-lbl.active { border-color: var(--ios-blue); background: var(--blue-lt); color: var(--ios-blue); }
+.radio-lbl input { display: none; }
+
+.ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:4px; display:flex; justify-content:space-between;}
+.val-badge { font-family:'JetBrains Mono',monospace; color:var(--ios-blue); font-weight:700; background: var(--blue-lt); padding: 2px 6px; border-radius: 4px; font-size: 13px;}
+
+.spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none; width: 100%; margin-top: 8px; margin-bottom: 4px;}
+.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--ios-blue); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
+
+/* Slider colors based on PID */
+#p-kp::-webkit-slider-thumb { border-color: var(--ios-blue); }
+#p-ki::-webkit-slider-thumb { border-color: var(--ios-green); }
+#p-kd::-webkit-slider-thumb { border-color: var(--orange); }
+
+.fbox{ background:var(--blue-lt); border:1px solid #bfdbfe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
+.fh{color:var(--ios-blue); font-weight:700; font-size:13px; margin-bottom:4px;}
+
+/* ── 控制按钮 ── */
+.action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
+.brow{display:flex; gap:10px;}
+.btn{ 
+  flex: 1; padding:12px 10px; border-radius:14px; border:none; cursor:pointer; user-select: none;
+  font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; 
+  font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; 
+  display:flex; align-items:center; justify-content:center; gap:6px; 
+}
+.btn:active { transform: scale(0.95); }
+.btn-reset { background: var(--ios-gray); color: #8E8E93; }
+.btn-reset:hover { background: #E5E5EA; color: var(--ios-text); }
+.btn-p { background: var(--ios-blue); color: #fff; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2); }
+.btn-p:hover { background: #0062CC; box-shadow: 0 6px 14px rgba(0, 122, 255, 0.3); }
+
+/* ── 中间面板 (可视化区) ── */
+.panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
+.ctoolbar{ height: 60px; padding: 0 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
+.ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
+
+/* 闭环控制系统框图 */
+.block-diagram {
+  padding: 20px; background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; gap: 10px; flex: 0 0 auto; z-index: 5;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; overflow-x: auto; scrollbar-width: none;
+}
+.bd-box { padding: 8px 12px; border: 2px solid var(--border2); border-radius: 6px; background: var(--surface2); color: var(--text); white-space: nowrap;}
+.bd-circle { width: 30px; height: 30px; border: 2px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface2); flex-shrink: 0;}
+.bd-arrow { display: flex; align-items: center; color: var(--border2); }
+.bd-arrow::after { content: '▶'; font-size: 14px; margin-left: -2px; }
+.bd-line { height: 2px; width: 20px; background: var(--border2); }
+.bd-feedback { position: relative; }
+.bd-feedback::before { content: ''; position: absolute; bottom: -20px; left: 50%; width: 2px; height: 20px; background: var(--border2); }
+.bd-feedback::after { content: ''; position: absolute; bottom: -20px; left: -200px; width: calc(50% + 200px); height: 2px; background: var(--border2); }
+.bd-feedback-up { position: absolute; bottom: -20px; left: -200px; width: 2px; height: 35px; background: var(--border2); }
+.bd-feedback-up::after { content: '▲'; position: absolute; top: -10px; left: -6px; color: var(--border2); font-size: 14px;}
+
+.bd-active-pid { border-color: var(--ios-blue); background: var(--blue-lt); color: var(--ios-blue); }
+.bd-active-err { color: var(--red); font-weight: 700; }
+
+.sbar { 
+  height: 64px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
+  display: flex; justify-content: space-around; align-items: center; 
+  z-index: 5; flex: 0 0 auto; overflow: hidden; 
+}
+.si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+.sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+.sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
+.sv-fixed { display: inline-block; width: 70px; text-align: center; font-variant-numeric: tabular-nums;}
+
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden; justify-content: center;}
+.legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
+.leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
+.lline{width:20px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
+
+.canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; background: #fff; }
+canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+/* ── 右侧面板 (数据分析) ── */
+.panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
+.rhead{ height: 60px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+
+.sdetail{ flex: 1 1 0; box-sizing: border-box; overflow-y: auto; padding:20px 24px; background:var(--surface); z-index: 10; }
+.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--ios-blue); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:14px; border-bottom: 1px solid var(--border); padding-bottom: 8px;}
+.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
+.dnum{ width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; color: var(--text);}
+.dnote{ margin-top:16px; padding:12px 14px; background:var(--surface2); border-left:4px solid var(--ios-blue); border-radius:4px 8px 8px 4px; font-size:13px; color:var(--text-mid); line-height:1.6; }
+
+.metric-bad { color: var(--red); }
+.metric-ok { color: var(--orange); }
+.metric-good { color: var(--ios-green); }
+
+/* ========================================= */
+/* ===== 移动端自适应适配 ===== */
+/* ========================================= */
+@media (max-width: 1024px) {
+  html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 100px; }
+  .layout { display: flex; flex-direction: column; height: auto; }
+  .panel-left, .panel-center, .panel-right { height: auto !important; overflow: visible !important; }
+  
+  .panel-left { order: 1; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
+  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
+
+  .panel-center { order: 0; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  
+  .ctoolbar { padding: 12px 16px; height: auto; }
+  .block-diagram { padding: 12px 8px; justify-content: flex-start; }
+  .bd-box { font-size: 11px; padding: 6px 8px;}
+  .bd-feedback::after { left: -140px; width: calc(50% + 140px); }
+  .bd-feedback-up { left: -140px; }
+
+  .sbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; padding: 12px 0; height: auto; }
+  .si { border-right: 1px solid var(--border2); padding: 0; }
+  .si:last-child { border-right: none; }
+  .sk { font-size: 10px; margin-bottom: 2px;}
+  .sv { font-size: 14px; }
+  .sv-fixed { width: auto; }
+
+  .legend-wrap { padding: 10px 8px; height: auto; min-height: 40px; width: 100%; box-sizing: border-box; }
+  .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; font-size: 11px; }
+  
+  .canvas-wrap { flex: none; height: 320px !important; }
+
+  .panel-right { order: 3; display: flex; flex-direction: column;}
+  .rhead { padding: 16px; height: auto; }
+  .sdetail { height: auto; max-height: none; padding: 24px 16px; }
+
+  .action-area { 
+    position: fixed; bottom: 0; left: 0; width: 100%; 
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); 
+  }
+  .action-area .brow { display: flex; gap: 8px; width: 100%; }
+  .btn { flex: 1; padding: 12px 0; margin: 0; font-size: 14px; border-radius: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+<div class="panel-left">
+  <div class="panel-top">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      返回导航主页
+    </a>
+    
+    <div>
+      <div class="stitle">指令信号模式</div>
+      <div class="card radio-group">
+        <label class="radio-lbl active" onclick="setMode('step', this)">
+            <input type="radio" name="mode" value="step" checked> 阶跃信号 (点位控制 / 突发抗扰)
+        </label>
+        <label class="radio-lbl" onclick="setMode('ramp', this)">
+            <input type="radio" name="mode" value="ramp"> 斜坡信号 (连续轮廓 / 恒速进给)
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <div class="stitle">PID 增益调节 (瞬间生效)</div>
+      <div class="card">
+        <div style="margin-bottom: 16px;">
+          <div class="ilabel"><span style="color:var(--ios-blue)">比例增益 (Kp)</span><span class="val-badge" id="val-kp">2.0</span></div>
+          <input type="range" class="spslider" id="p-kp" min="0.1" max="10" step="0.1" value="2.0">
+          <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">增强响应速度，但过大导致震荡</div>
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+          <div class="ilabel"><span style="color:var(--ios-green)">积分增益 (Ki)</span><span class="val-badge" style="color:var(--ios-green); background:var(--green-lt)" id="val-ki">0.0</span></div>
+          <input type="range" class="spslider" id="p-ki" min="0" max="5" step="0.1" value="0.0">
+          <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">消除稳态误差，但会降低系统稳定性</div>
+        </div>
+
+        <div>
+          <div class="ilabel"><span style="color:var(--orange)">微分增益 (Kd)</span><span class="val-badge" style="color:var(--orange); background:var(--orange-lt)" id="val-kd">0.5</span></div>
+          <input type="range" class="spslider" id="p-kd" min="0" max="5" step="0.1" value="0.5">
+          <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">增加阻尼，抑制超调与震荡</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="fbox">
+      <div class="fh">PID 控制律公式</div>
+      <div style="font-size: 13px;">U(t) = <span style="color:var(--ios-blue)">Kp</span>·e(t) + <span style="color:var(--ios-green)">Ki</span>·∫e(t)dt + <span style="color:var(--orange)">Kd</span>·de(t)/dt</div>
+      <div style="margin-top: 6px; color: var(--text-dim); font-size: 11px;">※ e(t) = 目标指令 - 实际位置 (跟随误差)</div>
+    </div>
+
+  </div>
+
+  <div class="action-area">
+    <div class="brow">
+      <button class="btn btn-reset" onclick="resetDefaults()">↺ 恢复默认</button>
+      <button class="btn btn-p" onclick="playAnim()">▶ 动态演示</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel-center">
+  <div class="ctoolbar">
+    <span class="ctitle">📈 机床响应曲线</span>
+  </div>
+
+  <div class="block-diagram">
+    <div style="color:var(--text-mid)">指令</div>
+    <div class="bd-arrow"><div class="bd-line"></div></div>
+    <div class="bd-circle">＋</div>
+    <div class="bd-arrow"><div class="bd-line" style="width:10px"></div></div>
+    <div style="margin-top:-20px; font-size:10px;" class="bd-active-err">e(t)</div>
+    <div class="bd-box bd-active-pid">PID 控制器</div>
+    <div class="bd-arrow"><div class="bd-line"></div></div>
+    <div class="bd-box bd-feedback">机床机械本体<br><span style="font-size:10px;font-weight:normal;color:var(--text-dim)">(质量/阻尼)</span></div>
+    <div class="bd-arrow"><div class="bd-line"></div></div>
+    <div style="color:var(--text-mid)">实际位置</div>
+    <div class="bd-feedback-up"></div>
+  </div>
+  
+  <div class="sbar">
+    <div class="si"><span class="sk">当前时刻 (t)</span><span class="sv"><span id="s-t" class="sv-fixed">0.00</span> s</span></div>
+    <div class="si"><span class="sk">目标指令 (R)</span><span class="sv"><span id="s-tgt" class="sv-fixed" style="color:var(--text-mid)">0.0</span> mm</span></div>
+    <div class="si"><span class="sk">瞬时误差 (e)</span><span class="sv"><span id="s-err" class="sv-fixed" style="color:var(--red)">0.0</span> mm</span></div>
+  </div>
+
+  <div class="legend-wrap">
+    <div class="legend-group">
+      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>目标指令轨迹 (Target)</div>
+      <div class="leg"><span class="lline" style="background:var(--ios-blue)"></span>实际响应轨迹 (Actual)</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="cvPlot"></canvas>
+  </div>
+</div>
+
+<div class="panel-right">
+  <div class="rhead">
+    <span>系统性能指标评测</span>
+  </div>
+  
+  <div class="sdetail scr">
+    <div class="sdtitle">📊 动态性能分析</div>
+    
+    <div class="drow">
+      <div class="dlbl"><div class="dnum" style="background:var(--blue-lt);color:var(--ios-blue);border-color:var(--ios-blue)">1</div>最大超调量 (Overshoot)</div>
+      <div class="dval" id="res-os">0.0 %</div>
+    </div>
+    <div class="drow">
+      <div class="dlbl"><div class="dnum" style="background:var(--blue-lt);color:var(--ios-blue);border-color:var(--ios-blue)">2</div>调节时间 (Settling Time)</div>
+      <div class="dval" id="res-st">0.00 s</div>
+    </div>
+    <div class="drow" style="border-bottom:none">
+      <div class="dlbl"><div class="dnum" style="background:var(--blue-lt);color:var(--ios-blue);border-color:var(--ios-blue)">3</div>稳态跟随误差 (SS Error)</div>
+      <div class="dval" id="res-sse">0.00 mm</div>
+    </div>
+    
+    <div class="dnote" id="d-note">
+      <b>阶跃响应分析：</b><br>
+      增加 Kp 可加快响应速度，但会导致超调和震荡加剧。适当增加 Kd 可以提供阻尼，抑制超调，让曲线平滑收敛。
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const elKp = document.getElementById('p-kp');
+const elKi = document.getElementById('p-ki');
+const elKd = document.getElementById('p-kd');
+
+const cvPlot = document.getElementById('cvPlot');
+const ctx = cvPlot.getContext('2d');
+
+let mode = 'step'; // 'step' or 'ramp'
+let simData = []; // 预计算的完整物理曲线 [{t, target, pos, err}]
+let animProgress = 1.0; // 0.0 to 1.0 用于演示动画
+let animTimer = null;
+
+// 物理引擎常数
+const MASS = 1.0;
+const DAMPING = 5.0; // 机械固有的粘性阻尼
+const TIME_MAX = 5.0; // 模拟 5 秒
+const DT = 0.01; // 10ms 步长
+
+// 事件监听：滑动条瞬间重算
+elKp.addEventListener('input', () => { document.getElementById('val-kp').textContent = parseFloat(elKp.value).toFixed(1); updateSim(true); });
+elKi.addEventListener('input', () => { document.getElementById('val-ki').textContent = parseFloat(elKi.value).toFixed(1); updateSim(true); });
+elKd.addEventListener('input', () => { document.getElementById('val-kd').textContent = parseFloat(elKd.value).toFixed(1); updateSim(true); });
+
+function setMode(m, el) {
+  mode = m;
+  document.querySelectorAll('.radio-lbl').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  
+  let note = document.getElementById('d-note');
+  if(m === 'step') {
+    note.innerHTML = "<b>阶跃响应分析：</b><br>模拟机床点位移动。增加 Kp 可加快响应速度，但会导致超调加剧。增加 Kd 提供阻尼抑制超调。";
+  } else {
+    note.innerHTML = "<b>斜坡响应分析：</b><br>模拟机床恒速切削。纯比例(P)控制会产生恒定的<b>跟随误差</b>（平行线）。加入积分(Ki)可彻底消除此误差。";
+  }
+  updateSim(false);
+}
+
+function resetDefaults() {
+  elKp.value = 2.0; document.getElementById('val-kp').textContent = '2.0';
+  elKi.value = 0.0; document.getElementById('val-ki').textContent = '0.0';
+  elKd.value = 0.5; document.getElementById('val-kd').textContent = '0.5';
+  updateSim(false);
+}
+
+// ★ 核心物理学预计算引擎 ★
+function calculatePhysics() {
+  simData = [];
+  let Kp = parseFloat(elKp.value) * 100; // 放大比例以适配肉眼观感
+  let Ki = parseFloat(elKi.value) * 100;
+  let Kd = parseFloat(elKd.value) * 100;
+
+  let pos = 0, vel = 0, integral = 0, prevErr = 0;
+  
+  for(let t = 0; t <= TIME_MAX; t += DT) {
+    // 生成目标指令
+    let target = 0;
+    if (mode === 'step') {
+      target = t >= 0.2 ? 100 : 0; // 0.2s 时发生阶跃
+    } else {
+      target = t >= 0.2 ? 40 * (t - 0.2) : 0; // 0.2s 开始恒速 40mm/s
+    }
+
+    let err = target - pos;
+    integral += err * DT;
+    
+    // 积分限幅防风积
+    if (integral > 200) integral = 200;
+    if (integral < -200) integral = -200;
+
+    let deriv = (err - prevErr) / DT;
+    
+    // PID 输出力
+    let force = Kp * err + Ki * integral + Kd * deriv;
+    
+    // 牛顿第二定律: F - c*v = m*a
+    let acc = (force - DAMPING * vel) / MASS;
+    vel += acc * DT;
+    pos += vel * DT;
+    prevErr = err;
+
+    simData.push({ t: t, tgt: target, pos: pos, err: err });
+  }
+  
+  analyzeMetrics();
+}
+
+// 指标分析
+function analyzeMetrics() {
+  let maxPos = 0;
+  let settleTime = 0;
+  let ssErr = 0;
+  let targetVal = mode === 'step' ? 100 : 0;
+
+  for(let i=0; i<simData.length; i++) {
+    let d = simData[i];
+    if (mode === 'step') {
+      if (d.pos > maxPos) maxPos = d.pos;
+      // 调节时间：进入并保持在 +-5% 误差带内
+      if (Math.abs(d.err) > 5) settleTime = d.t;
+    }
+  }
+
+  // 阶跃模式
+  if (mode === 'step') {
+    let os = 0;
+    if (maxPos > targetVal) os = (maxPos - targetVal) / targetVal * 100;
+    
+    let elOs = document.getElementById('res-os');
+    elOs.textContent = os.toFixed(1) + ' %';
+    elOs.className = 'dval ' + (os > 20 ? 'metric-bad' : (os > 0 ? 'metric-ok' : 'metric-good'));
+
+    let elSt = document.getElementById('res-st');
+    if (settleTime >= TIME_MAX - DT) {
+      elSt.textContent = '> 5.00 s';
+      elSt.className = 'dval metric-bad';
+    } else {
+      elSt.textContent = settleTime.toFixed(2) + ' s';
+      elSt.className = 'dval metric-good';
+    }
+    
+    let endErr = simData[simData.length-1].err;
+    let elSse = document.getElementById('res-sse');
+    elSse.textContent = Math.abs(endErr).toFixed(2) + ' mm';
+    elSse.className = 'dval ' + (Math.abs(endErr) > 1 ? 'metric-bad' : 'metric-good');
+  } 
+  // 斜坡模式
+  else {
+    document.getElementById('res-os').textContent = '—';
+    document.getElementById('res-os').className = 'dval text-dim';
+    document.getElementById('res-st').textContent = '—';
+    document.getElementById('res-st').className = 'dval text-dim';
+
+    // 取最后 1 秒的平均误差作为稳态误差
+    let sumErr = 0, count = 0;
+    for(let i = simData.length - 100; i < simData.length; i++) {
+      sumErr += simData[i].err;
+      count++;
+    }
+    let avgErr = sumErr / count;
+    
+    let elSse = document.getElementById('res-sse');
+    elSse.textContent = Math.abs(avgErr).toFixed(2) + ' mm';
+    elSse.className = 'dval ' + (Math.abs(avgErr) > 2 ? 'metric-bad' : (Math.abs(avgErr)>0.1 ? 'metric-ok' : 'metric-good'));
+  }
+}
+
+function updateSim(instant) {
+  cancelAnimationFrame(animTimer);
+  calculatePhysics();
+  animProgress = instant ? 1.0 : 0.0;
+  if (!instant) {
+    playAnimLoop();
+  } else {
+    drawPlot();
+  }
+}
+
+function playAnim() {
+  updateSim(false);
+}
+
+let lastStamp = 0;
+function playAnimLoop(stamp) {
+  if(!lastStamp) lastStamp = stamp;
+  let dt = stamp - lastStamp;
+  lastStamp = stamp;
+  
+  animProgress += 0.015; // 动画速度
+  if(animProgress >= 1.0) {
+    animProgress = 1.0;
+    drawPlot();
+    lastStamp = 0;
+    return;
+  }
+  drawPlot();
+  animTimer = requestAnimationFrame(playAnimLoop);
+}
+
+
+// === Canvas 绘图引擎 ===
+let canvasW = 0, canvasH = 0;
+function resize() {
+  let wrap = cvPlot.parentElement;
+  let w = wrap.clientWidth, h = wrap.clientHeight;
+  if(w===0 || h===0) return;
+  canvasW = w; canvasH = h;
+  let dpr = window.devicePixelRatio || 1;
+  cvPlot.width = w * dpr; cvPlot.height = h * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+  if(simData.length > 0) drawPlot();
+}
+
+function drawPlot() {
+  ctx.clearRect(0, 0, canvasW, canvasH);
+  
+  let padL = 40, padR = 20, padT = 20, padB = 30;
+  let plotW = canvasW - padL - padR;
+  let plotH = canvasH - padT - padB;
+  
+  // 动态 Y 轴缩放
+  let yMax = mode === 'step' ? 150 : 220; 
+  
+  // 坐标映射函数
+  let toX = (t) => padL + (t / TIME_MAX) * plotW;
+  let toY = (v) => padT + plotH - (v / yMax) * plotH;
+
+  // 1. 画网格
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let i=0; i<=5; i++) { // X: 5秒
+    let x = toX(i);
+    ctx.moveTo(x, padT); ctx.lineTo(x, padT+plotH);
+  }
+  let yTicks = mode === 'step' ? 3 : 4;
+  for(let i=0; i<=yTicks; i++) { // Y
+    let val = i * (yMax/yTicks);
+    let y = toY(val);
+    ctx.moveTo(padL, y); ctx.lineTo(padL+plotW, y);
+  }
+  ctx.stroke();
+
+  // 坐标轴文字
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px JetBrains Mono';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for(let i=0; i<=5; i++) ctx.fillText(i+'s', toX(i), padT+plotH+6);
+  
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for(let i=0; i<=yTicks; i++) {
+    let val = i * (yMax/yTicks);
+    ctx.fillText(Math.round(val), padL-6, toY(val));
+  }
+
+  // 2. 画目标曲线 (虚线)
+  ctx.beginPath();
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.setLineDash([5,5]);
+  for(let i=0; i<simData.length; i++) {
+    let d = simData[i];
+    if(i===0) ctx.moveTo(toX(d.t), toY(d.tgt));
+    else ctx.lineTo(toX(d.t), toY(d.tgt));
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // 3. 画实际响应曲线 (动态推演截断)
+  let drawEndIdx = Math.floor(animProgress * (simData.length - 1));
+  
+  ctx.beginPath();
+  ctx.strokeStyle = '#007AFF'; ctx.lineWidth = 3;
+  for(let i=0; i<=drawEndIdx; i++) {
+    let d = simData[i];
+    if(i===0) ctx.moveTo(toX(d.t), toY(d.pos));
+    else ctx.lineTo(toX(d.t), toY(d.pos));
+  }
+  ctx.stroke();
+  
+  // 4. 画前端高亮圆点
+  let curData = simData[drawEndIdx];
+  if(curData) {
+    ctx.beginPath();
+    ctx.arc(toX(curData.t), toY(curData.pos), 6, 0, Math.PI*2);
+    ctx.fillStyle = '#007AFF'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+    
+    // 更新数据栏
+    document.getElementById('s-t').textContent = curData.t.toFixed(2);
+    document.getElementById('s-tgt').textContent = curData.tgt.toFixed(1);
+    document.getElementById('s-err').textContent = curData.err.toFixed(2);
+  }
+}
+
+window.addEventListener('resize', resize);
+// 初始化
+setTimeout(() => { resize(); updateSim(true); }, 100);
+
+</script>
+</body>
+</html>
