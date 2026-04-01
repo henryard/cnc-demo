@@ -649,7 +649,7 @@ function drawGrid(){
   ctx.fillText('X', gRight + axExt + (isMobile ? 10 : 14), oy); 
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
   // ★ 修改点：将Y轴的Y字向上提升增加距离防重叠
-  ctx.fillText('Y', ox, gTop - axExt - (isMobile ? 20 : 12));
+  ctx.fillText('Y', ox, gTop - axExt - (isMobile ? 10 : 12));
   
   ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace';
   ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
