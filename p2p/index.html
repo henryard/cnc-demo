@@ -197,6 +197,94 @@ canvas{flex:1; width:100%; display:block;}
 .scr::-webkit-scrollbar-track{background:transparent;}
 .scr::-webkit-scrollbar-thumb{background:var(--border2); border-radius:3px;}
 .scr::-webkit-scrollbar-thumb:hover{background:var(--text-dim);}
+
+/* ===== 移动端及小屏幕自适应适配 ===== */
+@media (max-width: 1024px) {
+  body {
+    height: auto;
+    overflow-y: auto;
+    padding-bottom: 120px;
+  }
+  .layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+  .panel-left {
+    order: 1;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
+    overflow: visible;
+  }
+  .panel-top {
+    overflow-y: visible;
+    padding-bottom: 16px;
+  }
+  .panel-center {
+    order: 2;
+    width: 100%;
+    height: 55vh;
+    min-height: 400px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .ctoolbar {
+    height: auto;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .legend-group {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+  .sbar {
+    padding: 12px 16px;
+    gap: 12px;
+    overflow-x: auto; 
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .sbar::-webkit-scrollbar { display: none; }
+  .panel-right {
+    order: 3;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    overflow: visible;
+  }
+  .rhead {
+    padding: 0 16px;
+  }
+  .twrap {
+    height: 350px; 
+    overflow-y: auto;
+  }
+  .sdetail {
+    height: auto;
+    max-height: 400px;
+  }
+  .action-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--surface);
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border-top: 1px solid var(--border);
+    gap: 8px;
+  }
+  .btn {
+    padding: 12px 6px; 
+    font-size: 15px;
+  }
+}
 </style>
 </head>
 <body>
