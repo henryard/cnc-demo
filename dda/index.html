@@ -40,18 +40,14 @@
 
 *{box-sizing:border-box;margin:0;padding:0;}
 
-/* ★ 彻底禁止移动端双击放大与越界缩放 ★ */
+/* 基础防双击放大代码 */
 html, body { 
   background:var(--bg); color:var(--text); 
   font-family:'Noto Sans SC',sans-serif; font-size:15px; 
   line-height:1.5; 
   -webkit-text-size-adjust: 100%;
 }
-
-/* 桌面端锁定滚动，移动端在媒体查询中解锁 */
 body { height: 100vh; overflow: hidden; }
-
-/* 精准防双击放大代码（仅针对控件） */
 button, input, select, a { touch-action: manipulation; }
 
 .layout{display:grid;grid-template-columns:330px 1fr 480px;height:100vh;}
@@ -102,7 +98,7 @@ button, input, select, a { touch-action: manipulation; }
 .ovf-yes{background:var(--green-lt); color:var(--green); border:1px solid var(--green);}
 .ovf-no {background:var(--surface); color:var(--text-dim); border:1px solid var(--border2);}
 
-/* ── 控制按钮：桌面原生 iOS 质感 ── */
+/* ── 控制按钮 ── */
 .action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
 .brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .btn{ 
@@ -121,26 +117,39 @@ button, input, select, a { touch-action: manipulation; }
 .btn-s { background: var(--ios-orange); color: #fff; box-shadow: 0 4px 10px rgba(255, 149, 0, 0.2); }
 .btn-s:hover { background: #E08300; box-shadow: 0 6px 14px rgba(255, 149, 0, 0.3); }
 
-.panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
-.ctoolbar{ height: 60px; padding: 0 24px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
+/* ── 中间面板 ── */
+/* ★ 新增：overflow: hidden，彻底防止横纵向滚动条挤压导致 Canvas 高度变化 ★ */
+.panel-center {
+  background: var(--surface2); display: flex; flex-direction: column; 
+  border-right: 1px solid var(--border); height: 100vh; overflow: hidden; width: 100%;
+}
+.ctoolbar{ height: 60px; padding: 0 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
 .ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
 
 .c-actions { display: flex; align-items: center; gap: 12px; }
 .top-badge { display: none; transition: all 0.2s ease;}
 .desktop-only { display: flex; }
 
-.sbar{ padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:24px; align-items:center; z-index: 5; flex: 0 0 auto; }
-.si{display:flex; gap:8px; align-items:center;}
-.sk{font-size:13px; color:var(--text-dim); font-weight:600;}
-.sv{font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text);}
+/* ★ PC端数据栏防溢出优化：缩小间距、允许自动折行、锁定动态数值宽度 ★ */
+.sbar { 
+  padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
+  display: flex; gap: 10px 16px; align-items: center; z-index: 5; flex: 0 0 auto; 
+  flex-wrap: wrap; width: 100%; box-sizing: border-box;
+}
+.si { display: flex; gap: 6px; align-items: center; }
+.sk { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+.sv { font-size: 15px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); }
+/* 锁定“溢出”状态栏宽度，避免在演示时突然撑大容器 */
+.sp-fixed { display: inline-block; width: 42px; text-align: left; }
 
-.legend-wrap { padding: 12px 24px; background: var(--surface2); z-index: 4; flex: 0 0 auto; }
-.legend-group {display:flex; align-items:center; gap:16px; white-space:nowrap;}
+.legend-wrap { padding: 10px 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; width: 100%; box-sizing: border-box; }
+.legend-group { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; }
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
 .lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
 .lsq{width:12px; height:12px; border-radius:2px; display:inline-block; flex-shrink:0;}
-canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
+
+canvas{ flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0; }
 
 /* ── 右侧面板 ── */
 .panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
@@ -177,7 +186,7 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
 /* ===== 移动端及小屏幕深度自适应适配 ===== */
 /* ========================================= */
 @media (max-width: 1024px) {
-  /* ★ 彻底解开移动端滚动限制，允许页面自然滑动 ★ */
+  /* ★ 解开移动端滚动限制，允许页面自然向下浏览所有记录 ★ */
   html, body { 
     height: auto !important; 
     min-height: 100vh; 
@@ -187,14 +196,10 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
   }
   .layout { display: flex; flex-direction: column; height: auto; }
   
-  /* 解除各面板的溢出隐藏限制 */
-  .panel-left, .panel-center, .panel-right {
-    height: auto !important;
-    overflow: visible !important;
-  }
+  .panel-left, .panel-center, .panel-right { height: auto !important; overflow: visible !important; }
   
   .panel-left { order: 1; width: 100%; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
-  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
+  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; }
 
   .panel-center { order: 0; width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
   
@@ -202,7 +207,7 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
   .top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
   .desktop-only { display: none !important; }
 
-  /* ★ 将 DDA 的数据栏强制改为 7 列均分网格，彻底解决超出屏幕和横向滑动问题 ★ */
+  /* 移动端 7等分完美适配网格，彻底告别左右滑动 */
   .sbar.dda-data-grid { 
     display: grid; grid-template-columns: repeat(7, 1fr); 
     gap: 0; padding: 10px 0; border-bottom: 1px solid var(--border); background: var(--surface);
@@ -215,25 +220,26 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
   .dda-data-grid .si:last-child { border-right: none; }
   .dda-data-grid .sk { font-size: 10px; margin-bottom: 2px; color: var(--text-dim); white-space: nowrap; }
   .dda-data-grid .sv { font-size: 12px; font-weight: bold; white-space: nowrap; letter-spacing: -0.5px;}
+  .sp-fixed { width: auto; display: inline; }
 
-  /* 进一步缩小图例并允许两行显示，防止越界 */
+  /* 图例完美折行缩放 */
   .legend-wrap { padding: 10px 8px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
   .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; font-size: 10px; line-height: 1.6; width: 100%; }
   .leg { white-space: nowrap; } 
   .ldot, .lsq { width: 10px; height: 10px; }
   .lline { width: 16px; }
-
-  /* ★ 强制给定物理高度，避免 iOS Canvas 画布高度缩为 0 的塌陷 Bug ★ */
-  canvas { flex: none; height: 380px !important; width: 100%; }
   
+  /* 强制锁定物理高度，防范 Safari 塌陷崩溃 */
+  canvas { flex: none; height: 380px !important; width: 100%; }
+
   .fs-btn { display: none !important; }
 
   .panel-right { order: 3; width: 100%; display: block; }
   .rhead { padding: 16px; height: auto; }
-  .twrap { max-height: 400px; overflow-y: auto; } /* 表格高度限制，支持内部滑动或整体页面滑动 */
+  .twrap { max-height: 400px; overflow-y: auto; } 
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
 
-  /* ★ 横向单排控制栏：极致 iOS 毛玻璃设计 ★ */
+  /* 横向毛玻璃控制栏 */
   .action-area { 
     position: fixed; bottom: 0; left: 0; width: 100%; 
     background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -359,8 +365,8 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
     <div class="si"><span class="sk">Y</span><span class="sv" id="sy" style="color:var(--y-color)">—</span></div>
     <div class="si"><span class="sk">Rx</span><span class="sv" id="srx">—</span></div>
     <div class="si"><span class="sk">Ry</span><span class="sv" id="sry">—</span></div>
-    <div class="si"><span class="sk">ΔX</span><span class="sv" id="spx" style="color:var(--x-color)">—</span></div>
-    <div class="si"><span class="sk">ΔY</span><span class="sv" id="spy" style="color:var(--y-color)">—</span></div>
+    <div class="si"><span class="sk">ΔX</span><span class="sv sp-fixed" id="spx" style="color:var(--x-color)">—</span></div>
+    <div class="si"><span class="sk">ΔY</span><span class="sv sp-fixed" id="spy" style="color:var(--y-color)">—</span></div>
     <div class="si desktop-only" style="flex:1; justify-content:flex-end;"><span class="sv" id="st" style="color:var(--text-dim);font-size:15px;font-weight:600;">等待开始</span></div>
   </div>
 
@@ -602,14 +608,26 @@ function updTbl(idx){
   if (r && twrap) { let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40); twrap.scrollTo({ top: targetTop, left: twrap.scrollLeft, behavior: 'smooth' }); }
 }
 
-/* ★ 防异常全屏网格引擎，保证 Canvas 绝对不消失不崩溃 */
+/* ★ 防抖动与防崩溃物理缓存网格引擎 ★ */
+let canvasW = 0, canvasH = 0;
+function resize(){
+  let w = cv.clientWidth; let h = cv.clientHeight;
+  if(w===0 || h===0) return; 
+  canvasW = w; canvasH = h;
+  let dpr = window.devicePixelRatio || 1;
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+  if(inited) drawScene(cur); else drawGrid();
+}
+
 function gp(){
   let xe,ye,xs=0,ys=0;
   if(mode==='line'){ xe=num('lxe',6); ye=num('lye',4); } 
   else { xs=num('axs',5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
   
-  let w = cv.clientWidth || 300;
-  let h = cv.clientHeight || 300;
+  let w = canvasW || cv.clientWidth || 300;
+  let h = canvasH || cv.clientHeight || 300;
+  
   // 异常兜底，防止渲染崩溃
   if (w < 100) w = window.innerWidth || 300;
   if (h < 100) h = 380;
@@ -627,26 +645,16 @@ function gp(){
   
   let ox = w / 2;
   let oy = h / 2;
-  return { mc, gs, ox, oy, isMobile };
+  return { mc, gs, ox, oy, isMobile, w, h };
 }
 
 function toC(gx,gy){
   let {gs, ox, oy} = gp(); return {cx: ox + gx*gs, cy: oy - gy*gs};
 }
 
-function resize(){
-  let w = cv.clientWidth; let h = cv.clientHeight;
-  if(w===0 || h===0) return; 
-  let dpr = window.devicePixelRatio || 1;
-  cv.width = w * dpr; cv.height = h * dpr;
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
-  if(inited) drawScene(cur); else drawGrid();
-}
-
 function drawGrid(){
-  let w = cv.clientWidth, h = cv.clientHeight;
+  let { mc, gs, ox, oy, isMobile, w, h } = gp();
   ctx.clearRect(0,0,w,h);
-  let { mc, gs, ox, oy, isMobile } = gp();
 
   let gLeft = ox - mc * gs;
   let gRight = ox + mc * gs;
