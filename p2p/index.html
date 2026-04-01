@@ -174,10 +174,12 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 100px; }
   .layout { display: flex; flex-direction: column; height: auto; }
   .panel-left, .panel-center, .panel-right { height: auto !important; overflow: visible !important; }
+  
   .panel-left { order: 1; width: 100%; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
   .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
 
   .panel-center { order: 0; width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  
   .ctoolbar { padding: 12px 16px; height: auto; }
   .top-badge { font-size: 11px; padding: 4px 8px; }
   
@@ -472,15 +474,22 @@ function startAuto(){
   }
   if(running){stopAuto();return;}
   running=true;
-  document.getElementById('bta').innerHTML='⏸ 暂停'; document.getElementById('bta').classList.add('running'); setSt('▶ 正在运行中...'); tick();
+  document.getElementById('bta').innerHTML='⏸ 暂停';
+  document.getElementById('bta').classList.add('running');
+  setSt('▶ 正在运行中...'); tick();
 }
 
 function tick(){
-  if(!running) return; stepOnce(); if(cur>=steps.length-1){stopAuto();return;} timer=setTimeout(tick, 2100-num('speed',800)); 
+  if(!running) return;
+  stepOnce();
+  if(cur>=steps.length-1){stopAuto();return;}
+  timer=setTimeout(tick, 2100-num('speed',800)); 
 }
 
 function stopAuto(){
-  running=false;clearTimeout(timer); document.getElementById('bta').innerHTML='▶ 自动'; document.getElementById('bta').classList.remove('running');
+  running=false;clearTimeout(timer);
+  document.getElementById('bta').innerHTML='▶ 自动';
+  document.getElementById('bta').classList.remove('running');
   if(inited && cur > 0 && cur < steps.length-1) setSt('⏸ 已暂停');
 }
 
@@ -544,10 +553,14 @@ function updTbl(idx){
       <td style="color:var(--x-color);font-weight:700">${s.x}</td>
       <td style="color:var(--y-color);font-weight:700">${s.y}</td>
       <td style="color:${s.rem===0?'var(--green)':'var(--text-mid)'};font-weight:${s.rem===0?700:500}">${s.rem}${s.rem===0?' ✓':''}</td>`;
-    if (i === idx) tr.classList.add('cur'); else tr.classList.add('done'); tb.appendChild(tr);
+    if (i === idx) tr.classList.add('cur'); else tr.classList.add('done');
+    tb.appendChild(tr);
   }
   let r = document.getElementById(`r${idx}`); let twrap = document.querySelector('.twrap');
-  if (r && twrap) { let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40); twrap.scrollTo({ top: targetTop, left: twrap.scrollLeft, behavior: 'smooth' }); }
+  if (r && twrap) {
+    let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40);
+    twrap.scrollTo({ top: targetTop, left: twrap.scrollLeft, behavior: 'smooth' });
+  }
 }
 
 let canvasW = 0, canvasH = 0;
@@ -635,7 +648,8 @@ function drawGrid(){
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   ctx.fillText('X', gRight + axExt + (isMobile ? 12 : 16), oy); 
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  ctx.fillText('Y', ox, gTop - axExt - 4);
+  // ★ 修改点：将Y轴的Y字向上提升 12px 增加距离防重叠
+  ctx.fillText('Y', ox, gTop - axExt - 12);
   
   ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace';
   ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -683,10 +697,13 @@ function drawScene(idx){
     for(let i=1;i<=idx;i++){let p=toC(steps[i].x,steps[i].y);ctx.lineTo(p.cx,p.cy);}
     ctx.stroke();
 
-    for(let i=1;i<idx;i++){
-      let s=steps[i],p=toC(s.x,s.y);
-      ctx.fillStyle=s.feed&&s.feed.includes('X')?'#2563eb':'#0d9488';
-      ctx.beginPath();ctx.arc(p.cx,p.cy,isMobile?3:4.5,0,Math.PI*2);ctx.fill();
+    for(let i=1;i<=idx;i++){
+      let s=steps[i];
+      if(s.ovX||s.ovY){
+        let p=toC(s.x,s.y);
+        if(s.ovX){ctx.fillStyle='rgba(37,99,235,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?4:6),p.cy-(isMobile?4:6),isMobile?8:12,isMobile?8:12);ctx.fill();}
+        if(s.ovY){ctx.fillStyle='rgba(13,148,136,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?3.5:5),p.cy-(isMobile?3.5:5),isMobile?7:10,isMobile?7:10);ctx.fill();}
+      }
     }
 
     let pr=steps[idx-1],cr=steps[idx];
