@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>数控固定循环 (G81/G83) 原理演示</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔩</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg:        #f3f4f6;
+  --surface:   #ffffff;
+  --surface2:  #f9fafb;
+  --border:    #e5e7eb;
+  --border2:   #d1d5db;
+  --text:      #111827;
+  --text-mid:  #4b5563;
+  --text-dim:  #6b7280;
+  
+  --accent:    #2563eb; 
+  --accent-lt: #eff6ff;
+  --red:       #ef4444; 
+  --blue:      #3b82f6; 
+  --blue-lt:   #eff6ff;
+  --green:     #10b981; 
+  --orange:    #f59e0b;
+  --purple:    #8b5cf6;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --radius:    8px;
+  
+  /* iOS 风格色彩 */
+  --ios-blue:    #007AFF;
+  --ios-orange:  #FF9500;
+  --ios-green:   #34C759;
+  --ios-gray:    #F2F2F7;
+  --ios-text:    #1C1C1E;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html, body { 
+  background:var(--bg); color:var(--text); 
+  font-family:'Noto Sans SC',sans-serif; font-size:15px; 
+  line-height:1.5; 
+  -webkit-text-size-adjust: 100%;
+}
+body { height: 100vh; overflow: hidden; }
+button, input, select, a { touch-action: manipulation; }
+
+/* ── 桌面端三栏网格 ── */
+.layout {
+  display: grid;
+  grid-template-columns: clamp(260px, 23vw, 340px) minmax(350px, 1fr) clamp(350px, 30vw, 500px);
+  height: 100vh;
+}
+
+.panel-left{ background:var(--surface); border-right:1px solid var(--border); padding:16px; display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10; }
+.panel-top { display: flex; flex-direction: column; gap: 14px; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; }
+.panel-top::-webkit-scrollbar { display: none; }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none; 
+  padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);
+}
+.back-link:hover { color: var(--ios-blue); border-color: var(--ios-blue); background: var(--blue-lt); }
+
+.stitle{ font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.stitle::before{content:''; width:4px; height:12px; background:var(--ios-blue); border-radius:2px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm);}
+
+.radio-group { display: flex; flex-direction: column; gap: 8px; }
+.radio-lbl { 
+  display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text);
+  cursor: pointer; padding: 8px 12px; border: 1px solid var(--border2); border-radius: 8px; transition: all 0.2s ease;
+}
+.radio-lbl:hover { background: var(--surface2); }
+.radio-lbl.active { border-color: var(--ios-blue); background: var(--blue-lt); color: var(--ios-blue); }
+.radio-lbl input { display: none; }
+
+.ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:4px; display:flex; justify-content:space-between; align-items: center;}
+.val-badge { font-family:'JetBrains Mono',monospace; color:var(--ios-blue); font-weight:700; background: var(--blue-lt); padding: 2px 6px; border-radius: 4px; font-size: 13px;}
+
+.spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none; width: 100%; margin-top: 8px; margin-bottom: 4px;}
+.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--ios-blue); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
+#p-q::-webkit-slider-thumb { border-color: var(--ios-orange); }
+#p-d::-webkit-slider-thumb { border-color: var(--purple); }
+
+.fbox{ background:var(--blue-lt); border:1px solid #bfdbfe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
+.fh{color:var(--ios-blue); font-weight:700; font-size:13px; margin-bottom:4px;}
+
+/* ── 控制按钮 ── */
+.action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
+.brow{display:flex; gap:10px;}
+.btn{ 
+  flex: 1; padding:12px 10px; border-radius:14px; border:none; cursor:pointer; user-select: none;
+  font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; 
+  font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; 
+  display:flex; align-items:center; justify-content:center; gap:6px; 
+}
+.btn:active { transform: scale(0.95); }
+.btn-reset { background: var(--ios-gray); color: #8E8E93; }
+.btn-reset:hover { background: #E5E5EA; color: var(--ios-text); }
+.btn-p { background: var(--ios-blue); color: #fff; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2); }
+.btn-p:hover { background: #0062CC; box-shadow: 0 6px 14px rgba(0, 122, 255, 0.3); }
+
+/* ── 中间面板 (仿真区) ── */
+.panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
+.ctoolbar{ height: 60px; padding: 0 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
+.ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
+
+.top-badge { display: inline-block; background: var(--surface2); color: var(--text-dim); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; text-align: center; min-width: 90px;}
+
+.sbar { 
+  height: 64px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
+  display: flex; justify-content: space-around; align-items: center; 
+  z-index: 5; flex: 0 0 auto; overflow: hidden; 
+}
+.si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+.sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+.sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
+.sv-fixed { display: inline-block; width: 66px; text-align: right; font-variant-numeric: tabular-nums;}
+.sv-cmd { color: var(--ios-blue); background: var(--blue-lt); padding: 0 6px; border-radius: 4px; font-size: 14px;}
+
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden; justify-content: center;}
+.legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
+.leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
+.lline{width:20px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
+
+.canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; background: #fff; }
+canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+/* ── 右侧面板 (时序波形图) ── */
+.panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
+.rhead{ height: 60px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+
+.signal-wrap {
+  flex: 1 1 0; position: relative; width: 100%; background: #1E1E1E; border-bottom: 1px solid var(--border);
+  background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 20px 20px; min-height: 0;
+}
+.chart-labels {
+  position: absolute; top: 12px; right: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; text-align: right;
+  background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 8px; line-height: 1.8; color: #fff;
+}
+
+.sdetail{ flex: 0 0 260px; height: 260px; box-sizing: border-box; overflow-y: auto; padding:20px 24px; background:var(--surface); z-index: 10; }
+.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--ios-blue); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;}
+.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
+.dnum{ width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color: var(--ios-blue);}
+.dnote{ margin-top:12px; padding:10px 14px; background:var(--surface2); border-left:4px solid var(--ios-blue); border-radius:4px 8px 8px 4px; font-size:13px; color:var(--text-mid); line-height:1.6; }
+
+/* ========================================= */
+/* ===== 移动端自适应适配 ===== */
+/* ========================================= */
+@media (max-width: 1024px) {
+  html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 100px; }
+  .layout { display: flex; flex-direction: column; height: auto; }
+  .panel-left, .panel-center, .panel-right { height: auto !important; overflow: visible !important; }
+  
+  .panel-left { order: 1; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
+  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
+
+  .panel-center { order: 0; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  
+  .ctoolbar { padding: 12px 16px; height: auto; }
+  .top-badge { font-size: 11px; padding: 4px 8px; min-width: 70px;}
+
+  .sbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; padding: 12px 0; height: auto; }
+  .si { border-right: 1px solid var(--border2); padding: 0; }
+  .si:last-child { border-right: none; }
+  .sk { font-size: 10px; margin-bottom: 2px;}
+  .sv { font-size: 13px; }
+  .sv-fixed { width: auto; }
+
+  .legend-wrap { padding: 10px 8px; height: auto; min-height: 44px; width: 100%; box-sizing: border-box; }
+  .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; font-size: 11px; }
+
+  .canvas-wrap { flex: none; height: 300px !important; }
+
+  .panel-right { order: 3; display: flex; flex-direction: column;}
+  .signal-wrap { height: 250px !important; flex: none; }
+  .rhead { padding: 16px; height: auto; }
+  .sdetail { height: auto; max-height: none; padding: 24px 16px; }
+
+  .action-area { 
+    position: fixed; bottom: 0; left: 0; width: 100%; 
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); 
+  }
+  .action-area .brow { display: flex; gap: 8px; width: 100%; }
+  .btn { flex: 1; padding: 12px 0; margin: 0; font-size: 14px; border-radius: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+<div class="panel-left">
+  <div class="panel-top">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      返回导航主页
+    </a>
+    
+    <div>
+      <div class="stitle">固定循环指令类型</div>
+      <div class="card radio-group">
+        <label class="radio-lbl" onclick="setMode('G81', this)">
+            <input type="radio" name="mode" value="G81"> G81 正常钻削循环 (直上直下)
+        </label>
+        <label class="radio-lbl active" onclick="setMode('G83', this)">
+            <input type="radio" name="mode" value="G83" checked> G83 深孔啄钻循环 (排屑)
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <div class="stitle">Z 轴关键坐标面设置 (绝对坐标)</div>
+      <div class="card">
+        <div style="display:flex; gap:12px; margin-bottom:12px">
+          <div style="flex:1"><div class="ilabel">初始平面</div><input class="ifield" type="number" id="v-init" value="50" readonly style="color:var(--text-dim)"></div>
+          <div style="flex:1"><div class="ilabel">R 参考面</div><input class="ifield" type="number" id="v-r" value="10" readonly style="color:var(--text-dim)"></div>
+        </div>
+        <div><div class="ilabel">孔底深度 Z</div><input class="ifield" type="number" id="v-z" value="-80" readonly style="color:var(--text-dim)"></div>
+      </div>
+    </div>
+
+    <div id="peck-params">
+      <div class="stitle">啄钻参数设定</div>
+      <div class="card">
+        <div style="margin-bottom: 16px;">
+          <div class="ilabel"><span style="color:var(--ios-orange)">每次切削深度 Q (mm)</span><span class="val-badge" style="color:var(--orange); background:var(--orange-lt)" id="val-q">25</span></div>
+          <input type="range" class="spslider" id="p-q" min="10" max="50" step="5" value="25">
+        </div>
+        
+        <div>
+          <div class="ilabel"><span style="color:var(--purple)">退刀缓冲间隙 d (mm)</span><span class="val-badge" style="color:var(--purple); background:#f3e8ff" id="val-d">2</span></div>
+          <input type="range" class="spslider" id="p-d" min="0" max="10" step="1" value="2">
+        </div>
+      </div>
+    </div>
+
+    <div class="fbox">
+      <div class="fh" id="f-desc-title">G83 指令动作分解</div>
+      <div id="f-desc-content">
+        1. G00 快速定位到 R 平面。<br>
+        2. G01 往下切削深度 Q。<br>
+        3. G00 快速退回到 R 平面排屑。<br>
+        4. G00 快速下探到上次切削深度上方距离 d 处。<br>
+        5. G01 继续往下切削 Q，循环直至孔底 Z。
+      </div>
+    </div>
+  </div>
+
+  <div class="action-area">
+    <div class="brow">
+      <button class="btn btn-reset" onclick="resetSim()">↺ 复位</button>
+      <button class="btn btn-p" id="btn-run" onclick="toggleRun()">▶ 启动加工</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel-center">
+  <div class="ctoolbar">
+    <span class="ctitle">🔩 钻削 Z 轴剖面动态仿真</span>
+    <div class="c-actions">
+       <span class="top-badge" id="st-badge">⏹ 准备就绪</span>
+    </div>
+  </div>
+  
+  <div class="sbar">
+    <div class="si"><span class="sk">当前状态</span><span class="sv sv-cmd" id="s-state">待机</span></div>
+    <div class="si"><span class="sk">实时 Z 轴位置</span><span class="sv"><span id="s-z" class="sv-fixed" style="color:var(--ios-blue)">50.00</span> mm</span></div>
+    <div class="si"><span class="sk">已加工深度</span><span class="sv"><span id="s-depth" class="sv-fixed" style="color:var(--orange)">0.00</span> mm</span></div>
+  </div>
+
+  <div class="legend-wrap">
+    <div class="legend-group">
+      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>G00 快速空程移动</div>
+      <div class="leg"><span class="lline" style="background:var(--ios-blue)"></span>G01 工进切削移动</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="cvSim"></canvas>
+  </div>
+</div>
+
+<div class="panel-right">
+  <div class="rhead">
+    <span>时间-位移 (Z-t) 时序分析图</span>
+  </div>
+  <div class="signal-wrap">
+    <canvas id="cvChart"></canvas>
+    <div class="chart-labels">
+      <div style="color: #94a3b8">横轴：时间 (s)</div>
+      <div style="color: #fff">纵轴：Z 坐标 (mm)</div>
+    </div>
+  </div>
+  
+  <div class="sdetail scr">
+    <div class="sdtitle">📍 时序曲线物理意义</div>
+    <div class="drow"><div class="dlbl"><div class="dnum" style="background:var(--surface2);color:var(--text-dim)">1</div>平缓斜线 (蓝)</div><div class="dval" style="color:var(--ios-blue); font-size:13px;">G01 慢速切削</div></div>
+    <div class="drow"><div class="dlbl"><div class="dnum" style="background:var(--surface2);color:var(--text-dim)">2</div>陡峭虚线 (灰)</div><div class="dval" style="color:var(--text-mid); font-size:13px;">G00 快速退回排屑</div></div>
+    <div class="drow"><div class="dlbl"><div class="dnum" style="background:#f3e8ff;color:var(--purple);border-color:var(--purple)">3</div>间隙突变</div><div class="dval" style="color:var(--purple); font-size:13px;">缓冲距离 d</div></div>
+    
+    <div class="dnote" style="margin-top:16px;">
+      <b>教学难点解密：</b><br>
+      在右侧的 Z-t 曲线中，深孔钻削呈现出经典的<b>“锯齿状回退”</b>特征。如果不回退到 R 平面，深孔内部的长切屑将无法排出，导致钻头断裂。间隙 d 的存在是为了防止钻头在快速下探时直接撞击孔底残留的废屑。
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// --- DOM 获取 ---
+const elQ = document.getElementById('p-q');
+const elD = document.getElementById('p-d');
+const valQ = document.getElementById('val-q');
+const valD = document.getElementById('val-d');
+
+const cvSim = document.getElementById('cvSim');
+const ctxS = cvSim.getContext('2d');
+const cvChart = document.getElementById('cvChart');
+const ctxC = cvChart.getContext('2d');
+
+let mode = 'G83'; // 'G81' or 'G83'
+
+// 物理坐标参数
+const INIT_Z = 50;
+const R_Z = 10;
+const SURFACE_Z = 0;
+const FINAL_Z = -80;
+const VEL_G00 = 150; // mm/s (仿真速度)
+const VEL_G01 = 20;  // mm/s
+
+let Q = 25;
+let d = 2;
+
+// 仿真状态
+let pathData = []; // [{type:'G00'/'G01', z0, z1, t_start, t_end, desc}]
+let isRunning = false;
+let globalTime = 0;
+let totalTime = 0;
+let curZ = INIT_Z;
+let maxDrilledDepth = 0;
+
+let animTimer = null;
+let lastStamp = 0;
+
+// 事件监听
+elQ.addEventListener('input', () => { valQ.textContent = elQ.value; Q = parseFloat(elQ.value); buildPath(); });
+elD.addEventListener('input', () => { valD.textContent = elD.value; d = parseFloat(elD.value); buildPath(); });
+
+function setMode(m, el) {
+  mode = m;
+  document.querySelectorAll('.radio-lbl').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  
+  if (m === 'G81') {
+      document.getElementById('peck-params').style.opacity = '0.3';
+      document.getElementById('peck-params').style.pointerEvents = 'none';
+      document.getElementById('f-desc-title').innerText = "G81 指令动作分解";
+      document.getElementById('f-desc-content').innerHTML = "1. G00 快速定位到 R 平面。<br>2. G01 匀速往下切削直至孔底 Z。<br>3. G00 快速退回到 R 平面。";
+  } else {
+      document.getElementById('peck-params').style.opacity = '1';
+      document.getElementById('peck-params').style.pointerEvents = 'auto';
+      document.getElementById('f-desc-title').innerText = "G83 指令动作分解";
+      document.getElementById('f-desc-content').innerHTML = "1. G00 快速定位到 R 平面。<br>2. G01 往下切削深度 Q。<br>3. G00 快速退回到 R 平面排屑。<br>4. G00 快速下探到距上次切削孔底 d 处。<br>5. 循环执行直至孔底 Z。";
+  }
+  resetSim();
+}
+
+function setSt(txt, color, bg) {
+    let badge = document.getElementById('st-badge');
+    badge.textContent = txt; badge.style.color = color; badge.style.background = bg;
+}
+
+// 核心：构建运动轨迹与时间轴映射
+function buildPath() {
+    pathData = [];
+    let t = 0;
+    let z = INIT_Z;
+    let holeZ = R_Z;
+
+    function addSeg(type, zTarget, desc) {
+        if(Math.abs(z - zTarget) < 0.001) return;
+        let v = type === 'G00' ? VEL_G00 : VEL_G01;
+        let dt = Math.abs(zTarget - z) / v;
+        pathData.push({ type, z0: z, z1: zTarget, ts: t, te: t + dt, desc });
+        t += dt;
+        z = zTarget;
+    }
+
+    // 1. 到 R点
+    addSeg('G00', R_Z, '快速下探至 R 点');
+
+    if (mode === 'G81') {
+        addSeg('G01', FINAL_Z, '工进切削至孔底');
+        addSeg('G00', R_Z, '快速退回 R 点');
+    } else {
+        // G83 逻辑
+        while (holeZ > FINAL_Z) {
+            let nextZ = Math.max(holeZ - Q, FINAL_Z);
+            addSeg('G01', nextZ, `工进切削 Q (${nextZ.toFixed(1)})`);
+            holeZ = nextZ;
+
+            if (holeZ > FINAL_Z) {
+                addSeg('G00', R_Z, '退回 R 点排屑');
+                // 停顿一瞬间排屑 (模拟真实机器换向)
+                pathData.push({ type: 'DWELL', z0: R_Z, z1: R_Z, ts: t, te: t + 0.2, desc: '排屑停顿' });
+                t += 0.2;
+                addSeg('G00', holeZ + d, `快速下探至缓冲间隙 d`);
+            }
+        }
+        addSeg('G00', R_Z, '加工完成，退回 R 点');
+    }
+    totalTime = t;
+    if(!isRunning) renderAll();
+}
+
+function toggleRun() {
+    if (isRunning) {
+        isRunning = false;
+        setSt('⏸ 已暂停', 'var(--orange)', 'var(--surface2)');
+        document.getElementById('btn-run').innerHTML = '▶ 继续运行';
+        cancelAnimationFrame(animTimer);
+    } else {
+        if (globalTime >= totalTime) { resetSim(); return; } // 重头开始
+        isRunning = true;
+        setSt('▶ 加工中...', 'var(--ios-blue)', 'var(--accent-lt)');
+        document.getElementById('btn-run').innerHTML = '⏸ 暂停';
+        lastStamp = performance.now();
+        animTimer = requestAnimationFrame(loop);
+    }
+}
+
+function resetSim() {
+    isRunning = false;
+    cancelAnimationFrame(animTimer);
+    globalTime = 0;
+    curZ = INIT_Z;
+    maxDrilledDepth = 0;
+    buildPath();
+    setSt('⏹ 准备就绪', 'var(--text-dim)', 'var(--surface2)');
+    document.getElementById('btn-run').innerHTML = '▶ 启动加工';
+    updateDOM();
+    renderAll();
+}
+
+function loop(stamp) {
+    if(!isRunning) return;
+    let dt = (stamp - lastStamp) / 1000; // 秒
+    lastStamp = stamp;
+    
+    globalTime += dt;
+    
+    if (globalTime >= totalTime) {
+        globalTime = totalTime;
+        isRunning = false;
+        setSt('✅ 加工完成', 'var(--green)', 'var(--green-lt)');
+        document.getElementById('btn-run').innerHTML = '↺ 重新运行';
+    }
+
+    // 寻找当前段并插值
+    let currentSeg = null;
+    for(let seg of pathData) {
+        if(globalTime >= seg.ts && globalTime <= seg.te) {
+            currentSeg = seg; break;
+        }
+    }
+    
+    if (currentSeg) {
+        if (currentSeg.type === 'DWELL') {
+            curZ = currentSeg.z0;
+        } else {
+            let p = (globalTime - currentSeg.ts) / (currentSeg.te - currentSeg.ts);
+            curZ = currentSeg.z0 + (currentSeg.z1 - currentSeg.z0) * p;
+        }
+        document.getElementById('s-state').textContent = currentSeg.type + ' ' + currentSeg.desc;
+        if(currentSeg.type === 'G00') document.getElementById('s-state').style.color = 'var(--text-mid)';
+        else document.getElementById('s-state').style.color = 'var(--ios-blue)';
+    }
+
+    // 更新最大深度 (用于画切除部分)
+    if (curZ < SURFACE_Z) {
+        let depth = SURFACE_Z - curZ;
+        if (depth > maxDrilledDepth) maxDrilledDepth = depth;
+    }
+
+    updateDOM();
+    renderAll();
+    
+    if (isRunning) animTimer = requestAnimationFrame(loop);
+}
+
+function updateDOM() {
+    document.getElementById('s-z').textContent = curZ.toFixed(2);
+    document.getElementById('s-depth').textContent = maxDrilledDepth.toFixed(2);
+}
+
+
+// --- Canvas 渲染引擎 ---
+let simW = 0, simH = 0;
+let chartW = 0, chartH = 0;
+
+function resize() {
+    let wS = cvSim.parentElement.clientWidth, hS = cvSim.parentElement.clientHeight;
+    if(wS && hS) {
+        simW = wS; simH = hS;
+        cvSim.width = wS * window.devicePixelRatio; cvSim.height = hS * window.devicePixelRatio;
+        ctxS.setTransform(1,0,0,1,0,0); ctxS.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    let wC = cvChart.parentElement.clientWidth, hC = cvChart.parentElement.clientHeight;
+    if(wC && hC) {
+        chartW = wC; chartH = hC;
+        cvChart.width = wC * window.devicePixelRatio; cvChart.height = hC * window.devicePixelRatio;
+        ctxC.setTransform(1,0,0,1,0,0); ctxC.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    renderAll();
+}
+
+// Y映射：Z 50 ~ -90 映射到 Canvas 内部
+function mapZtoY(z) {
+    let zSpan = INIT_Z - FINAL_Z + 20; // 160
+    let padding = 30;
+    let usableH = simH - padding*2;
+    // Z从大到小，对应Y从小到大 (屏幕向下)
+    return padding + usableH * ((INIT_Z + 10 - z) / zSpan);
+}
+
+function renderAll() {
+    if(simW===0) return;
+    
+    // ======== 绘制左侧剖面仿真 ========
+    ctxS.clearRect(0,0,simW,simH);
+    let cx = simW / 2;
+    
+    // 1. 辅助线
+    ctxS.font = '11px sans-serif'; ctxS.textAlign = 'right'; ctxS.textBaseline='middle';
+    const drawRefLine = (z, label, color) => {
+        let y = mapZtoY(z);
+        ctxS.strokeStyle = color; ctxS.lineWidth = 1; ctxS.setLineDash([4,4]);
+        ctxS.beginPath(); ctxS.moveTo(0, y); ctxS.lineTo(simW, y); ctxS.stroke();
+        ctxS.fillStyle = color; ctxS.fillText(label + ` (Z${z})`, simW - 10, y - 8);
+    };
+    ctxS.setLineDash([]);
+    drawRefLine(INIT_Z, '初始面', '#94a3b8');
+    drawRefLine(R_Z, 'R 平面', '#3b82f6');
+    drawRefLine(SURFACE_Z, '工件表面', '#ea580c');
+    drawRefLine(FINAL_Z, '终点 Z', '#ef4444');
+    ctxS.setLineDash([]);
+
+    // 2. 绘制工件 (带阴影线)
+    let ySurf = mapZtoY(SURFACE_Z);
+    let yBot = mapZtoY(FINAL_Z - 10);
+    ctxS.fillStyle = '#cbd5e1';
+    ctxS.fillRect(cx - 80, ySurf, 160, yBot - ySurf);
+    ctxS.strokeStyle = '#94a3b8'; ctxS.lineWidth = 2;
+    ctxS.strokeRect(cx - 80, ySurf, 160, yBot - ySurf);
+    
+    // 绘制已加工的孔 (挖空效果)
+    let holeR = 15;
+    let yHoleBot = mapZtoY(SURFACE_Z - maxDrilledDepth);
+    ctxS.fillStyle = '#ffffff';
+    ctxS.fillRect(cx - holeR, ySurf, holeR*2, yHoleBot - ySurf);
+    ctxS.strokeStyle = '#64748b'; ctxS.lineWidth = 2;
+    ctxS.beginPath(); ctxS.moveTo(cx - holeR, ySurf); ctxS.lineTo(cx - holeR, yHoleBot); ctxS.stroke();
+    ctxS.beginPath(); ctxS.moveTo(cx + holeR, ySurf); ctxS.lineTo(cx + holeR, yHoleBot); ctxS.stroke();
+    
+    // 钻头尖端V形
+    ctxS.beginPath(); ctxS.moveTo(cx - holeR, yHoleBot); ctxS.lineTo(cx, yHoleBot + 8); ctxS.lineTo(cx + holeR, yHoleBot); ctxS.stroke();
+
+    // 3. 绘制钻头
+    let curY = mapZtoY(curZ);
+    let drillLen = 120;
+    
+    // 钻头本体
+    ctxS.fillStyle = '#94a3b8';
+    ctxS.fillRect(cx - holeR + 2, curY - drillLen, holeR*2 - 4, drillLen);
+    
+    // 排屑槽纹理 (简单模拟)
+    ctxS.strokeStyle = '#4b5563'; ctxS.lineWidth = 3;
+    ctxS.beginPath();
+    for(let dy=0; dy<drillLen; dy+=15) {
+        ctxS.moveTo(cx - holeR + 2, curY - dy - 5);
+        ctxS.lineTo(cx + holeR - 2, curY - dy - 15);
+    }
+    ctxS.stroke();
+
+    // 钻尖
+    ctxS.fillStyle = '#ea580c';
+    ctxS.beginPath();
+    ctxS.moveTo(cx - holeR + 2, curY);
+    ctxS.lineTo(cx, curY + 8);
+    ctxS.lineTo(cx + holeR - 2, curY);
+    ctxS.fill();
+    
+    // 4. 绘制加工轨迹遗留线
+    ctxS.beginPath(); ctxS.moveTo(cx - 30, mapZtoY(INIT_Z));
+    for(let seg of pathData) {
+        if(globalTime >= seg.ts) {
+            let endZ = (globalTime > seg.te) ? seg.z1 : curZ;
+            let endY = mapZtoY(endZ);
+            
+            ctxS.beginPath();
+            if(seg.type === 'G00') { ctxS.strokeStyle = '#9ca3af'; ctxS.lineWidth=2; ctxS.setLineDash([4,4]); }
+            else { ctxS.strokeStyle = '#007AFF'; ctxS.lineWidth=3; ctxS.setLineDash([]); }
+            
+            // 为了避免重叠，进给和退刀在X轴稍微错开
+            let offsetX = seg.z1 < seg.z0 ? -30 : -20; 
+            
+            ctxS.moveTo(cx + offsetX, mapZtoY(seg.z0));
+            ctxS.lineTo(cx + offsetX, endY);
+            ctxS.stroke();
+            
+            if(globalTime < seg.te) break;
+        }
+    }
+    ctxS.setLineDash([]);
+
+
+    // ======== 绘制右侧 Z-t 曲线 ========
+    ctxC.clearRect(0,0,chartW,chartH);
+    
+    let padL = 40, padR = 20, padT = 20, padB = 30;
+    let cW = chartW - padL - padR;
+    let cH = chartH - padT - padB;
+    
+    // 时间轴动态缩放
+    let drawMaxTime = Math.max(totalTime, 5); 
+    
+    let toCX = (t) => padL + (t / drawMaxTime) * cW;
+    let toCY = (z) => {
+        let zSpan = INIT_Z - FINAL_Z + 10;
+        return padT + cH * ((INIT_Z + 5 - z) / zSpan);
+    };
+
+    // 网格线
+    ctxC.strokeStyle = 'rgba(255,255,255,0.1)'; ctxC.lineWidth = 1;
+    ctxC.beginPath();
+    [INIT_Z, R_Z, SURFACE_Z, FINAL_Z].forEach(z => {
+        let y = toCY(z);
+        ctxC.moveTo(padL, y); ctxC.lineTo(padL+cW, y);
+    });
+    ctxC.stroke();
+    
+    ctxC.fillStyle = '#94a3b8'; ctxC.font = '10px monospace';
+    ctxC.textAlign = 'right'; ctxC.textBaseline='middle';
+    ctxC.fillText('Z'+INIT_Z, padL-5, toCY(INIT_Z));
+    ctxC.fillText('R'+R_Z, padL-5, toCY(R_Z));
+    ctxC.fillText('Z'+SURFACE_Z, padL-5, toCY(SURFACE_Z));
+    ctxC.fillText('Z'+FINAL_Z, padL-5, toCY(FINAL_Z));
+    
+    // X轴时间标尺
+    ctxC.textAlign = 'center'; ctxC.textBaseline='top';
+    for(let i=0; i<=Math.ceil(drawMaxTime); i+= (drawMaxTime>20?5:2)) {
+        ctxC.fillText(i+'s', toCX(i), padT+cH+5);
+    }
+
+    // 绘制曲线
+    for(let seg of pathData) {
+        if(globalTime > seg.ts) {
+            let tEnd = (globalTime > seg.te) ? seg.te : globalTime;
+            let zEnd = (globalTime > seg.te) ? seg.z1 : curZ;
+            
+            ctxC.beginPath();
+            if(seg.type === 'G00') { ctxC.strokeStyle = '#94a3b8'; ctxC.lineWidth=1.5; ctxC.setLineDash([4,4]); }
+            else if(seg.type === 'G01') { ctxC.strokeStyle = '#007AFF'; ctxC.lineWidth=2.5; ctxC.setLineDash([]); }
+            else continue; // DWELL
+            
+            ctxC.moveTo(toCX(seg.ts), toCY(seg.z0));
+            ctxC.lineTo(toCX(tEnd), toCY(zEnd));
+            ctxC.stroke();
+            
+            if(globalTime < seg.te) break;
+        }
+    }
+    ctxC.setLineDash([]);
+    
+    // 画当前点
+    ctxC.beginPath();
+    ctxC.arc(toCX(globalTime), toCY(curZ), 5, 0, Math.PI*2);
+    ctxC.fillStyle = '#ea580c'; ctxC.fill();
+    ctxC.strokeStyle = '#fff'; ctxC.lineWidth = 1.5; ctxC.stroke();
+}
+
+window.addEventListener('resize', resize);
+// 初始化
+buildPath();
+setTimeout(() => { resize(); renderAll(); }, 100);
+
+</script>
+</body>
+</html>
