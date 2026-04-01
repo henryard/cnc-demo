@@ -40,14 +40,18 @@
 
 *{box-sizing:border-box;margin:0;padding:0;}
 
-/* ★ 彻底禁止移动端双击放大与越界缩放 ★ */
+/* 基础样式设定 */
 html, body { 
   background:var(--bg); color:var(--text); 
   font-family:'Noto Sans SC',sans-serif; font-size:15px; 
-  line-height:1.5; height:100vh; overflow:hidden; 
-  touch-action: pan-x pan-y; 
+  line-height:1.5; 
   -webkit-text-size-adjust: 100%;
 }
+
+/* 桌面端锁定滚动，移动端在媒体查询中解锁 */
+body { height: 100vh; overflow: hidden; }
+
+/* 精准防双击放大代码（仅针对控件） */
 button, input, select, a { touch-action: manipulation; }
 
 .layout{display:grid;grid-template-columns:330px 1fr 480px;height:100vh;}
@@ -170,17 +174,31 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
 .scr::-webkit-scrollbar-thumb{background:var(--border2); border-radius:3px;}
 
 /* ========================================= */
-/* ===== 移动端深度优化：全屏网格与iOS底栏 ===== */
+/* ===== 移动端及小屏幕深度自适应适配 ===== */
 /* ========================================= */
 @media (max-width: 1024px) {
-  body { height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 100px; }
+  /* ★ 彻底解开移动端滚动限制，允许页面自然滑动 ★ */
+  html, body { 
+    height: auto !important; 
+    min-height: 100vh; 
+    overflow-y: auto !important; 
+    overflow-x: hidden !important;
+    padding-bottom: 100px; 
+  }
   .layout { display: flex; flex-direction: column; height: auto; }
   
-  .panel-left { order: 1; width: 100%; height: auto; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; overflow: visible; padding: 20px 12px 24px 12px; }
+  /* 解除各面板的溢出隐藏限制 */
+  .panel-left, .panel-center, .panel-right {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  .panel-left { order: 1; width: 100%; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
   .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
 
-  /* ★ 抛弃不稳定 Flex 比例，固定分配面板高度防止塌陷崩溃 ★ */
-  .panel-center { order: 0; width: 100%; height: auto; min-height: 0; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  /* 画布高度锁定，避免 Flex 塌陷 */
+  .panel-center { order: 0; width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  canvas { flex: none; height: 380px !important; width: 100%; }
   
   .ctoolbar { padding: 12px 16px; height: auto; }
   .top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
@@ -195,20 +213,18 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
   .dda-data-grid .sk { font-size: 11px; margin-bottom: 4px; }
   .dda-data-grid .sv { font-size: 13px; }
 
-  /* 进一步缩小并紧凑排布移动端图例 */
-  .legend-wrap { padding: 10px 8px; border-bottom: none; background: transparent;}
-  .legend-group { flex-wrap: wrap; white-space: normal; gap: 8px 10px; line-height: 1.6; justify-content: center; font-size: 10px;}
+  /* ★ 修复 DDA 图例折行溢出问题 ★ */
+  .legend-wrap { padding: 10px 8px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
+  .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; font-size: 11px; line-height: 1.6; width: 100%; }
+  .leg { white-space: nowrap; } /* 仅内部不折行 */
   .ldot, .lsq { width: 10px; height: 10px; }
   .lline { width: 18px; }
-
-  /* ★ 给画布强制注入物理高度，彻底解决 Safari Flexbox 计算Bug */
-  canvas { flex: none; height: 380px !important; width: 100%; }
   
   .fs-btn { display: none !important; }
 
-  .panel-right { order: 3; width: 100%; height: auto; display: block; }
+  .panel-right { order: 3; width: 100%; display: block; }
   .rhead { padding: 16px; height: auto; }
-  .twrap { height: 400px; overflow-y: auto; }
+  .twrap { max-height: 400px; overflow-y: auto; } /* 表格高度限制，支持内部滑动或整体页面滑动 */
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
 
   /* ★ 横向单排控制栏：极致 iOS 毛玻璃设计 ★ */
@@ -344,8 +360,8 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
 
   <div class="legend-wrap">
     <div class="legend-group">
-      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>理想</div>
-      <div class="leg"><span class="lline" style="background:var(--accent)"></span>实际</div>
+      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>理想轨迹</div>
+      <div class="leg"><span class="lline" style="background:var(--accent)"></span>实际路径</div>
       <div class="leg"><span class="ldot" style="background:var(--orange); border: 1.5px solid #fff; box-shadow: 0 0 0 1px var(--border2)"></span>刀具</div>
       <div class="leg"><span class="lsq" style="background:var(--x-color);opacity:0.6"></span>ΔX 脉冲</div>
       <div class="leg"><span class="lsq" style="background:var(--y-color);opacity:0.6"></span>ΔY 脉冲</div>
@@ -483,7 +499,7 @@ function initSim(){
   inited=true; cur=0; renderStep(0); updTbl(0); setSt('已初始化，准备开始');
 }
 
-/* ★ 状态逻辑修复：拦截终止步，明确反馈 ★ */
+/* ★ 状态逻辑修复：到达终点拦截运行，单步显示正常状态 ★ */
 function stepOnce(){
   if(!inited) initSim();
   if(cur >= steps.length-1) {
