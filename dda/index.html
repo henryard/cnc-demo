@@ -2,14 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>数字积分法（DDA）插补演示</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
 
 :root {
-  /* DDA 色板 */
   --bg:        #f3f4f6;
   --surface:   #ffffff;
   --surface2:  #f9fafb;
@@ -22,208 +21,182 @@
   --accent:    #7c3aed; 
   --accent-lt: #f5f3ff;
   --x-color:   #2563eb; 
-  --x-color-lt:#eff6ff;
   --y-color:   #0d9488; 
-  --y-color-lt:#f0fdfa;
   --green:     #16a34a; 
   --green-lt:  #f0fdf4;
   --orange:    #ea580c; 
+  --orange-lt: #fff7ed;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
   --radius:    8px;
+  
+  /* iOS 风格色彩 */
+  --ios-blue:    #007AFF;
+  --ios-orange:  #FF9500;
+  --ios-gray:    #F2F2F7;
+  --ios-text:    #1C1C1E;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
-body{
-  background:var(--bg); color:var(--text); 
-  font-family:'Noto Sans SC',sans-serif; 
-  font-size:15px; line-height:1.5; 
-  height:100vh; overflow:hidden; 
-}
+body{ background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-serif; font-size:15px; line-height:1.5; height:100vh; overflow:hidden; }
 
-/* ── Layout ── */
+/* 核心防双击放大代码 */
+button, input, select { touch-action: manipulation; }
+
 .layout{display:grid;grid-template-columns:330px 1fr 480px;height:100vh;}
 
-/* ── Left Panel ── */
-.panel-left{
-  background:var(--surface); border-right:1px solid var(--border);
-  padding:12px 16px; display:flex; flex-direction:column; 
-  height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10;
-}
-.panel-top {
-  display: flex; flex-direction: column; gap: 8px; flex: 1 1 0;       
-  min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 4px; 
-}
+/* ── 左侧面板 ── */
+.panel-left{ background:var(--surface); border-right:1px solid var(--border); padding:16px; display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10; }
+.panel-top { display: flex; flex-direction: column; gap: 14px; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; }
 .panel-top::-webkit-scrollbar { display: none; }
-.stitle{
-  font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); 
-  margin-bottom:4px; display:flex; align-items:center; gap:6px;
-}
+.stitle{ font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
 .stitle::before{content:''; width:4px; height:12px; background:var(--accent); border-radius:2px;}
-.mode-sw{
-  background:var(--surface2); border:1px solid var(--border2);
-  border-radius:var(--radius); padding:2px; display:grid; grid-template-columns:1fr 1fr; gap:2px;
-}
-.mode-btn{
-  padding:6px 4px; background:transparent; color:var(--text-mid); border:none; border-radius:6px; cursor:pointer;
-  font-size:14px; font-weight:600; font-family:'Noto Sans SC',sans-serif; transition:all .2s ease;
-}
+.mode-sw{ background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius); padding:4px; display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.mode-btn{ padding:8px 4px; background:transparent; color:var(--text-mid); border:none; border-radius:6px; cursor:pointer; font-size:14px; font-weight:600; transition:all .2s ease; }
 .mode-btn.active{background:var(--accent); color:#ffffff; box-shadow:var(--shadow-sm);}
-.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:8px 10px; box-shadow:var(--shadow-sm);}
-.ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:2px;}
-.ifield{
-  background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 6px; color:var(--text); 
-  font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700; width:100%; transition:all .2s;
-}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm);}
+.ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:4px;}
+.ifield{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; color:var(--text); font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700; width:100%; transition:all .2s; }
 .ifield:focus{outline:none; background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lt);}
-.fbox{
-  background:var(--accent-lt); border:1px solid #d8b4fe; border-radius:6px; padding:6px 10px; 
-  font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.5; color:var(--text-mid);
-}
-.fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:2px;}
+.fbox{ background:var(--accent-lt); border:1px solid #d8b4fe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
+.fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:4px;}
 .fvx{color:var(--x-color); font-weight:700;}
 .fvy{color:var(--y-color); font-weight:700;}
-.qbtn{
-  padding:4px 2px; background:var(--surface2); border:1px solid var(--border); 
-  color:var(--text-mid); border-radius:4px; cursor:pointer; 
-  font-size:13px; font-weight:600; font-family:'Noto Sans SC',sans-serif; transition:all .2s;
-}
+.qbtn{ padding:6px 2px; background:var(--surface2); border:1px solid var(--border); color:var(--text-mid); border-radius:4px; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
 .qbtn.active{border-color:var(--accent); color:var(--accent); background:var(--accent-lt);}
 .spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none;}
-.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
+.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
 
-/* ── Register Visualizer ── */
-.reg-block{
-  background:var(--surface2); border:1px solid var(--border); border-radius:6px; 
-  padding:0 10px; height: 74px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;
-}
-.reg-title{font-size:11px; font-weight:700; color:var(--text-mid); margin-bottom:4px; font-family:'JetBrains Mono',monospace;}
-.reg-row{display:flex; align-items:center; gap:6px; margin-bottom:4px;}
+.reg-block{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:0 10px; height: 80px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
+.reg-title{font-size:11px; font-weight:700; color:var(--text-mid); margin-bottom:6px; font-family:'JetBrains Mono',monospace;}
+.reg-row{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
 .reg-row:last-child{margin-bottom:0;}
 .reg-lbl{font-size:12px; font-family:'JetBrains Mono',monospace; font-weight:700; width:18px;}
 .reg-track{flex:1; height:14px; background:var(--border); border-radius:3px; overflow:hidden;}
-.reg-fill{height:100%; border-radius:3px; display:flex; align-items:center; justify-content:flex-end;
-  padding-right:4px; font-size:10px; font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; transition:width .2s ease; min-width:0;}
+.reg-fill{height:100%; border-radius:3px; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; font-size:10px; font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; transition:width .2s ease; min-width:0;}
 .reg-num{font-size:12px; font-family:'JetBrains Mono',monospace; font-weight:700; width:24px; text-align:right;}
-.ovf-badge{font-size:10px; padding:1px 4px; border-radius:4px; font-weight:700; width:34px; text-align:center;}
+.ovf-badge{font-size:10px; padding:2px 4px; border-radius:4px; font-weight:700; width:36px; text-align:center;}
 .ovf-yes{background:var(--green-lt); color:var(--green); border:1px solid var(--green);}
 .ovf-no {background:var(--surface); color:var(--text-dim); border:1px solid var(--border2);}
 
-/* 控制按钮锚定底部 */
-.action-area {flex: 0 0 auto; padding-top: 8px; display: flex; flex-direction: column; gap: 8px;}
-.brow{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
-.btn{
-  padding:10px 6px; border-radius:6px; border:none; cursor:pointer;
-  font-family:'Noto Sans SC',sans-serif; font-size:14px; font-weight:600;
-  transition:all .2s ease; display:flex; align-items:center; justify-content:center; gap:4px;
+/* ── 控制按钮：桌面原生 iOS 质感 ── */
+.action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
+.brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.btn{ 
+  padding:12px 10px; border-radius:14px; border:none; cursor:pointer; user-select: none;
+  font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; 
+  font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; 
+  display:flex; align-items:center; justify-content:center; gap:6px; 
 }
-.btn-p{background:var(--accent); color:#fff; box-shadow:var(--shadow-sm);}
-.btn-p:hover{background:#6d28d9; box-shadow:var(--shadow);}
-.btn-s{background:var(--x-color); color:#fff; box-shadow:var(--shadow-sm);}
-.btn-s:hover{background:#1d4ed8;}
-.btn-o{background:var(--surface); color:var(--text-mid); border:1px solid var(--border2);}
-.btn-o:hover{background:var(--surface2); color:var(--text);}
+.btn:active { transform: scale(0.95); }
+.btn-reset { background: var(--ios-gray); color: #8E8E93; }
+.btn-reset:hover { background: #E5E5EA; color: var(--ios-text); }
+.btn-apply { background: #E0E7FF; color: var(--ios-blue); }
+.btn-apply:hover { background: #C7D2FE; }
+.btn-p { background: var(--ios-blue); color: #fff; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2); }
+.btn-p:hover { background: #0062CC; box-shadow: 0 6px 14px rgba(0, 122, 255, 0.3); }
+.btn-s { background: var(--ios-orange); color: #fff; box-shadow: 0 4px 10px rgba(255, 149, 0, 0.2); }
+.btn-s:hover { background: #E08300; box-shadow: 0 6px 14px rgba(255, 149, 0, 0.3); }
 
-/* ── Center Panel ── */
 .panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
-.ctoolbar{
-  height: 60px; padding: 0 24px; background:var(--surface); border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 5; flex: 0 0 auto;
-}
+.ctoolbar{ height: 60px; padding: 0 24px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
 .ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
-.legend-group {display:flex; align-items:center; gap:12px; white-space:nowrap;}
-.leg{display:flex; align-items:center; gap:5px; font-size:13px; color:var(--text-mid); font-weight:500;}
+
+.c-actions { display: flex; align-items: center; gap: 12px; }
+.top-badge { display: none; transition: all 0.2s ease;}
+.desktop-only { display: flex; }
+
+.sbar{ padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:24px; align-items:center; z-index: 5; flex: 0 0 auto; }
+.si{display:flex; gap:8px; align-items:center;}
+.sk{font-size:13px; color:var(--text-dim); font-weight:600;}
+.sv{font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text);}
+
+.legend-wrap { padding: 12px 24px; background: var(--surface2); z-index: 4; flex: 0 0 auto; }
+.legend-group {display:flex; align-items:center; gap:16px; white-space:nowrap;}
+.leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
 .lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
 .lsq{width:12px; height:12px; border-radius:2px; display:inline-block; flex-shrink:0;}
-canvas{flex:1; width:100%; display:block;}
-.sbar{
-  padding:12px 20px; background:var(--surface); border-top:1px solid var(--border);
-  display:flex; gap:20px; flex-wrap:wrap; box-shadow: 0 -1px 2px rgba(0,0,0,0.02); z-index: 5; flex: 0 0 auto;
-}
-.si{display:flex; gap:8px; align-items:center;}
-.sk{font-size:13px; color:var(--text-dim); font-weight:600;}
-.sv{font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent);}
+canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
 
-/* ── Right Panel ── */
+/* ── 右侧面板 ── */
 .panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
-.rhead{
-  height: 60px; padding: 0 20px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto;
-}
-/* 右侧标题栏动作区 */
-.rhead-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.rhead{ height: 60px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+.rhead-actions { display: flex; align-items: center; gap: 12px; }
 .rhead-badge {font-size: 12px; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-weight: 600;}
 
-/* 全屏按钮样式 */
-.fs-btn {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  color: var(--text-mid);
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: 'Noto Sans SC', sans-serif;
-  transition: all .2s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: var(--shadow-sm);
-}
-.fs-btn:hover {
-  background: var(--accent-lt);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.fs-btn svg {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.fs-btn:hover svg {
-  transform: scale(1.15);
-}
+.fs-btn { background: var(--surface); border: 1px solid var(--border2); color: var(--text-mid); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); transition: all .2s ease; }
+.fs-btn:hover { background: var(--accent-lt); border-color: var(--accent); color: var(--accent); }
 
-/* 增加了 overflow-x: auto 防止表格溢出拉扯布局 */
 .twrap{flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: auto; padding: 0;}
-.stab{width:100%; border-collapse:collapse; font-size:13px;}
-.stab th{
-  padding:10px 4px; background:var(--surface2); color:var(--text-dim); font-weight:600;
-  text-align:center; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:12px; position:sticky; top:0; z-index:1;
-}
-.stab td{padding:8px 4px; text-align:center; font-family:'JetBrains Mono',monospace; border-bottom:1px solid var(--border); font-size:13.5px; white-space:nowrap;}
+.stab{width:100%; border-collapse:collapse; font-size:14px;}
+.stab th{ padding:12px 6px; background:var(--surface2); color:var(--text-dim); font-weight:600; text-align:center; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:13px; position:sticky; top:0; z-index:1; }
+.stab td{padding:10px 6px; text-align:center; font-family:'JetBrains Mono',monospace; border-bottom:1px solid var(--border); font-size:14px; white-space:nowrap;}
 .stab tr:hover td{background:var(--surface2);}
 .stab tr.cur td{background:var(--accent-lt); color:var(--accent); font-weight:700;}
 .stab tr.done td{color:var(--text-mid);}
 
-.sdetail{
-  flex: 0 0 250px; height: 250px; box-sizing: border-box; overflow-y: auto; 
-  border-top:1px solid var(--border); padding:16px 20px; background:var(--surface); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 10;
-}
-.sdtitle{font-size:14px; font-weight:700; letter-spacing:1px; color:var(--accent); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:6px;}
-.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px;}
-.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:8px; font-weight: 500;}
-.dnum{
-  width:20px; height:20px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%;
-  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;
-}
-.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px;}
-.dnote{
-  margin-top:8px; padding:8px 12px; background:var(--surface2); border-left:4px solid var(--accent); border-radius:4px 8px 8px 4px;
-  font-size:12px; color:var(--text-mid); font-family:'JetBrains Mono',monospace; line-height:1.6;
-}
+.sdetail{ flex: 0 0 280px; height: 280px; box-sizing: border-box; overflow-y: auto; border-top:1px solid var(--border); padding:20px 24px; background:var(--surface); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 10; }
+.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--accent); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;}
+.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
+.dnum{ width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px;}
+.dnote{ margin-top:12px; padding:10px 14px; background:var(--surface2); border-left:4px solid var(--accent); border-radius:4px 8px 8px 4px; font-size:13px; color:var(--text-mid); font-family:'JetBrains Mono',monospace; line-height:1.6; }
 
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 .running{animation:pulse 1.2s infinite;}
 .scr::-webkit-scrollbar{width:6px; height:6px;}
 .scr::-webkit-scrollbar-track{background:transparent;}
 .scr::-webkit-scrollbar-thumb{background:var(--border2); border-radius:3px;}
-.scr::-webkit-scrollbar-thumb:hover{background:var(--text-dim);}
+
+/* ========================================= */
+/* ===== 移动端深度优化：全屏网格与iOS底栏 ===== */
+/* ========================================= */
+@media (max-width: 1024px) {
+  body { height: auto; min-height: 100vh; overflow-y: auto; padding-bottom: 100px; }
+  .layout { display: flex; flex-direction: column; height: auto; }
+  
+  .panel-left { order: 1; width: 100%; height: auto; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; overflow: visible; padding: 20px 12px 24px 12px; }
+  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
+
+  .panel-center { order: 0; width: 100%; height: 60vh; min-height: 420px; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  
+  .ctoolbar { padding: 12px 16px; height: auto; }
+  .top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .desktop-only { display: none !important; }
+
+  .sbar.dda-data-grid { 
+    display: flex; flex-wrap: nowrap; overflow-x: auto; 
+    gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .dda-data-grid::-webkit-scrollbar { display: none; }
+  .dda-data-grid .si { flex-direction: column; align-items: center; justify-content: center; flex: 0 0 auto; min-width: 45px; }
+  .dda-data-grid .sk { font-size: 11px; margin-bottom: 4px; }
+  .dda-data-grid .sv { font-size: 13px; }
+
+  .legend-wrap { padding: 10px 8px; border-bottom: none; background: transparent;}
+  .legend-group { flex-wrap: wrap; white-space: normal; gap: 8px 12px; line-height: 1.6; justify-content: center; font-size: 11px;}
+  
+  .fs-btn { display: none !important; }
+
+  .panel-right { order: 3; width: 100%; height: auto; display: block; }
+  .rhead { padding: 16px; height: auto; }
+  .twrap { height: 400px; overflow-y: auto; }
+  .sdetail { height: auto; max-height: none; padding: 24px 16px; }
+
+  /* ★ 横向单排控制栏：极致 iOS 毛玻璃设计 ★ */
+  .action-area { 
+    position: fixed; bottom: 0; left: 0; width: 100%; 
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); 
+    display: flex; flex-direction: row; gap: 0; 
+  }
+  .action-area .brow { display: contents; }
+  .btn { flex: 1; padding: 12px 0; margin: 0 4px; font-size: 14px; border-radius: 14px; justify-content: center;}
+}
 </style>
 </head>
 <body>
@@ -242,7 +215,7 @@ canvas{flex:1; width:100%; display:block;}
     <div id="lc">
       <div class="stitle">直线参数</div>
       <div class="card">
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:12px">
           <div><div class="ilabel">终点 X</div><input class="ifield coord-input" type="number" id="lxe" value="6" min="1" max="15"></div>
           <div><div class="ilabel">终点 Y</div><input class="ifield coord-input" type="number" id="lye" value="4" min="1" max="15"></div>
           <div><div class="ilabel" style="color:var(--accent)">位数 n ⚡</div><input class="ifield" type="number" id="nb" value="3" min="2" max="5"></div>
@@ -258,7 +231,7 @@ canvas{flex:1; width:100%; display:block;}
     <div id="ac" style="display:none">
       <div class="stitle">圆弧参数 (第一象限)</div>
       <div class="card">
-        <div style="display:grid; grid-template-columns:3fr 2fr; gap:6px; margin-bottom:6px">
+        <div style="display:grid; grid-template-columns:3fr 2fr; gap:6px; margin-bottom:10px">
           <div>
             <div class="ilabel">圆弧走向</div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px">
@@ -271,7 +244,7 @@ canvas{flex:1; width:100%; display:block;}
             <input class="ifield" type="number" id="nba" value="3" min="2" max="5">
           </div>
         </div>
-        <div style="display:flex; gap:4px; margin-bottom:8px">
+        <div style="display:flex; gap:6px; margin-bottom:12px">
           <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="5"></div>
           <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield coord-input" type="number" id="ays" value="0"></div>
           <div style="flex:1"><div class="ilabel">终X</div><input class="ifield coord-input" type="number" id="axe" value="0"></div>
@@ -287,10 +260,10 @@ canvas{flex:1; width:100%; display:block;}
 
     <div>
       <div class="stitle">演示速度</div>
-      <div class="card" style="padding:6px 12px; display:flex; align-items:center; gap:10px;">
-        <span style="font-size:12px;color:var(--text-dim);font-weight:600">慢</span>
+      <div class="card" style="padding:12px 16px; display:flex; align-items:center; gap:16px;">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600">慢</span>
         <input type="range" class="spslider" id="speed" min="100" max="2000" value="800">
-        <span style="font-size:12px;color:var(--text-dim);font-weight:600">快</span>
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600">快</span>
       </div>
     </div>
 
@@ -304,20 +277,42 @@ canvas{flex:1; width:100%; display:block;}
 
   <div class="action-area">
     <div class="brow">
-      <button class="btn btn-o" onclick="resetSim()">↺ 重置</button>
-      <button class="btn btn-o" onclick="initSim()">⚙ 应用参数</button>
+      <button class="btn btn-reset" onclick="resetSim()">↺ 重置</button>
+      <button class="btn btn-apply" onclick="initSim()">⚙ 应用</button>
     </div>
     <div class="brow">
-      <button class="btn btn-p" id="bta" onclick="startAuto()">▶ 自动演示</button>
-      <button class="btn btn-s" onclick="stepOnce()">⏭ 单步执行</button>
+      <button class="btn btn-p" id="bta" onclick="startAuto()">▶ 自动</button>
+      <button class="btn btn-s" onclick="stepOnce()">⏭ 单步</button>
     </div>
   </div>
 </div>
 
 <div class="panel-center">
   <div class="ctoolbar">
-    <span class="ctitle">DDA 积分路径推演</span>
-    <div style="flex:1"></div>
+    <span class="ctitle">⚡ 数字积分法推演</span>
+    <div class="c-actions">
+       <span class="top-badge" id="st-badge">等待开始</span>
+       <button id="fsBtn" class="fs-btn" onclick="toggleFullScreen()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+        <span>全屏</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="sbar dda-data-grid">
+    <div class="si"><span class="sk">迭代</span><span class="sv" id="si">—</span></div>
+    <div class="si"><span class="sk">X</span><span class="sv" id="sx" style="color:var(--x-color)">—</span></div>
+    <div class="si"><span class="sk">Y</span><span class="sv" id="sy" style="color:var(--y-color)">—</span></div>
+    <div class="si"><span class="sk">Rx</span><span class="sv" id="srx">—</span></div>
+    <div class="si"><span class="sk">Ry</span><span class="sv" id="sry">—</span></div>
+    <div class="si"><span class="sk">ΔX</span><span class="sv" id="spx" style="color:var(--x-color)">—</span></div>
+    <div class="si"><span class="sk">ΔY</span><span class="sv" id="spy" style="color:var(--y-color)">—</span></div>
+    <div class="si desktop-only" style="flex:1; justify-content:flex-end;"><span class="sv" id="st" style="color:var(--text-dim);font-size:15px;font-weight:600;">等待开始</span></div>
+  </div>
+
+  <div class="legend-wrap">
     <div class="legend-group">
       <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>理想轨迹</div>
       <div class="leg"><span class="lline" style="background:var(--accent)"></span>实际路径</div>
@@ -326,18 +321,8 @@ canvas{flex:1; width:100%; display:block;}
       <div class="leg"><span class="lsq" style="background:var(--y-color);opacity:0.6"></span>ΔY 脉冲</div>
     </div>
   </div>
+
   <canvas id="cv"></canvas>
-  <div class="sbar">
-    <div class="si"><span class="sk">迭代</span><span class="sv" id="si" style="color:var(--text)">—</span></div>
-    <div class="si"><span class="sk">X</span><span class="sv" id="sx" style="color:var(--x-color)">—</span></div>
-    <div class="si"><span class="sk">Y</span><span class="sv" id="sy" style="color:var(--y-color)">—</span></div>
-    <div class="si"><span class="sk">Rx</span><span class="sv" id="srx">—</span></div>
-    <div class="si"><span class="sk">Ry</span><span class="sv" id="sry">—</span></div>
-    <div class="si"><span class="sk">ΔX</span><span class="sv" id="spx" style="color:var(--x-color)">—</span></div>
-    <div class="si"><span class="sk">ΔY</span><span class="sv" id="spy" style="color:var(--y-color)">—</span></div>
-    <div style="flex:1"></div>
-    <div class="si"><span class="sv" id="st" style="color:var(--text-dim);font-size:15px;font-weight:600;">等待开始</span></div>
-  </div>
 </div>
 
 <div class="panel-right">
@@ -345,12 +330,6 @@ canvas{flex:1; width:100%; display:block;}
     <span>DDA 迭代过程记录</span>
     <div class="rhead-actions">
       <span class="rhead-badge">动态更新</span>
-      <button id="fsBtn" class="fs-btn" onclick="toggleFullScreen()" title="全屏显示">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-        </svg>
-        <span>全屏</span>
-      </button>
     </div>
   </div>
   <div class="twrap scr">
@@ -379,33 +358,23 @@ function v(id){return document.getElementById(id).value;}
 function num(id, def){let val = v(id); return val === '' ? def : Number(val);}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
 
-/* ── 全屏控制及 SVG 动态切换 ── */
 const enterFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
 const exitFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
 
 function toggleFullScreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.error(`全屏请求失败: ${err.message}`);
-    });
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
-  }
+  if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.error(`全屏失败: ${err.message}`); }); }
+  else { if (document.exitFullscreen) { document.exitFullscreen(); } }
 }
 
 document.addEventListener('fullscreenchange', () => {
   const btn = document.getElementById('fsBtn');
-  if (document.fullscreenElement) {
-    btn.innerHTML = `${exitFsIcon}<span>退出</span>`;
-  } else {
-    btn.innerHTML = `${enterFsIcon}<span>全屏</span>`;
+  if(btn) {
+    if (document.fullscreenElement) { btn.innerHTML = `${exitFsIcon}<span>退出</span>`; }
+    else { btn.innerHTML = `${enterFsIcon}<span>全屏</span>`; }
   }
   setTimeout(resize, 100);
 });
 
-// DDA 寄存器位数智能计算
 function autoCalcN() {
   if (mode === 'line') {
     let m = Math.max(Math.abs(num('lxe',6)), Math.abs(num('lye',4)));
@@ -428,8 +397,7 @@ function setMode(m){
   document.getElementById('bma').classList.toggle('active',m==='arc');
   document.getElementById('lc').style.display=m==='line'?'block':'none';
   document.getElementById('ac').style.display=m==='arc'?'block':'none';
-  autoCalcN();
-  resetSim();
+  autoCalcN(); resetSim();
 }
 
 function setDir(d,el){
@@ -438,121 +406,105 @@ function setDir(d,el){
   el.classList.add('active');
 }
 
-/* ── 计算引擎 ── */
 function calcLine(xe,ye,n){
   let mod=Math.pow(2,n),Rx=0,Ry=0,x=0,y=0;
-  let JVx=xe,JVy=ye;
-  let s=[];
-  let remX=xe, remY=ye; 
-  s.push({k:0,x,y,Rx,Ry,oRx:0,aX:0,nRx:0,ovX:false,dx:0,oRy:0,aY:0,nRy:0,ovY:false,dy:0,JVx,JVy,mod,
-    det:`初始化：JVx=${JVx}，JVy=${JVy}，模数2ⁿ=${mod}，Rx=Ry=0`});
+  let JVx=xe,JVy=ye; let s=[]; let remX=xe, remY=ye; 
+  s.push({k:0,x,y,Rx,Ry,oRx:0,aX:0,nRx:0,ovX:false,dx:0,oRy:0,aY:0,nRy:0,ovY:false,dy:0,JVx,JVy,mod, det:`初始化：JVx=${JVx}，JVy=${JVy}，模数2ⁿ=${mod}，Rx=Ry=0`});
   let k=0;
   while(remX > 0 || remY > 0){
-    k++;
-    let oRx=Rx, oRy=Ry;
-    let nRxR=Rx+JVx, nRyR=Ry+JVy;
-    let ovX=nRxR>=mod, ovY=nRyR>=mod;
-    if(remX <= 0) { ovX = false; nRxR = oRx; }
-    if(remY <= 0) { ovY = false; nRyR = oRy; }
-    let fRx=ovX?nRxR-mod:nRxR;
-    let fRy=ovY?nRyR-mod:nRyR;
-    let dx=ovX?1:0, dy=ovY?1:0;
-    Rx=fRx; Ry=fRy; x+=dx; y+=dy;
-    if(ovX) remX--; if(ovY) remY--;
-    s.push({k,x,y,Rx,Ry,oRx,aX:remX<=0&&!ovX?0:JVx,nRx:nRxR,fRx,ovX,dx,
-            oRy,aY:remY<=0&&!ovY?0:JVy,nRy:nRyR,fRy,ovY,dy,JVx,JVy,mod,
+    k++; let oRx=Rx, oRy=Ry; let nRxR=Rx+JVx, nRyR=Ry+JVy; let ovX=nRxR>=mod, ovY=nRyR>=mod;
+    if(remX <= 0) { ovX = false; nRxR = oRx; } if(remY <= 0) { ovY = false; nRyR = oRy; }
+    let fRx=ovX?nRxR-mod:nRxR; let fRy=ovY?nRyR-mod:nRyR; let dx=ovX?1:0, dy=ovY?1:0;
+    Rx=fRx; Ry=fRy; x+=dx; y+=dy; if(ovX) remX--; if(ovY) remY--;
+    s.push({k,x,y,Rx,Ry,oRx,aX:remX<=0&&!ovX?0:JVx,nRx:nRxR,fRx,ovX,dx, oRy,aY:remY<=0&&!ovY?0:JVy,nRy:nRyR,fRy,ovY,dy,JVx,JVy,mod,
       det:`Rx:${oRx}+${JVx}=${nRxR}${ovX?' →溢出! 归'+fRx+' →ΔX↑':''} | Ry:${oRy}+${JVy}=${nRyR}${ovY?' →溢出! 归'+fRy+' →ΔY↑':''}`});
     if(k>500) break; 
-  }
-  return s;
+  } return s;
 }
 
 function calcArc(xs,ys,xe,ye,n){
   let mod=Math.pow(2,n), Rx=0, Ry=0, x=xs, y=ys;
-  let JVx=Math.abs(ys), JVy=Math.abs(xs);
-  let s=[];
-  let remX=Math.abs(xe-xs), remY=Math.abs(ye-ys);
-  s.push({k:0,x,y,Rx,Ry,oRx:0,aX:0,nRx:0,ovX:false,dx:0,oRy:0,aY:0,nRy:0,ovY:false,dy:0,JVx,JVy,mod,
-    det:`初始化：起点(${xs},${ys})，JVx=|Ys|=${JVx}，JVy=|Xs|=${JVy}，2ⁿ=${mod}`});
+  let JVx=Math.abs(ys), JVy=Math.abs(xs); let s=[]; let remX=Math.abs(xe-xs), remY=Math.abs(ye-ys);
+  s.push({k:0,x,y,Rx,Ry,oRx:0,aX:0,nRx:0,ovX:false,dx:0,oRy:0,aY:0,nRy:0,ovY:false,dy:0,JVx,JVy,mod, det:`初始化：起点(${xs},${ys})，JVx=|Ys|=${JVx}，JVy=|Xs|=${JVy}，2ⁿ=${mod}`});
   let k=0;
   while(remX > 0 || remY > 0){
-    k++;
-    JVx=Math.abs(y); JVy=Math.abs(x);
-    let oRx=Rx, oRy=Ry;
-    let nRxR=Rx+JVx, nRyR=Ry+JVy;
-    let ovX=nRxR>=mod, ovY=nRyR>=mod;
-    if(remX <= 0) { ovX = false; nRxR = oRx; }
-    if(remY <= 0) { ovY = false; nRyR = oRy; }
-    let fRx=ovX?nRxR-mod:nRxR;
-    let fRy=ovY?nRyR-mod:nRyR;
-    let dx=0, dy=0;
-    if (arcDir === 'NR') { 
-      if(ovX){ dx = -1; remX--; }
-      if(ovY){ dy = 1; remY--; }
-    } else { 
-      if(ovX){ dx = 1; remX--; }
-      if(ovY){ dy = -1; remY--; }
-    }
+    k++; JVx=Math.abs(y); JVy=Math.abs(x); let oRx=Rx, oRy=Ry; let nRxR=Rx+JVx, nRyR=Ry+JVy; let ovX=nRxR>=mod, ovY=nRyR>=mod;
+    if(remX <= 0) { ovX = false; nRxR = oRx; } if(remY <= 0) { ovY = false; nRyR = oRy; }
+    let fRx=ovX?nRxR-mod:nRxR; let fRy=ovY?nRyR-mod:nRyR; let dx=0, dy=0;
+    if (arcDir === 'NR') { if(ovX){ dx = -1; remX--; } if(ovY){ dy = 1; remY--; } } 
+    else { if(ovX){ dx = 1; remX--; } if(ovY){ dy = -1; remY--; } }
     Rx=fRx; Ry=fRy; x+=dx; y+=dy;
-    s.push({k,x,y,Rx,Ry,oRx,aX:remX<=0&&!ovX?0:JVx,nRx:nRxR,fRx,ovX,dx,
-            oRy,aY:remY<=0&&!ovY?0:JVy,nRy:nRyR,fRy,ovY,dy,JVx,JVy,mod,
+    s.push({k,x,y,Rx,Ry,oRx,aX:remX<=0&&!ovX?0:JVx,nRx:nRxR,fRx,ovX,dx, oRy,aY:remY<=0&&!ovY?0:JVy,nRy:nRyR,fRy,ovY,dy,JVx,JVy,mod,
       det:`Rx:${oRx}+${JVx}=${nRxR}${ovX?' →溢出→ X进给':''}; Ry:${oRy}+${JVy}=${nRyR}${ovY?' →溢出→ Y进给':''}`});
     if(k>500) break; 
-  }
-  return s;
+  } return s;
 }
 
 function initSim(){
-  stopAuto();steps=[]; autoCalcN(); // 初始化前先自动计算位数
+  stopAuto();steps=[]; autoCalcN();
   if(mode==='line'){
     let xe=clamp(num('lxe',6),1,15),ye=clamp(num('lye',4),1,15),n=clamp(num('nb',3),2,5);
     steps=calcLine(xe,ye,n);
   } else {
     let xs=clamp(num('axs',5),-15,15),ys=clamp(num('ays',0),-15,15);
     let xe=clamp(num('axe',0),-15,15),ye=clamp(num('aye',5),-15,15);
-    let n=clamp(num('nba',3),2,5);
-    steps=calcArc(xs,ys,xe,ye,n);
+    let n=clamp(num('nba',3),2,5); steps=calcArc(xs,ys,xe,ye,n);
   }
   inited=true; cur=0; renderStep(0); updTbl(0); setSt('已初始化，准备开始');
 }
 
+/* ★ 状态逻辑修复：到达终点拦截运行，单步显示正常状态 ★ */
 function stepOnce(){
   if(!inited) initSim();
-  if(cur<steps.length-1){cur++; renderStep(cur); updTbl(cur);} 
-  else {setSt('✅ 插补完成！'); stopAuto();}
+  if(cur >= steps.length-1) {
+    setSt('⚠️ 请重置或应用'); return;
+  }
+  cur++; renderStep(cur); updTbl(cur);
+  if(cur === steps.length-1) {
+    setSt('✅ 插补完成！'); stopAuto();
+  } else {
+    if(!running) setSt('👣 单步执行中...');
+  }
 }
 
 function startAuto(){
   if(!inited) initSim();
+  if(cur >= steps.length-1) {
+    setSt('⚠️ 请重置或应用'); return;
+  }
   if(running){stopAuto();return;}
   running=true;
-  document.getElementById('bta').innerHTML='⏸ 暂停演示'; document.getElementById('bta').classList.add('running');
-  setSt('▶ 自动运行中…'); tick();
+  document.getElementById('bta').innerHTML='⏸ 暂停'; document.getElementById('bta').classList.add('running'); setSt('▶ 正在运行中...'); tick();
 }
 
 function tick(){
-  if(!running) return;
-  stepOnce();
-  if(cur>=steps.length-1){stopAuto();return;}
-  timer=setTimeout(tick, 2100-num('speed',800)); 
+  if(!running) return; stepOnce(); if(cur>=steps.length-1){stopAuto();return;} timer=setTimeout(tick, 2100-num('speed',800)); 
 }
 
 function stopAuto(){
-  running=false;clearTimeout(timer);
-  document.getElementById('bta').innerHTML='▶ 自动演示'; document.getElementById('bta').classList.remove('running');
-  if(inited&&cur<steps.length-1) setSt('⏸ 已暂停');
+  running=false;clearTimeout(timer); document.getElementById('bta').innerHTML='▶ 自动'; document.getElementById('bta').classList.remove('running');
+  if(inited && cur > 0 && cur < steps.length-1) setSt('⏸ 已暂停');
 }
 
 function resetSim(){
   stopAuto();inited=false;cur=-1;steps=[]; autoCalcN();
   document.getElementById('tb').innerHTML='<tr><td colspan="11" style="color:var(--text-dim);padding:40px;text-align:center;font-size:15px">请应用参数后开始演示</td></tr>';
-  document.getElementById('dc').innerHTML='等待开始演示…';
-  document.getElementById('regvis').innerHTML='<div style="color:var(--text-dim);font-size:12px;text-align:center;">等待开始演示...</div>';
-  ['si','sx','sy','srx','sry','spx','spy'].forEach(id=>document.getElementById(id).textContent='—');
-  setSt('等待开始'); drawGrid();
+  document.getElementById('dc').innerHTML='等待开始演示…'; document.getElementById('regvis').innerHTML='<div style="color:var(--text-dim);font-size:12px;text-align:center;">等待开始演示...</div>';
+  ['si','sx','sy','srx','sry','spx','spy'].forEach(id=>document.getElementById(id).textContent='—'); setSt('等待开始'); drawGrid();
 }
 
-function setSt(t){document.getElementById('st').innerHTML=t;}
+/* ★ UI 标签颜色自适应 ★ */
+function setSt(t){
+  let e1 = document.getElementById('st'); if(e1) e1.innerHTML=t;
+  let e2 = document.getElementById('st-badge'); 
+  if(e2) {
+    e2.innerHTML=t;
+    if(t.includes('完成')) { e2.style.background = 'var(--green-lt)'; e2.style.color = 'var(--green)'; }
+    else if(t.includes('运行') || t.includes('推演') || t.includes('执行')) { e2.style.background = 'var(--accent-lt)'; e2.style.color = 'var(--accent)'; }
+    else if(t.includes('重置') || t.includes('⚠️')) { e2.style.background = 'var(--orange-lt)'; e2.style.color = 'var(--orange)'; }
+    else { e2.style.background = 'var(--surface2)'; e2.style.color = 'var(--text-mid)'; }
+  }
+}
 
 function renderStep(idx){
   let s=steps[idx];
@@ -564,149 +516,166 @@ function renderStep(idx){
   document.getElementById('regvis').innerHTML=`
     <div style="width:100%">
       <div class="reg-title">模数 2ⁿ = ${mod} &nbsp;|&nbsp; JVx = ${s.JVx}, JVy = ${s.JVy}</div>
-      <div class="reg-row">
-        <div class="reg-lbl" style="color:var(--x-color)">Rx</div>
-        <div class="reg-track"><div class="reg-fill" style="width:${rxPct}%;background:var(--x-color)">${s.Rx}</div></div>
-        <div class="reg-num" style="color:var(--x-color)">${s.Rx}</div>
-        <div class="ovf-badge ${s.ovX&&idx>0?'ovf-yes':'ovf-no'}">${s.ovX&&idx>0?'溢出':'—'}</div>
-      </div>
-      <div class="reg-row">
-        <div class="reg-lbl" style="color:var(--y-color)">Ry</div>
-        <div class="reg-track"><div class="reg-fill" style="width:${ryPct}%;background:var(--y-color)">${s.Ry}</div></div>
-        <div class="reg-num" style="color:var(--y-color)">${s.Ry}</div>
-        <div class="ovf-badge ${s.ovY&&idx>0?'ovf-yes':'ovf-no'}">${s.ovY&&idx>0?'溢出':'—'}</div>
-      </div>
+      <div class="reg-row"><div class="reg-lbl" style="color:var(--x-color)">Rx</div><div class="reg-track"><div class="reg-fill" style="width:${rxPct}%;background:var(--x-color)">${s.Rx}</div></div><div class="reg-num" style="color:var(--x-color)">${s.Rx}</div><div class="ovf-badge ${s.ovX&&idx>0?'ovf-yes':'ovf-no'}">${s.ovX&&idx>0?'溢出':'—'}</div></div>
+      <div class="reg-row"><div class="reg-lbl" style="color:var(--y-color)">Ry</div><div class="reg-track"><div class="reg-fill" style="width:${ryPct}%;background:var(--y-color)">${s.Ry}</div></div><div class="reg-num" style="color:var(--y-color)">${s.Ry}</div><div class="ovf-badge ${s.ovY&&idx>0?'ovf-yes':'ovf-no'}">${s.ovY&&idx>0?'溢出':'—'}</div></div>
     </div>`;
 
   let dc=document.getElementById('dc');
-  if(idx===0){
-    dc.innerHTML=`<div style="color:var(--text-mid);font-size:14px;line-height:1.9;font-weight:600;padding:8px 0">${s.det}</div>`;
-  } else {
+  if(idx===0){ dc.innerHTML=`<div style="color:var(--text-mid);font-size:14px;line-height:1.9;font-weight:600;padding:8px 0">${s.det}</div>`; } 
+  else {
     dc.innerHTML=`
       <div class="drow"><div class="dlbl"><div class="dnum">1</div>X 积分器累加</div><div class="dval" style="color:var(--x-color)">${s.oRx} + ${s.aX} = ${s.nRx}</div></div>
-      <div style="margin:0 0 6px 28px;font-size:12px;color:${s.ovX?'var(--green)':'var(--text-dim)'}">
-        ${s.ovX?`✅ 溢出（≥${mod}）! Rx=${s.fRx}，输出 ΔX 脉冲`:`❌ 未溢出（<${mod}），Rx=${s.fRx}`}
-      </div>
+      <div style="margin:0 0 8px 32px;font-size:13px;color:${s.ovX?'var(--green)':'var(--text-dim)'}">${s.ovX?`✅ 溢出（≥${mod}）! Rx=${s.fRx}，输出 ΔX`:`❌ 未溢出（<${mod}），Rx=${s.fRx}`}</div>
       <div class="drow"><div class="dlbl"><div class="dnum">2</div>Y 积分器累加</div><div class="dval" style="color:var(--y-color)">${s.oRy} + ${s.aY} = ${s.nRy}</div></div>
-      <div style="margin:0 0 6px 28px;font-size:12px;color:${s.ovY?'var(--green)':'var(--text-dim)'}">
-        ${s.ovY?`✅ 溢出（≥${mod}）! Ry=${s.fRy}，输出 ΔY 脉冲`:`❌ 未溢出（<${mod}），Ry=${s.fRy}`}
-      </div>
+      <div style="margin:0 0 8px 32px;font-size:13px;color:${s.ovY?'var(--green)':'var(--text-dim)'}">${s.ovY?`✅ 溢出（≥${mod}）! Ry=${s.fRy}，输出 ΔY`:`❌ 未溢出（<${mod}），Ry=${s.fRy}`}</div>
       <div class="drow"><div class="dlbl"><div class="dnum">3</div>当前坐标</div><div class="dval">X=<span style="color:var(--x-color)">${s.x}</span>, Y=<span style="color:var(--y-color)">${s.y}</span></div></div>
       <div class="dnote">${s.det}</div>`;
-  }
-  drawScene(idx);
+  } drawScene(idx);
 }
 
-/* ── 表格渐进更新 (已修复水平偏移 Bug) ── */
 function updTbl(idx){
   let tb = document.getElementById('tb'); tb.innerHTML = ''; 
   for(let i=0; i<=idx; i++){
     let s = steps[i]; let tr = document.createElement('tr'); tr.id = `r${i}`;
-    if(i===0){ tr.innerHTML=`<td colspan="11" style="color:var(--text-dim);font-size:12px">初始化：Rx=Ry=0，X=${s.x}，Y=${s.y}</td>`;
-    } else {
+    if(i===0){ tr.innerHTML=`<td colspan="11" style="color:var(--text-dim);font-size:12px">初始化：Rx=Ry=0，X=${s.x}，Y=${s.y}</td>`; } 
+    else {
       tr.innerHTML = `
-        <td style="font-weight:700;color:var(--text-mid)">${s.k}</td><td>${s.oRx}</td>
-        <td style="color:var(--x-color)">+${s.aX}</td><td>${s.nRx}</td>
-        <td style="color:${s.ovX?'var(--green)':'var(--text-dim)'};font-weight:${s.ovX?700:400}">${s.ovX?'✓':'—'}</td>
-        <td>${s.oRy}</td><td style="color:var(--y-color)">+${s.aY}</td><td>${s.nRy}</td>
-        <td style="color:${s.ovY?'var(--green)':'var(--text-dim)'};font-weight:${s.ovY?700:400}">${s.ovY?'✓':'—'}</td>
+        <td style="font-weight:700;color:var(--text-mid)">${s.k}</td><td>${s.oRx}</td><td style="color:var(--x-color)">+${s.aX}</td><td>${s.nRx}</td><td style="color:${s.ovX?'var(--green)':'var(--text-dim)'};font-weight:${s.ovX?700:400}">${s.ovX?'✓':'—'}</td>
+        <td>${s.oRy}</td><td style="color:var(--y-color)">+${s.aY}</td><td>${s.nRy}</td><td style="color:${s.ovY?'var(--green)':'var(--text-dim)'};font-weight:${s.ovY?700:400}">${s.ovY?'✓':'—'}</td>
         <td style="color:var(--x-color);font-weight:700">${s.x}</td><td style="color:var(--y-color);font-weight:700">${s.y}</td>`;
     }
-    if (i === idx) tr.classList.add('cur'); else tr.classList.add('done');
-    tb.appendChild(tr);
+    if (i === idx) tr.classList.add('cur'); else tr.classList.add('done'); tb.appendChild(tr);
   }
-  
-  let r = document.getElementById(`r${idx}`);
-  let twrap = document.querySelector('.twrap');
-  if (r && twrap) {
-    let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40);
-    twrap.scrollTo({ top: targetTop, left: twrap.scrollLeft, behavior: 'smooth' });
-  }
+  let r = document.getElementById(`r${idx}`); let twrap = document.querySelector('.twrap');
+  if (r && twrap) { let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40); twrap.scrollTo({ top: targetTop, left: twrap.scrollLeft, behavior: 'smooth' }); }
 }
 
-function resize(){
-  let p = cv.parentElement, r = p.getBoundingClientRect();
-  let tbarH = document.querySelector('.ctoolbar').offsetHeight, sbarH = document.querySelector('.sbar').offsetHeight;
-  let logicalWidth = r.width, logicalHeight = r.height - tbarH - sbarH, dpr = window.devicePixelRatio || 1;
-  cv.width = logicalWidth * dpr; cv.height = logicalHeight * dpr;
-  cv.style.width = logicalWidth + 'px'; cv.style.height = logicalHeight + 'px';
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
-  if(inited) drawScene(cur); else drawGrid();
-}
-
+/* ★ 极致全屏网格引擎 */
 function gp(){
   let xe,ye,xs=0,ys=0;
   if(mode==='line'){ xe=num('lxe',6); ye=num('lye',4); } 
   else { xs=num('axs',5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
-  let mc=Math.max(Math.abs(xe),Math.abs(ye),Math.abs(xs),Math.abs(ys),4)+2;
-  let mg=62, w = cv.getBoundingClientRect().width, h = cv.getBoundingClientRect().height;
-  let gs=Math.min((w-mg*2)/(mc*2),(h-mg*2)/(mc*2));
-  return{mc,gs,ox:w/2,oy:h/2};
+  
+  let w = cv.clientWidth || 300;
+  let h = cv.clientHeight || 300;
+  let isMobile = w < 600;
+  
+  let maxCoord = Math.max(Math.abs(xe), Math.abs(ye), Math.abs(xs), Math.abs(ys));
+  let mc = Math.max(maxCoord + 1, isMobile ? 6 : 8); 
+  
+  let span = mc * 2;
+  let mgX = isMobile ? 8 : 50; 
+  let mgY = isMobile ? 32 : 50; 
+  let gs = Math.min((w - mgX*2) / span, (h - mgY*2) / span);
+  
+  let ox = w / 2;
+  let oy = h / 2;
+  return { mc, gs, ox, oy, isMobile };
 }
 
-function toC(gx,gy){let{gs,ox,oy}=gp();return{cx:ox+gx*gs,cy:oy-gy*gs};}
+function toC(gx,gy){
+  let {gs, ox, oy} = gp(); return {cx: ox + gx*gs, cy: oy - gy*gs};
+}
+
+function resize(){
+  let w = cv.clientWidth; let h = cv.clientHeight;
+  if(w===0 || h===0) return; 
+  let dpr = window.devicePixelRatio || 1;
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+  if(inited) drawScene(cur); else drawGrid();
+}
 
 function drawGrid(){
-  let w = cv.getBoundingClientRect().width, h = cv.getBoundingClientRect().height;
-  ctx.clearRect(0,0,w,h); let{mc,gs,ox,oy}=gp();
+  let w = cv.clientWidth, h = cv.clientHeight;
+  ctx.clearRect(0,0,w,h);
+  let { mc, gs, ox, oy, isMobile } = gp();
+
+  let gLeft = ox - mc * gs;
+  let gRight = ox + mc * gs;
+  let gTop = oy - mc * gs;
+  let gBottom = oy + mc * gs;
+
+  ctx.fillStyle = '#f8fafc'; 
+  ctx.fillRect(gLeft, gTop, gRight - gLeft, gBottom - gTop);
+  ctx.strokeStyle = '#e2e8f0'; 
+  ctx.lineWidth = 1;
+  ctx.strokeRect(gLeft, gTop, gRight - gLeft, gBottom - gTop);
+
+  ctx.beginPath();
+  for(let i = -mc + 1; i < mc; i++){
+    if(i === 0) continue; 
+    ctx.moveTo(ox + i*gs, gTop); ctx.lineTo(ox + i*gs, gBottom);
+    ctx.moveTo(gLeft, oy - i*gs); ctx.lineTo(gRight, oy - i*gs);
+  } ctx.stroke();
   
-  // Background Grid
-  ctx.strokeStyle='rgba(209,213,219,0.7)';ctx.lineWidth=1;
-  for(let i=-mc;i<=mc;i++){
-    ctx.beginPath();ctx.moveTo(ox+i*gs,oy-mc*gs);ctx.lineTo(ox+i*gs,oy+mc*gs);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(ox-mc*gs,oy-i*gs);ctx.lineTo(ox+mc*gs,oy-i*gs);ctx.stroke();
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath();
+  let axExt = isMobile ? 6 : 20; 
+  ctx.moveTo(gLeft - axExt, oy); ctx.lineTo(gRight + axExt, oy); 
+  ctx.moveTo(ox, gBottom + axExt); ctx.lineTo(ox, gTop - axExt); 
+  ctx.stroke();
+  
+  ctx.fillStyle = '#94a3b8';
+  let arrSize = isMobile ? 8 : 10;
+  let ar=(x,y,d)=>{
+    ctx.beginPath();
+    if(d==='r'){ctx.moveTo(x-arrSize/2,y-arrSize/2);ctx.lineTo(x+arrSize,y);ctx.lineTo(x-arrSize/2,y+arrSize/2);}
+    else{ctx.moveTo(x-arrSize/2,y+arrSize/2);ctx.lineTo(x,y-arrSize);ctx.lineTo(x+arrSize/2,y+arrSize/2);}
+    ctx.fill();
+  }; ar(gRight + axExt, oy, 'r'); ar(ox, gTop - axExt, 'u');
+  
+  ctx.font = isMobile ? 'bold 13px Noto Sans SC,sans-serif' : 'bold 14px Noto Sans SC,sans-serif';
+  ctx.fillStyle = '#64748b';
+  
+  // ★ 重构 X/Y 字母防重叠锚点（向右进一步推远）
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText('X', gRight + axExt + (isMobile ? 8 : 12), oy); 
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText('Y', ox, gTop - axExt - 4);
+  
+  ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace';
+  ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+  let step = 1;
+  if(mc > 12) step = 2;
+  if(mc > 25) step = 5;
+
+  // ★ 仅保留正半轴数字
+  for(let i = 1; i <= mc; i++){
+    if(i % step !== 0) continue;
+    ctx.fillText(i, ox + i*gs, oy + 12); 
   }
-  
-  // Main Axes - Lightened to slate-400
-  ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(ox-mc*gs-14,oy);ctx.lineTo(ox+mc*gs+14,oy);
-  ctx.moveTo(ox,oy+mc*gs+14);ctx.lineTo(ox,oy-mc*gs-14);ctx.stroke();
-  
-  // Arrows - Lightened
-  ctx.fillStyle='#94a3b8';
-  let ar=(x,y,d)=>{ctx.beginPath();if(d==='r'){ctx.moveTo(x,y-5);ctx.lineTo(x+10,y);ctx.lineTo(x,y+5);}else{ctx.moveTo(x-5,y);ctx.lineTo(x,y-10);ctx.lineTo(x+5,y);}ctx.fill();};
-  ar(ox+mc*gs+14,oy,'r');ar(ox,oy-mc*gs-14,'u');
-  
-  // Labels X Y - Lightened
-  ctx.font='bold 16px Noto Sans SC,sans-serif';ctx.fillStyle='#64748b';
-  ctx.fillText('X',ox+mc*gs+28,oy+6); ctx.fillText('Y',ox+12,oy-mc*gs-16); 
-  
-  // Tick Marks - Lightened
-  ctx.font='600 14px JetBrains Mono,monospace';ctx.fillStyle='#94a3b8';ctx.textAlign='center';
-  for(let i=-mc;i<=mc;i++){
-    if(i===0||Math.abs(i)>=mc-1) continue;
-    ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(ox+i*gs,oy-4);ctx.lineTo(ox+i*gs,oy+4);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(ox-4,oy-i*gs);ctx.lineTo(ox+4,oy-i*gs);ctx.stroke();
-    ctx.fillText(i,ox+i*gs,oy+22); ctx.textAlign='right';ctx.fillText(i,ox-10,oy-i*gs+5);ctx.textAlign='center';
+  ctx.textAlign = 'right';
+  for(let i = 1; i <= mc; i++){
+    if(i % step !== 0) continue;
+    ctx.fillText(i, ox - 6, oy - i*gs); 
   }
-  ctx.textAlign='left'; 
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
 }
 
 function drawScene(idx){
   if(!inited||!steps.length) return;
-  drawGrid(); let{gs}=gp();
+  drawGrid(); let { gs, isMobile } = gp();
 
   if(mode==='line'){
     let xe=num('lxe',6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
-    ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=2.5;ctx.setLineDash([8,6]);
+    ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(p0.cx,p0.cy);ctx.lineTo(pe.cx,pe.cy);ctx.stroke();ctx.restore();
-    let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,9,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font='bold 11px Noto Sans SC';ctx.textAlign='center'; ctx.fillText('终',cx,cy+4);ctx.textAlign='left';
+    let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('终',cx,cy+(isMobile?3:4));ctx.textAlign='left';
   } else {
     let xs=num('axs',5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
-    ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=2.5;ctx.setLineDash([8,6]);
+    ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.arc(cc.cx,cc.cy,R*gs,-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR'); ctx.stroke();ctx.restore();
     let ps=toC(xs,ys),pe=toC(xe,ye);
-    ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(ps.cx,ps.cy,9,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#16a34a'; ctx.beginPath();ctx.arc(pe.cx,pe.cy,9,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font='bold 11px Noto Sans SC';ctx.textAlign='center';
-    ctx.fillText('起',ps.cx,ps.cy+4);ctx.fillText('终',pe.cx,pe.cy+4);ctx.textAlign='left';
+    ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(ps.cx,ps.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#16a34a'; ctx.beginPath();ctx.arc(pe.cx,pe.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('起',ps.cx,ps.cy+(isMobile?3:4));ctx.fillText('终',pe.cx,pe.cy+(isMobile?3:4));ctx.textAlign='left';
   }
 
   if(idx>0){
-    ctx.strokeStyle='#7c3aed';ctx.lineWidth=3.5;
+    ctx.strokeStyle='#7c3aed';ctx.lineWidth=isMobile?2.5:3.5;
     ctx.beginPath(); let s0=toC(steps[0].x,steps[0].y);ctx.moveTo(s0.cx,s0.cy);
     for(let i=1;i<=idx;i++){let p=toC(steps[i].x,steps[i].y);ctx.lineTo(p.cx,p.cy);}
     ctx.stroke();
@@ -715,8 +684,8 @@ function drawScene(idx){
       let s=steps[i];
       if(s.ovX||s.ovY){
         let p=toC(s.x,s.y);
-        if(s.ovX){ctx.fillStyle='rgba(37,99,235,0.4)';ctx.beginPath();ctx.rect(p.cx-6,p.cy-6,12,12);ctx.fill();}
-        if(s.ovY){ctx.fillStyle='rgba(13,148,136,0.4)';ctx.beginPath();ctx.rect(p.cx-5,p.cy-5,10,10);ctx.fill();}
+        if(s.ovX){ctx.fillStyle='rgba(37,99,235,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?4:6),p.cy-(isMobile?4:6),isMobile?8:12,isMobile?8:12);ctx.fill();}
+        if(s.ovY){ctx.fillStyle='rgba(13,148,136,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?3.5:5),p.cy-(isMobile?3.5:5),isMobile?7:10,isMobile?7:10);ctx.fill();}
       }
     }
 
@@ -724,31 +693,17 @@ function drawScene(idx){
     if(pr.x!==cr.x||pr.y!==cr.y){
       let pp=toC(pr.x,pr.y),cp=toC(cr.x,cr.y);
       let isX=Math.abs(cr.x-pr.x)>0;
-      ctx.strokeStyle=isX?'#2563eb':'#0d9488';ctx.lineWidth=4;
+      ctx.strokeStyle=isX?'#2563eb':'#0d9488';ctx.lineWidth=isMobile?3:4;
       ctx.beginPath();ctx.moveTo(pp.cx,pp.cy);ctx.lineTo(cp.cx,cp.cy);ctx.stroke();
       let ang=Math.atan2(cp.cy-pp.cy,cp.cx-pp.cx);
       ctx.fillStyle=isX?'#2563eb':'#0d9488'; ctx.beginPath(); ctx.moveTo(cp.cx,cp.cy);
-      ctx.lineTo(cp.cx-14*Math.cos(ang-0.4),cp.cy-14*Math.sin(ang-0.4));
-      ctx.lineTo(cp.cx-14*Math.cos(ang+0.4),cp.cy-14*Math.sin(ang+0.4)); ctx.fill();
+      let arrSpan = isMobile ? 10 : 14;
+      ctx.lineTo(cp.cx-arrSpan*Math.cos(ang-0.4),cp.cy-arrSpan*Math.sin(ang-0.4));
+      ctx.lineTo(cp.cx-arrSpan*Math.cos(ang+0.4),cp.cy-arrSpan*Math.sin(ang+0.4)); ctx.fill();
     }
 
     let sc=steps[idx],pc=toC(sc.x,sc.y);
-    ctx.fillStyle='#ea580c'; ctx.beginPath();ctx.arc(pc.cx,pc.cy,7.5,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#ffffff';ctx.lineWidth=2.5; ctx.beginPath();ctx.arc(pc.cx,pc.cy,7.5,0,Math.PI*2);ctx.stroke();
-    
-    ctx.font='bold 15px JetBrains Mono,monospace'; ctx.strokeStyle='#ffffff'; ctx.lineWidth=4;
-    ctx.strokeText(`(${sc.x}, ${sc.y})`,pc.cx+14,pc.cy-12);
-    ctx.fillStyle='#7c3aed'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+14,pc.cy-12);
-  }
-  let orig=toC(0,0);ctx.fillStyle='#4b5563';ctx.beginPath();ctx.arc(orig.cx,orig.cy,5,0,Math.PI*2);ctx.fill();
-}
-
-window.addEventListener('resize',resize);
-resize();drawGrid();
-setTimeout(()=>{resize();drawGrid();},150);
-
-// 页面加载完成后自动计算一次
-document.addEventListener("DOMContentLoaded", autoCalcN);
-</script>
-</body>
-</html>
+    ctx.fillStyle='#ea580c'; 
+    let toolR = isMobile ? 5 : 7.5;
+    ctx.beginPath();ctx.arc(pc.cx,pc.cy,toolR,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=2; ctx.beginPath();ctx.arc(pc.cx,pc
