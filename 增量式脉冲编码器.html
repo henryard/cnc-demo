@@ -24,7 +24,6 @@
   --blue:      #3b82f6; 
   --green:     #10b981; 
   --orange:    #f59e0b;
-  --pink:      #f472b6;
   --a-phase:   #4ade80; /* A相 绿色 */
   --b-phase:   #f472b6; /* B相 粉色 */
   
@@ -89,7 +88,7 @@ button, input, select, a { touch-action: manipulation; }
 .spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none; width: 100%; margin-top: 6px;}
 .spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
 
-/* ── 控制按钮：原生 iOS 质感 ── */
+/* ── 控制按钮 ── */
 .action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
 .brow{display:flex; gap:10px;}
 .btn{ 
@@ -111,7 +110,8 @@ button, input, select, a { touch-action: manipulation; }
 .ctoolbar{ height: 60px; padding: 0 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
 .ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
 
-.top-badge { display: inline-block; background: var(--surface2); color: var(--text-dim); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; }
+/* ★ 锁死状态胶囊宽度防抖 */
+.top-badge { display: inline-block; background: var(--surface2); color: var(--text-dim); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: background 0.2s ease, color 0.2s ease; min-width: 90px; text-align: center;}
 
 .sbar { 
   height: 64px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
@@ -121,6 +121,16 @@ button, input, select, a { touch-action: manipulation; }
 .si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
 .sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 .sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
+
+/* ★ 数据防抖动：启用等宽数字、锁死宽度 ★ */
+.sv-fixed-ang { display: inline-block; width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+.sv-fixed-state { display: inline-block; width: 38px; text-align: left; }
+.sv-fixed-cnt { display: inline-block; min-width: 44px; text-align: left; font-variant-numeric: tabular-nums; color: var(--accent); }
+
+/* ★ LED 呼吸灯效果优化 ★ */
+.led { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--border2); margin-right: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); transition: background-color 0.15s ease, box-shadow 0.15s ease;}
+.led.on-a { background: var(--a-phase); box-shadow: 0 0 8px var(--a-phase); }
+.led.on-b { background: var(--b-phase); box-shadow: 0 0 8px var(--b-phase); }
 
 .canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; }
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
@@ -144,13 +154,8 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 .drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;}
 .dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
 .dnum{ width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
-.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color: var(--accent);}
+.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color: var(--ios-blue);}
 .dnote{ margin-top:12px; padding:10px 14px; background:var(--surface2); border-left:4px solid var(--accent); border-radius:4px 8px 8px 4px; font-size:13px; color:var(--text-mid); font-family:'Noto Sans SC',sans-serif; line-height:1.6; }
-
-/* 状态灯 */
-.led { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--border2); margin-right: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);}
-.led.on-a { background: var(--a-phase); box-shadow: 0 0 8px var(--a-phase); }
-.led.on-b { background: var(--b-phase); box-shadow: 0 0 8px var(--b-phase); }
 
 /* ========================================= */
 /* ===== 移动端自适应适配 ===== */
@@ -166,13 +171,14 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   .panel-center { order: 0; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
   
   .ctoolbar { padding: 12px 16px; height: auto; }
-  .top-badge { display: inline-block; }
+  .top-badge { font-size: 11px; padding: 4px 8px; min-width: 70px;}
 
   .sbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; padding: 12px 0; height: auto; }
   .si { border-right: 1px solid var(--border2); padding: 0; }
   .si:last-child { border-right: none; }
-  .sk { font-size: 10px; }
+  .sk { font-size: 10px; margin-bottom: 2px;}
   .sv { font-size: 14px; }
+  .sv-fixed-ang, .sv-fixed-state { width: auto; }
 
   .canvas-wrap { flex: none; height: 350px !important; }
 
@@ -250,10 +256,10 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   </div>
   
   <div class="sbar">
-    <div class="si"><span class="sk">物理角度</span><span class="sv" id="s-ang">0.0°</span></div>
-    <div class="si"><span class="sk">A相状态</span><span class="sv" id="s-a"><span class="led" id="led-a"></span>0</span></div>
-    <div class="si"><span class="sk">B相状态</span><span class="sv" id="s-b"><span class="led" id="led-b"></span>0</span></div>
-    <div class="si"><span class="sk">累计计数</span><span class="sv" id="s-cnt" style="color:var(--accent)">0</span></div>
+    <div class="si"><span class="sk">物理角度</span><span class="sv"><span id="s-ang" class="sv-fixed-ang">0.0°</span></span></div>
+    <div class="si"><span class="sk">A相状态</span><span class="sv"><span class="led" id="led-a"></span><span id="s-a-text" class="sv-fixed-state">Low</span></span></div>
+    <div class="si"><span class="sk">B相状态</span><span class="sv"><span class="led" id="led-b"></span><span id="s-b-text" class="sv-fixed-state">Low</span></span></div>
+    <div class="si"><span class="sk">累计计数</span><span class="sv"><span id="s-cnt" class="sv-fixed-cnt">0</span></span></div>
   </div>
 
   <div class="canvas-wrap">
@@ -297,10 +303,12 @@ const ctxEnc = cvEnc.getContext('2d');
 const cvWav = document.getElementById('cvWave');
 const ctxWav = cvWav.getContext('2d');
 
+// DOM 节点缓存 (防抖动优化)
+let elLedA, elLedB, elTextA, elTextB, elAng, elCnt, elDirBadge;
+
 // 核心参数设定
 const N = 36; // 码盘齿数
 const PITCH = 360 / N; // 栅距物理角度 (10度)
-const PHASE_OFFSET = 90; // 电角度偏移 90°_e (对应 1/4 栅距 = 2.5度物理角度)
 const SENSOR_B_PHYSICAL = 9 * PITCH + PITCH / 4; // 传感器 B 在视觉上放远一点 (92.5度)，但电角度依然严格保持 90°_e 偏移
 
 let mode = 4; // 倍频模式 1, 2, 4
@@ -308,11 +316,12 @@ let absAngle = 0; // 绝对物理角度
 let curDir = 0; // 1 CW, -1 CCW, 0 STOP
 let pulseCount = 0;
 
-let prevA = -1, prevB = -1;
+// 状态缓存 (彻底杜绝不必要的 DOM 写入)
+let lastValA = -1, lastValB = -1;
+let lastAngStr = "", lastCntStr = "";
 let waveHistory = []; // { a: 0/1, b: 0/1, p: 0/1 (pulse), d: 1/-1 }
 
 // 动画与交互控制
-let autoReq = null;
 let lastTime = 0;
 
 function setMode(m, el) {
@@ -328,16 +337,18 @@ function setMode(m, el) {
 
 function runAuto(d) {
   curDir = d;
-  document.getElementById('st-dir').textContent = d === 1 ? '↻ 持续正转' : '↺ 持续反转';
-  document.getElementById('st-dir').style.background = 'var(--accent-lt)';
-  document.getElementById('st-dir').style.color = 'var(--accent)';
+  if(!elDirBadge) elDirBadge = document.getElementById('st-dir');
+  elDirBadge.textContent = d === 1 ? '↻ 持续正转' : '↺ 持续反转';
+  elDirBadge.style.background = 'var(--accent-lt)';
+  elDirBadge.style.color = 'var(--accent)';
 }
 
 function stopAuto() {
   curDir = 0;
-  document.getElementById('st-dir').textContent = '⏹ 已停止';
-  document.getElementById('st-dir').style.background = 'var(--surface2)';
-  document.getElementById('st-dir').style.color = 'var(--text-dim)';
+  if(!elDirBadge) elDirBadge = document.getElementById('st-dir');
+  elDirBadge.textContent = '⏹ 已停止';
+  elDirBadge.style.background = 'var(--surface2)';
+  elDirBadge.style.color = 'var(--text-dim)';
 }
 
 // 核心物理引擎 tick
@@ -354,25 +365,22 @@ function tick(time) {
   }
 
   // 1. 计算当前光电传感器状态
-  // A相传感器位于 0度。槽宽5度，不透光5度。
   let modA = absAngle % PITCH;
   let valA = modA < (PITCH/2) ? 1 : 0;
   
-  // B相传感器位于 92.5度。
-  // 逆向推算盘面的哪个角度转到了 92.5度：(absAngle - SENSOR_B_PHYSICAL)
   let modB = ((absAngle - SENSOR_B_PHYSICAL) % PITCH + PITCH) % PITCH;
   let valB = modB < (PITCH/2) ? 1 : 0;
 
   let pulse = 0;
 
   // 2. 初始化时避免误触发
-  if(prevA === -1) { prevA = valA; prevB = valB; }
+  if(lastValA === -1) { lastValA = valA; lastValB = valB; }
 
   // 3. 边沿捕捉与逻辑解码算法
-  let rA = (valA === 1 && prevA === 0);
-  let fA = (valA === 0 && prevA === 1);
-  let rB = (valB === 1 && prevB === 0);
-  let fB = (valB === 0 && prevB === 1);
+  let rA = (valA === 1 && lastValA === 0);
+  let fA = (valA === 0 && lastValA === 1);
+  let rB = (valB === 1 && lastValB === 0);
+  let fB = (valB === 0 && lastValB === 1);
 
   // 四象限辨向计数逻辑
   let stepDir = 0;
@@ -387,20 +395,37 @@ function tick(time) {
     else if (mode === 4) { pulseCount += stepDir; pulse = 1; }
   }
 
-  prevA = valA;
-  prevB = valB;
+  // ★ 4. 极致防抖 DOM 更新：只在状态变化时更新独立容器 ★
+  if(!elAng) {
+    elLedA = document.getElementById('led-a'); elLedB = document.getElementById('led-b');
+    elTextA = document.getElementById('s-a-text'); elTextB = document.getElementById('s-b-text');
+    elAng = document.getElementById('s-ang'); elCnt = document.getElementById('s-cnt');
+  }
 
-  // 更新 DOM 数据
-  document.getElementById('s-ang').textContent = absAngle.toFixed(1) + '°';
-  document.getElementById('s-cnt').textContent = pulseCount;
-  
-  let ledA = document.getElementById('led-a');
-  let ledB = document.getElementById('led-b');
-  document.getElementById('s-a').innerHTML = `<span class="led ${valA?'on-a':''}"></span>${valA?'High':'Low'}`;
-  document.getElementById('s-b').innerHTML = `<span class="led ${valB?'on-b':''}"></span>${valB?'High':'Low'}`;
+  let angStr = absAngle.toFixed(1) + '°';
+  if (angStr !== lastAngStr) {
+    elAng.textContent = angStr;
+    lastAngStr = angStr;
+  }
 
-  // 记录波形历史 (固定速度平移，不依赖物理旋转)
-  // 为了让停止时波形也继续平移(像真实示波器)，每次tick都记录
+  if (pulseCount !== lastCntStr) {
+    elCnt.textContent = pulseCount;
+    lastCntStr = pulseCount;
+  }
+
+  if (valA !== lastValA) {
+    if(valA) elLedA.classList.add('on-a'); else elLedA.classList.remove('on-a');
+    elTextA.textContent = valA ? 'High' : 'Low';
+    lastValA = valA;
+  }
+
+  if (valB !== lastValB) {
+    if(valB) elLedB.classList.add('on-b'); else elLedB.classList.remove('on-b');
+    elTextB.textContent = valB ? 'High' : 'Low';
+    lastValB = valB;
+  }
+
+  // 记录波形历史
   waveHistory.push({ a: valA, b: valB, p: pulse, pd: stepDir });
   if(waveHistory.length > 500) waveHistory.shift();
 
@@ -470,7 +495,6 @@ function renderEncoder(vA, vB) {
   for(let i=0; i<N; i++) {
     ctxEnc.beginPath();
     ctxEnc.moveTo(0,0);
-    // 每个槽的前一半是黑色(遮光)，后一半是透明(透光)
     ctxEnc.arc(0, 0, r, i*PITCH*Math.PI/180, (i+0.5)*PITCH*Math.PI/180);
     ctxEnc.closePath();
     ctxEnc.fill();
@@ -500,7 +524,6 @@ function renderWaveform() {
     let y = waveHistory[i].a ? yA_high : yA_low;
     if(i===0) ctxWav.moveTo(x,y);
     else {
-      // 强制画直角方波
       let prevY = waveHistory[i-1].a ? yA_high : yA_low;
       if(y !== prevY) ctxWav.lineTo(x, prevY);
       ctxWav.lineTo(x,y);
