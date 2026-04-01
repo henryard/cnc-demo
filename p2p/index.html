@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>逐点比较法插补演示</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
 <style>
@@ -198,49 +198,67 @@ canvas{flex:1; width:100%; display:block;}
 .scr::-webkit-scrollbar-thumb{background:var(--border2); border-radius:3px;}
 .scr::-webkit-scrollbar-thumb:hover{background:var(--text-dim);}
 
-/* ===== 移动端及小屏幕自适应适配 ===== */
+/* ========================================= */
+/* ===== 移动端及小屏幕深度自适应适配 ===== */
+/* ========================================= */
 @media (max-width: 1024px) {
+  /* 恢复页面自然滚动，给底部悬浮操作栏留出空间 */
   body {
     height: auto;
+    min-height: 100vh;
     overflow-y: auto;
-    padding-bottom: 120px;
+    padding-bottom: 130px; 
   }
+  
+  /* 将网格强制转为单列垂直流 */
   .layout {
     display: flex;
     flex-direction: column;
     height: auto;
   }
+  
+  /* 1. 左侧面板 (参数设置) - 彻底修复高度塌陷导致重叠的Bug */
   .panel-left {
     order: 1;
     width: 100%;
     height: auto;
+    display: block; /* 核心修复点：取消 flex 行为，强制撑开高度 */
     border-right: none;
     border-bottom: 1px solid var(--border);
     box-shadow: none;
     overflow: visible;
+    padding-bottom: 24px;
   }
   .panel-top {
-    overflow-y: visible;
-    padding-bottom: 16px;
+    display: block; /* 核心修复点：取消 flex: 1 1 0，防止计算高度为 0 */
+    height: auto;
+    overflow: visible;
   }
+
+  /* 2. 中间面板 (画布区域) - 给出稳定的高度比例 */
   .panel-center {
     order: 2;
     width: 100%;
-    height: 55vh;
-    min-height: 400px;
+    height: 50vh; /* 稳定高度供 JS 获取，计算 Canvas 尺寸 */
+    min-height: 380px;
     border-right: none;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
   }
+  /* 修复图例重叠挤压 */
   .ctoolbar {
     height: auto;
     padding: 12px 16px;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-wrap: wrap; 
+    gap: 12px;
   }
   .legend-group {
-    flex-wrap: wrap;
-    white-space: normal;
+    flex-wrap: wrap; 
+    white-space: normal; 
+    gap: 8px 12px;
   }
+  /* 状态栏横向滑动 */
   .sbar {
     padding: 12px 16px;
     gap: 12px;
@@ -249,24 +267,28 @@ canvas{flex:1; width:100%; display:block;}
     scrollbar-width: none;
   }
   .sbar::-webkit-scrollbar { display: none; }
+
+  /* 3. 右侧面板 (表格记录) */
   .panel-right {
     order: 3;
     width: 100%;
     height: auto;
-    border-right: none;
-    overflow: visible;
+    display: block;
   }
   .rhead {
     padding: 0 16px;
   }
   .twrap {
-    height: 350px; 
+    height: 350px; /* 控制表格最大高度，实现内部滚动 */
     overflow-y: auto;
   }
   .sdetail {
     height: auto;
-    max-height: 400px;
+    max-height: none;
+    padding-bottom: 24px;
   }
+
+  /* 4. 底部操作栏 (悬浮吸底) */
   .action-area {
     position: fixed;
     bottom: 0;
@@ -274,10 +296,12 @@ canvas{flex:1; width:100%; display:block;}
     width: 100%;
     background: var(--surface);
     padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom)); 
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* 适配 iPhone 黑条 */
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15); /* 明显阴影划分层级 */
     z-index: 1000;
     border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
     gap: 8px;
   }
   .btn {
@@ -359,7 +383,9 @@ canvas{flex:1; width:100%; display:block;}
         <span style="font-size:12px;color:var(--text-dim);font-weight:600">快</span>
       </div>
     </div>
-  </div><div class="action-area">
+  </div>
+  
+  <div class="action-area">
     <div class="brow">
       <button class="btn btn-o" onclick="resetSim()">↺ 重置</button>
       <button class="btn btn-o" onclick="initSim()">⚙ 应用参数</button>
@@ -370,7 +396,9 @@ canvas{flex:1; width:100%; display:block;}
     </div>
   </div>
 
-</div><div class="panel-center">
+</div>
+
+<div class="panel-center">
   <div class="ctoolbar">
     <span class="ctitle">逐点比较法轨迹推演</span>
     <div style="flex:1"></div>
