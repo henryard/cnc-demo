@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>光栅检测与莫尔条纹原理演示</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg:        #f3f4f6;
+  --surface:   #ffffff;
+  --surface2:  #f9fafb;
+  --border:    #e5e7eb;
+  --border2:   #d1d5db;
+  --text:      #111827;
+  --text-mid:  #4b5563;
+  --text-dim:  #6b7280;
+  
+  --accent:    #2563eb; 
+  --accent-lt: #eff6ff;
+  --red:       #dc2626; 
+  --orange:    #ea580c; 
+  --green:     #16a34a; 
+  --green-lt:  #f0fdf4;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --radius:    8px;
+  
+  /* iOS 风格色彩 */
+  --ios-blue:    #007AFF;
+  --ios-orange:  #FF9500;
+  --ios-gray:    #F2F2F7;
+  --ios-text:    #1C1C1E;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html, body { 
+  background:var(--bg); color:var(--text); 
+  font-family:'Noto Sans SC',sans-serif; font-size:15px; 
+  line-height:1.5; 
+  -webkit-text-size-adjust: 100%;
+}
+body { height: 100vh; overflow: hidden; }
+button, input, select, a { touch-action: manipulation; }
+
+/* ★ 桌面端响应式网格布局 ★ */
+.layout {
+  display: grid;
+  grid-template-columns: clamp(260px, 22vw, 340px) minmax(400px, 1fr) clamp(340px, 28vw, 480px);
+  height: 100vh;
+}
+
+/* ── 左侧面板 ── */
+.panel-left{ background:var(--surface); border-right:1px solid var(--border); padding:16px; display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10; }
+.panel-top { display: flex; flex-direction: column; gap: 14px; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; }
+.panel-top::-webkit-scrollbar { display: none; }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none; 
+  padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);
+}
+.back-link:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-lt); }
+
+.stitle{ font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.stitle::before{content:''; width:4px; height:12px; background:var(--accent); border-radius:2px;}
+
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm);}
+.ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:4px; display:flex; justify-content:space-between;}
+.val-badge { font-family:'JetBrains Mono',monospace; color:var(--accent); font-weight:700; }
+
+.spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none; width: 100%; margin-top: 8px; margin-bottom: 4px;}
+.spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
+
+.fbox{ background:var(--accent-lt); border:1px solid #bfdbfe; border-radius:6px; padding:12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.7; color:var(--text-mid); margin-top:10px;}
+.fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:4px;}
+
+/* ── 控制按钮 ── */
+.action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
+.brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.btn{ 
+  padding:12px 10px; border-radius:14px; border:none; cursor:pointer; user-select: none;
+  font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; 
+  font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; 
+  display:flex; align-items:center; justify-content:center; gap:6px; 
+}
+.btn:active { transform: scale(0.95); }
+.btn-reset { background: var(--ios-gray); color: #8E8E93; }
+.btn-p { background: var(--ios-blue); color: #fff; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2); }
+.btn-p:hover { background: #0062CC; box-shadow: 0 6px 14px rgba(0, 122, 255, 0.3); }
+
+/* ── 中间面板 (光栅渲染) ── */
+.panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
+.ctoolbar{ height: 60px; padding: 0 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
+.ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
+
+.c-actions { display: flex; align-items: center; gap: 12px; }
+.top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; }
+
+.sbar { 
+  height: 64px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
+  display: flex; justify-content: space-around; align-items: center; z-index: 5; flex: 0 0 auto; overflow: hidden; 
+}
+.si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+.sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+.sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); height: 22px; display: flex; align-items: center; justify-content: center; min-width: 48px; }
+
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden; justify-content: center;}
+.legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
+.leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
+.lsq{width:16px; height:16px; border-radius:4px; display:inline-block; border: 1px solid rgba(0,0,0,0.1);}
+
+.canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; background: #fff; }
+canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+/* ── 右侧面板 (信号波形) ── */
+.panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
+.rhead{ height: 60px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+.rhead-actions { display: flex; align-items: center; gap: 12px; }
+
+.signal-wrap {
+  flex: 1; position: relative; width: 100%; background: #1E1E1E; border-bottom: 1px solid var(--border);
+  background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.sdetail{ flex: 0 0 240px; height: 240px; box-sizing: border-box; overflow-y: auto; padding:20px 24px; background:var(--surface); z-index: 10; }
+.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--accent); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;}
+.dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
+.dnum{ width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.dval{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px;}
+.dnote{ margin-top:12px; padding:10px 14px; background:var(--surface2); border-left:4px solid var(--accent); border-radius:4px 8px 8px 4px; font-size:13px; color:var(--text-mid); font-family:'JetBrains Mono',monospace; line-height:1.6; }
+
+/* ========================================= */
+/* ===== 移动端及小屏幕深度自适应适配 ===== */
+/* ========================================= */
+@media (max-width: 1024px) {
+  html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 100px; }
+  .layout { display: flex; flex-direction: column; height: auto; }
+  .panel-left, .panel-center, .panel-right { height: auto !important; overflow: visible !important; }
+  
+  .panel-left { order: 1; width: 100%; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
+  .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
+
+  .panel-center { order: 0; width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  
+  .ctoolbar { padding: 12px 16px; height: auto; }
+  .top-badge { font-size: 11px; padding: 4px 8px; }
+
+  .sbar { 
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); 
+    gap: 0; padding: 12px 0; border-bottom: 1px solid var(--border); background: var(--surface); width: 100%; box-sizing: border-box; height: auto;
+  }
+  .si { border-right: 1px solid var(--border2); padding: 0 1px; min-width: 0; overflow: hidden; }
+  .si:last-child { border-right: none; }
+  .sk { font-size: clamp(9px, 2.5vw, 11px); margin-bottom: 2px; color: var(--text-dim); white-space: nowrap; }
+  .sv { font-size: clamp(12px, 3.5vw, 16px); font-weight: bold; white-space: nowrap; letter-spacing: -0.5px;}
+
+  .legend-wrap { padding: 10px 8px; height: auto; min-height: 44px; width: 100%; box-sizing: border-box; }
+  .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; font-size: 11px; line-height: 1.6; width: 100%; }
+  
+  .canvas-wrap { flex: none; height: 350px !important; width: 100%; }
+
+  .panel-right { order: 3; width: 100%; display: block; }
+  .signal-wrap { height: 200px; }
+  .rhead { padding: 16px; height: auto; }
+  .sdetail { height: auto; max-height: none; padding: 24px 16px; }
+
+  .action-area { 
+    position: fixed; bottom: 0; left: 0; width: 100%; 
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); 
+    display: flex; flex-direction: row; gap: 0; 
+  }
+  .action-area .brow { display: contents; }
+  .btn { flex: 1; padding: 12px 0; margin: 0 4px; font-size: 14px; border-radius: 14px; justify-content: center;}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+<div class="panel-left">
+  <div class="panel-top">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      返回导航主页
+    </a>
+    
+    <div>
+      <div class="stitle">光栅调节参数</div>
+      <div class="card">
+        <div style="margin-bottom: 16px;">
+          <div class="ilabel"><span>光栅夹角 θ (度)</span><span class="val-badge" id="val-angle">2.0°</span></div>
+          <input type="range" class="spslider" id="p-angle" min="0.5" max="10" step="0.5" value="2.0">
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+          <div class="ilabel"><span>光栅栅距 W (μm)</span><span class="val-badge" id="val-pitch">20</span></div>
+          <input type="range" class="spslider" id="p-pitch" min="10" max="40" step="2" value="20">
+        </div>
+
+        <div class="fbox">
+          <div class="fh">光学放大原理</div>
+          <div style="margin-bottom: 6px;">莫尔条纹宽度：<strong style="color:var(--accent)">B ≈ W / θ</strong></div>
+          <div>光学放大倍数：<strong style="color:var(--orange)">K = B / W ≈ 1 / θ</strong></div>
+          <div style="margin-top: 6px; color: var(--text-dim); font-size: 11px;">※ 当主光栅移动一个栅距 W 时，莫尔条纹精确移动一个条纹宽度 B。</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="stitle">演示控制</div>
+      <div class="card" style="padding:16px;">
+        <div class="ilabel"><span>主光栅水平位移 X</span><span class="val-badge" id="val-pos">0.0</span></div>
+        <input type="range" class="spslider" id="p-pos" min="0" max="200" step="1" value="0">
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 16px; gap: 10px;">
+            <button class="btn btn-reset" style="flex:1; border-radius: 8px; padding: 8px;" onclick="moveStep(-1)">◀ 微调</button>
+            <button class="btn btn-reset" style="flex:1; border-radius: 8px; padding: 8px;" onclick="moveStep(1)">微调 ▶</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="action-area">
+    <div class="brow">
+      <button class="btn btn-reset" onclick="resetSim()">↺ 坐标归零</button>
+      <button class="btn btn-p" id="bta" onclick="toggleAuto()">▶ 自动匀速移动</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel-center">
+  <div class="ctoolbar">
+    <span class="ctitle">🌈 莫尔条纹放大演示</span>
+    <div class="c-actions">
+       <span class="top-badge" id="st-badge">手动拖动中</span>
+    </div>
+  </div>
+  
+  <div class="sbar">
+    <div class="si"><span class="sk">水平位移 X</span><span class="sv" id="sx" style="color:var(--accent)">0.0 μm</span></div>
+    <div class="si"><span class="sk">条纹位移 Y</span><span class="sv" id="sy" style="color:var(--orange)">0.0 μm</span></div>
+    <div class="si"><span class="sk">放大倍数 K</span><span class="sv" id="sk">28.6 X</span></div>
+    <div class="si"><span class="sk">条纹间距 B</span><span class="sv" id="sb">573 μm</span></div>
+  </div>
+
+  <div class="legend-wrap">
+    <div class="legend-group">
+      <div class="leg"><span class="lsq" style="background: rgba(37,99,235,0.4)"></span>主光栅 (移动)</div>
+      <div class="leg"><span class="lsq" style="background: rgba(220,38,38,0.4)"></span>指示光栅 (固定)</div>
+      <div class="leg"><span class="lsq" style="background: #111"></span>莫尔条纹暗带</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="cvGrat"></canvas>
+  </div>
+</div>
+
+<div class="panel-right">
+  <div class="rhead">
+    <span>光电元件输出信号</span>
+  </div>
+  
+  <div class="signal-wrap">
+    <canvas id="cvSig"></canvas>
+    <div style="position: absolute; top: 10px; right: 10px; font-family: monospace; font-size: 12px; color: #aaa; text-align: right;">
+        <span style="color: #4ade80">● A 相 (0°)</span><br>
+        <span style="color: #f472b6">● B 相 (90°)</span>
+    </div>
+  </div>
+  
+  <div class="sdetail">
+    <div class="sdtitle">📍 增量式编码信号分析</div>
+    <div class="drow"><div class="dlbl"><div class="dnum">1</div>A 相信号状态</div><div class="dval" id="sig-a" style="color: #4ade80">0.00 V</div></div>
+    <div class="drow"><div class="dlbl"><div class="dnum">2</div>B 相信号状态</div><div class="dval" id="sig-b" style="color: #f472b6">0.00 V</div></div>
+    
+    <div class="dnote">
+        当主光栅向右移动时，莫尔条纹向下移动，A相波形在相位上超前B相90度。反之，若主光栅向左移动，则B相超前A相。数控系统通过检测A、B相的先后顺序即可实现<b>辨向</b>，并通过逻辑电路捕捉上升沿/下降沿实现<b>四倍频</b>。
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// 获取元素
+const elAngle = document.getElementById('p-angle');
+const elPitch = document.getElementById('p-pitch');
+const elPos = document.getElementById('p-pos');
+
+const cvGrat = document.getElementById('cvGrat');
+const ctxG = cvGrat.getContext('2d');
+const cvSig = document.getElementById('cvSig');
+const ctxS = cvSig.getContext('2d');
+
+let isAuto = false;
+let autoTimer = null;
+let currentPos = 0; // 内部高精度位置
+let sigHistory = [];
+
+// 事件监听
+elAngle.addEventListener('input', () => { document.getElementById('val-angle').textContent = elAngle.value + '°'; updateSim(); });
+elPitch.addEventListener('input', () => { document.getElementById('val-pitch').textContent = elPitch.value; updateSim(); });
+elPos.addEventListener('input', () => { 
+    currentPos = parseFloat(elPos.value); 
+    if(isAuto) toggleAuto(); 
+    setSt('手动拖动中', 'var(--text-mid)', 'var(--surface2)');
+    updateSim(); 
+});
+
+function moveStep(dir) {
+    if(isAuto) toggleAuto();
+    currentPos += dir;
+    if(currentPos < 0) currentPos = 0;
+    if(currentPos > 200) currentPos = 200;
+    elPos.value = currentPos;
+    setSt('微调步进', 'var(--orange)', 'var(--orange-lt)');
+    updateSim();
+}
+
+function resetSim() {
+    if(isAuto) toggleAuto();
+    currentPos = 0;
+    elPos.value = 0;
+    sigHistory = [];
+    setSt('坐标已归零', 'var(--green)', 'var(--green-lt)');
+    updateSim();
+}
+
+function toggleAuto() {
+    isAuto = !isAuto;
+    const bta = document.getElementById('bta');
+    if (isAuto) {
+        bta.innerHTML = '⏸ 暂停移动';
+        bta.style.background = 'var(--red)';
+        bta.style.boxShadow = '0 4px 10px rgba(220, 38, 38, 0.2)';
+        setSt('▶ 自动运行中...', 'var(--accent)', 'var(--accent-lt)');
+        runAuto();
+    } else {
+        bta.innerHTML = '▶ 自动匀速移动';
+        bta.style.background = 'var(--ios-blue)';
+        bta.style.boxShadow = '0 4px 10px rgba(0, 122, 255, 0.2)';
+        setSt('⏸ 已暂停', 'var(--text-mid)', 'var(--surface2)');
+        cancelAnimationFrame(autoTimer);
+    }
+}
+
+function runAuto() {
+    if(!isAuto) return;
+    currentPos += 0.5; // 速度
+    if(currentPos > 200) {
+        currentPos = 0; // 循环
+        sigHistory = [];
+    }
+    elPos.value = currentPos;
+    updateSim();
+    autoTimer = requestAnimationFrame(runAuto);
+}
+
+function setSt(text, color, bg) {
+    const badge = document.getElementById('st-badge');
+    badge.textContent = text;
+    badge.style.color = color;
+    badge.style.background = bg;
+}
+
+// 核心计算与渲染
+function updateSim() {
+    document.getElementById('val-pos').textContent = currentPos.toFixed(1);
+    
+    let thetaDeg = parseFloat(elAngle.value);
+    let thetaRad = thetaDeg * Math.PI / 180;
+    let W = parseFloat(elPitch.value);
+    
+    // 计算放大倍数与条纹宽度
+    let K = 1 / (2 * Math.sin(thetaRad / 2)); // 精确公式
+    let B = W * K;
+    
+    let moireY = currentPos * K; // 条纹实际垂直位移
+    
+    // 更新数据面板
+    document.getElementById('sx').textContent = currentPos.toFixed(1) + ' μm';
+    document.getElementById('sy').textContent = moireY.toFixed(1) + ' μm';
+    document.getElementById('sk').textContent = K.toFixed(1) + ' X';
+    document.getElementById('sb').textContent = B.toFixed(1) + ' μm';
+    
+    // 记录信号 (假设周期为W)
+    let phaseA = (currentPos / W) * Math.PI * 2;
+    let phaseB = phaseA - Math.PI / 2; // 空间相差90度
+    let valA = Math.sin(phaseA);
+    let valB = Math.sin(phaseB);
+    
+    document.getElementById('sig-a').textContent = valA.toFixed(2) + ' V';
+    document.getElementById('sig-b').textContent = valB.toFixed(2) + ' V';
+    
+    sigHistory.push({ a: valA, b: valB });
+    if(sigHistory.length > 300) sigHistory.shift();
+
+    drawGratings(W, thetaRad, currentPos, B);
+    drawSignals();
+}
+
+function drawGratings(W, thetaRad, pos, B) {
+    let w = cvGrat.clientWidth;
+    let h = cvGrat.clientHeight;
+    if(w===0) return;
+    
+    cvGrat.width = w * window.devicePixelRatio;
+    cvGrat.height = h * window.devicePixelRatio;
+    ctxG.scale(window.devicePixelRatio, window.devicePixelRatio);
+    
+    ctxG.clearRect(0,0,w,h);
+    
+    // 使用乘度混合模式，完美模拟光学透光叠加
+    ctxG.globalCompositeOperation = 'multiply';
+    
+    let cx = w/2;
+    let cy = h/2;
+    
+    // 渲染数量，保证覆盖全屏
+    let lines = Math.ceil(Math.max(w,h) / W) + 10;
+    let lineThickness = W * 0.5; // 黑白1:1
+    
+    // 1. 绘制固定指示光栅 (红色调，倾斜)
+    ctxG.save();
+    ctxG.translate(cx, cy);
+    ctxG.rotate(thetaRad);
+    ctxG.fillStyle = 'rgba(220, 38, 38, 0.4)'; // 红色半透明
+    for(let i = -lines; i <= lines; i++) {
+        ctxG.fillRect(i*W - lineThickness/2, -h, lineThickness, h*2);
+    }
+    ctxG.restore();
+    
+    // 2. 绘制移动主光栅 (蓝色调，水平平移)
+    // 注意：视觉上移动整个光栅
+    // 映射：实际的W在屏幕上按比例绘制（这里简单将1μm映射为屏幕1px，或者加一个视觉缩放因子）
+    let visualScale = 2; // 为了让线条不太密，视觉放大
+    let drawW = W * visualScale;
+    let drawPos = pos * visualScale;
+    let drawThickness = drawW * 0.5;
+    
+    // 重绘第一层，因为上面固定光栅也要用同样的视觉缩放
+    ctxG.clearRect(0,0,w,h);
+    ctxG.save();
+    ctxG.translate(cx, cy);
+    ctxG.rotate(thetaRad);
+    ctxG.fillStyle = 'rgba(220, 38, 38, 0.5)';
+    for(let i = -lines; i <= lines; i++) {
+        ctxG.fillRect(i*drawW - drawThickness/2, -h*2, drawThickness, h*4);
+    }
+    ctxG.restore();
+    
+    ctxG.save();
+    // 只在 X 轴平移
+    ctxG.translate(cx + drawPos, cy);
+    ctxG.fillStyle = 'rgba(37, 99, 235, 0.5)'; // 蓝色半透明
+    for(let i = -lines; i <= lines; i++) {
+        ctxG.fillRect(i*drawW - drawThickness/2, -h*2, drawThickness, h*4);
+    }
+    ctxG.restore();
+    
+    // 绘制标尺和莫尔条纹基准线
+    ctxG.globalCompositeOperation = 'source-over';
+    ctxG.strokeStyle = '#ea580c';
+    ctxG.lineWidth = 2;
+    ctxG.setLineDash([5, 5]);
+    
+    // 标示出当前的莫尔条纹中心（大致位置）
+    // 莫尔条纹中心Y位移公式：y = x / (2*sin(theta/2)) = pos * K
+    let K = 1 / (2 * Math.sin(thetaRad / 2));
+    let drawMoireY = drawPos * K;
+    
+    // 为了防止移出屏幕，做一个取模运算
+    let visualB = drawW * K; 
+    let currentYOffset = drawMoireY % visualB;
+    
+    ctxG.beginPath();
+    ctxG.moveTo(0, cy + currentYOffset);
+    ctxG.lineTo(w, cy + currentYOffset);
+    ctxG.stroke();
+    
+    // 添加文字标示
+    ctxG.fillStyle = '#ea580c';
+    ctxG.font = 'bold 12px sans-serif';
+    ctxG.fillText('条纹基准', 10, cy + currentYOffset - 5);
+}
+
+function drawSignals() {
+    let w = cvSig.clientWidth;
+    let h = cvSig.clientHeight;
+    if(w===0) return;
+    cvSig.width = w * window.devicePixelRatio;
+    cvSig.height = h * window.devicePixelRatio;
+    ctxS.scale(window.devicePixelRatio, window.devicePixelRatio);
+    ctxS.clearRect(0,0,w,h);
+    
+    if(sigHistory.length === 0) return;
+    
+    let cyA = h * 0.3;
+    let cyB = h * 0.7;
+    let amp = h * 0.2;
+    let stepX = w / 300; // 满屏画300个点
+    
+    // 绘制A相
+    ctxS.beginPath();
+    ctxS.strokeStyle = '#4ade80';
+    ctxS.lineWidth = 2;
+    for(let i=0; i<sigHistory.length; i++) {
+        let x = i * stepX;
+        let y = cyA - sigHistory[i].a * amp;
+        if(i===0) ctxS.moveTo(x,y);
+        else ctxS.lineTo(x,y);
+    }
+    ctxS.stroke();
+    
+    // 绘制B相
+    ctxS.beginPath();
+    ctxS.strokeStyle = '#f472b6';
+    ctxS.lineWidth = 2;
+    for(let i=0; i<sigHistory.length; i++) {
+        let x = i * stepX;
+        let y = cyB - sigHistory[i].b * amp;
+        if(i===0) ctxS.moveTo(x,y);
+        else ctxS.lineTo(x,y);
+    }
+    ctxS.stroke();
+    
+    // 绘制当前扫描线 (最右侧)
+    let curX = (sigHistory.length-1) * stepX;
+    ctxS.strokeStyle = '#fff';
+    ctxS.lineWidth = 1;
+    ctxS.setLineDash([2, 2]);
+    ctxS.beginPath();
+    ctxS.moveTo(curX, 0);
+    ctxS.lineTo(curX, h);
+    ctxS.stroke();
+    
+    // 绘制发光交点
+    let last = sigHistory[sigHistory.length-1];
+    ctxS.fillStyle = '#4ade80';
+    ctxS.beginPath(); ctxS.arc(curX, cyA - last.a*amp, 4, 0, Math.PI*2); ctxS.fill();
+    ctxS.fillStyle = '#f472b6';
+    ctxS.beginPath(); ctxS.arc(curX, cyB - last.b*amp, 4, 0, Math.PI*2); ctxS.fill();
+}
+
+window.addEventListener('resize', updateSim);
+// 初始化
+setTimeout(updateSim, 100);
+</script>
+</body>
+</html>
