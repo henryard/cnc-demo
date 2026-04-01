@@ -40,7 +40,7 @@
 
 *{box-sizing:border-box;margin:0;padding:0;}
 
-/* 基础样式设定 */
+/* ★ 彻底禁止移动端双击放大与越界缩放 ★ */
 html, body { 
   background:var(--bg); color:var(--text); 
   font-family:'Noto Sans SC',sans-serif; font-size:15px; 
@@ -196,29 +196,35 @@ canvas{flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0;}
   .panel-left { order: 1; width: 100%; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
   .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
 
-  /* 画布高度锁定，避免 Flex 塌陷 */
   .panel-center { order: 0; width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
-  canvas { flex: none; height: 380px !important; width: 100%; }
   
   .ctoolbar { padding: 12px 16px; height: auto; }
   .top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
   .desktop-only { display: none !important; }
 
+  /* ★ 将 DDA 的数据栏强制改为 7 列均分网格，彻底解决超出屏幕和横向滑动问题 ★ */
   .sbar.dda-data-grid { 
-    display: flex; flex-wrap: nowrap; overflow-x: auto; 
-    gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface);
+    display: grid; grid-template-columns: repeat(7, 1fr); 
+    gap: 0; padding: 10px 0; border-bottom: 1px solid var(--border); background: var(--surface);
+    width: 100%; box-sizing: border-box;
   }
-  .dda-data-grid::-webkit-scrollbar { display: none; }
-  .dda-data-grid .si { flex-direction: column; align-items: center; justify-content: center; flex: 0 0 auto; min-width: 45px; }
-  .dda-data-grid .sk { font-size: 11px; margin-bottom: 4px; }
-  .dda-data-grid .sv { font-size: 13px; }
+  .dda-data-grid .si { 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
+    border-right: 1px solid var(--border2); padding: 0; min-width: 0; overflow: hidden;
+  }
+  .dda-data-grid .si:last-child { border-right: none; }
+  .dda-data-grid .sk { font-size: 10px; margin-bottom: 2px; color: var(--text-dim); white-space: nowrap; }
+  .dda-data-grid .sv { font-size: 12px; font-weight: bold; white-space: nowrap; letter-spacing: -0.5px;}
 
-  /* ★ 修复 DDA 图例折行溢出问题 ★ */
+  /* 进一步缩小图例并允许两行显示，防止越界 */
   .legend-wrap { padding: 10px 8px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
-  .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; font-size: 11px; line-height: 1.6; width: 100%; }
-  .leg { white-space: nowrap; } /* 仅内部不折行 */
+  .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; font-size: 10px; line-height: 1.6; width: 100%; }
+  .leg { white-space: nowrap; } 
   .ldot, .lsq { width: 10px; height: 10px; }
-  .lline { width: 18px; }
+  .lline { width: 16px; }
+
+  /* ★ 强制给定物理高度，避免 iOS Canvas 画布高度缩为 0 的塌陷 Bug ★ */
+  canvas { flex: none; height: 380px !important; width: 100%; }
   
   .fs-btn { display: none !important; }
 
@@ -539,6 +545,7 @@ function resetSim(){
   ['si','sx','sy','srx','sry','spx','spy'].forEach(id=>document.getElementById(id).textContent='—'); setSt('等待开始'); drawGrid();
 }
 
+/* ★ UI 标签颜色自适应 ★ */
 function setSt(t){
   let e1 = document.getElementById('st'); if(e1) e1.innerHTML=t;
   let e2 = document.getElementById('st-badge'); 
