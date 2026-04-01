@@ -27,6 +27,12 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
   --radius:    8px;
+  
+  /* iOS 风格颜色变量 */
+  --ios-blue:    #007AFF;
+  --ios-orange:  #FF9500;
+  --ios-gray:    #F2F2F7;
+  --ios-text:    #1C1C1E;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -80,17 +86,29 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 .spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none;}
 .spslider::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
 
-/* 按钮区 */
+/* ── 控制按钮：原生 iOS 质感 ── */
 .action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
 .brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .btn{
-  padding:12px 6px; border-radius:8px; border:none; cursor:pointer; 
-  font-size:14px; font-weight:600; transition:all .2s ease; display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:12px 10px; border-radius:12px; border:none; cursor:pointer; 
+  font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; 
+  font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; 
+  display:flex; align-items:center; justify-content:center; gap:6px;
 }
-.btn-p{background:var(--accent); color:#fff; box-shadow:var(--shadow-sm);}
-.btn-p:hover{background:#1d4ed8; box-shadow:var(--shadow);}
-.btn-s{background:var(--orange); color:#fff; box-shadow:var(--shadow-sm);}
-.btn-o{background:var(--surface); color:var(--text-mid); border:1px solid var(--border2);}
+.btn:active { transform: scale(0.96); }
+
+/* iOS 灰色重置键 */
+.btn-reset { background: var(--ios-gray); color: #8E8E93; }
+.btn-reset:hover { background: #E5E5EA; color: var(--ios-text); }
+/* iOS 淡蓝应用键 */
+.btn-apply { background: #E0E7FF; color: #4F46E5; }
+.btn-apply:hover { background: #C7D2FE; }
+/* iOS 鲜蓝主功能键 */
+.btn-p { background: var(--ios-blue); color: #fff; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25); }
+.btn-p:hover { background: #0062CC; box-shadow: 0 6px 16px rgba(0, 122, 255, 0.35); }
+/* iOS 活力橙执行键 */
+.btn-s { background: var(--ios-orange); color: #fff; box-shadow: 0 4px 12px rgba(255, 149, 0, 0.25); }
+.btn-s:hover { background: #E08300; box-shadow: 0 6px 16px rgba(255, 149, 0, 0.35); }
 
 /* ── 中间面板 ── */
 .panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
@@ -104,7 +122,6 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 .top-badge { display: none; }
 .desktop-only { display: flex; }
 
-/* 状态栏 & 图例重构至顶部 */
 .sbar{
   padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--border);
   display:flex; gap:24px; align-items:center; z-index: 5; flex: 0 0 auto;
@@ -119,13 +136,7 @@ body{background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-se
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
 .lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
 
-canvas{
-  flex: 1 1 0; 
-  width: 100%; 
-  height: 100%; 
-  display: block; 
-  min-height: 0;
-}
+canvas{ flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0; }
 
 /* ── 右侧面板 ── */
 .panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
@@ -196,7 +207,6 @@ canvas{
     border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column;
   }
   
-  /* 顶部标识栏 */
   .ctoolbar { padding: 12px 16px; height: auto; }
   .top-badge { 
     display: inline-block; background: var(--accent-lt); color: var(--accent); 
@@ -224,24 +234,25 @@ canvas{
   /* 隐藏移动端全屏按钮 */
   .fs-btn { display: none !important; }
 
-  /* 表格区 */
   .panel-right { order: 3; width: 100%; height: auto; display: block; }
   .rhead { padding: 16px; height: auto; }
   .twrap { height: 400px; overflow-y: auto; }
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
 
-  /* ★ 横向排列底部 4 按钮 ★ */
+  /* ★ 横向排列底部 4 按钮 - iOS 底栏质感 ★ */
   .action-area {
     position: fixed; bottom: 0; left: 0; width: 100%;
-    background: var(--surface);
-    padding: 10px 8px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1); 
-    z-index: 1000; border-top: 1px solid var(--border);
-    display: flex; flex-direction: row; gap: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 12px 10px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)); 
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08); 
+    z-index: 1000; border-top: 1px solid rgba(0,0,0,0.08);
+    display: flex; flex-direction: row; gap: 8px;
   }
   .action-area .brow { display: contents; }
-  .btn { flex: 1; padding: 12px 0; margin: 0 4px; font-size: 14px; border-radius: 8px; justify-content: center;}
+  .btn { flex: 1; padding: 12px 0; margin: 0; font-size: 14px; justify-content: center; }
 }
 </style>
 </head>
@@ -321,8 +332,8 @@ canvas{
   
   <div class="action-area">
     <div class="brow">
-      <button class="btn btn-o" onclick="resetSim()">↺ 重置</button>
-      <button class="btn btn-o" onclick="initSim()">⚙ 应用</button>
+      <button class="btn btn-reset" onclick="resetSim()">↺ 重置</button>
+      <button class="btn btn-apply" onclick="initSim()">⚙ 应用</button>
     </div>
     <div class="brow">
       <button class="btn btn-p" id="bta" onclick="startAuto()">▶ 自动</button>
@@ -486,17 +497,21 @@ function initSim(){
   setSt('已初始化，准备开始');
 }
 
+/* ★ 修复：单步和自动状态判定更严谨 ★ */
 function stepOnce(){
   if(!inited) initSim();
-  if(cur<steps.length-1){
+  if(cur < steps.length-1){
     cur++; renderStep(cur); updTbl(cur);
+    if(cur === steps.length-1) { // 刚好执行到最后一步
+      setSt('✅ 插补完成！'); stopAuto();
+    }
   } else {
     setSt('✅ 插补完成！'); stopAuto();
   }
 }
 
 function startAuto(){
-  if(!inited) initSim();
+  if(!inited || cur >= steps.length-1) initSim(); // 完成后再次点击则重新开始
   if(running){stopAuto();return;}
   running=true;
   document.getElementById('bta').innerHTML='⏸ 暂停';
@@ -507,15 +522,16 @@ function startAuto(){
 function tick(){
   if(!running) return;
   stepOnce();
-  if(cur>=steps.length-1){stopAuto();return;}
+  if(cur >= steps.length-1){stopAuto();return;}
   timer=setTimeout(tick, 2100-num('speed',800)); 
 }
 
 function stopAuto(){
-  running=false;clearTimeout(timer);
+  running=false; clearTimeout(timer);
   document.getElementById('bta').innerHTML='▶ 自动';
   document.getElementById('bta').classList.remove('running');
-  if(inited&&cur<steps.length-1) setSt('⏸ 已暂停');
+  // 只有未完成时才显示暂停，防止覆盖完成状态
+  if(inited && cur < steps.length-1) setSt('⏸ 已暂停');
 }
 
 function resetSim(){
@@ -528,7 +544,14 @@ function resetSim(){
 
 function setSt(t){
   let e1 = document.getElementById('st'); if(e1) e1.innerHTML=t;
-  let e2 = document.getElementById('st-badge'); if(e2) e2.innerHTML=t;
+  let e2 = document.getElementById('st-badge'); 
+  if(e2) {
+    e2.innerHTML=t;
+    // 根据状态修改标签颜色
+    if(t.includes('完成')) { e2.style.background = 'var(--green-lt)'; e2.style.color = 'var(--green)'; }
+    else if(t.includes('运行')) { e2.style.background = 'var(--accent-lt)'; e2.style.color = 'var(--accent)'; }
+    else { e2.style.background = 'var(--surface2)'; e2.style.color = 'var(--text-mid)'; }
+  }
 }
 
 function renderStep(idx){
@@ -580,7 +603,7 @@ function updTbl(idx){
   }
 }
 
-/* ★ 高级坐标纸网格引擎（自适应全屏边距） */
+/* ★ 高级坐标纸网格引擎（彻底解决遮挡问题） */
 function gp(){
   let xe,ye,xs=0,ys=0;
   if(mode==='line'){
@@ -597,9 +620,10 @@ function gp(){
   let mc = Math.max(maxCoord + 1, isMobile ? 6 : 8); 
   
   let span = mc * 2;
-  // ★ 极限压缩手机边距（仅留 5px）使图形全宽拉满
-  let mg = isMobile ? 5 : 50; 
-  let gs = Math.min((w - mg*2) / span, (h - mg*2) / span);
+  // ★ 优化纵向和横向安全边距，确保Y轴箭头绝对安全
+  let mgX = isMobile ? 12 : 50; 
+  let mgY = isMobile ? 36 : 50; 
+  let gs = Math.min((w - mgX*2) / span, (h - mgY*2) / span);
   
   let ox = w / 2;
   let oy = h / 2;
@@ -643,8 +667,7 @@ function drawGrid(){
   } ctx.stroke();
   
   ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath();
-  // ★ 手机端延伸线变短防止出界
-  let axExt = isMobile ? 6 : 20; 
+  let axExt = isMobile ? 8 : 20; 
   ctx.moveTo(gLeft - axExt, oy); ctx.lineTo(gRight + axExt, oy); 
   ctx.moveTo(ox, gBottom + axExt); ctx.lineTo(ox, gTop - axExt); 
   ctx.stroke();
@@ -663,15 +686,14 @@ function drawGrid(){
   ctx.fillText('X', gRight + axExt + (isMobile ? 2 : 6), oy + (isMobile ? 10 : 5)); 
   ctx.fillText('Y', ox + (isMobile ? 6 : 10), gTop - axExt - (isMobile ? 2 : 6));
   
-  // ★ 重新启用坐标数值绘制
   ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace';
   ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
-  // 步长控制避免拥挤
   let step = 1;
   if(mc > 12) step = 2;
   if(mc > 25) step = 5;
 
+  // ★ 取消原点0，坐标更清爽
   for(let i = -mc; i <= mc; i++){
     if(i === 0 || i % step !== 0) continue;
     ctx.fillText(i, ox + i*gs, oy + 12); 
@@ -682,7 +704,6 @@ function drawGrid(){
     ctx.fillText(i, ox - 6, oy - i*gs); 
   }
   
-  ctx.textAlign = 'right'; ctx.fillText('0', ox - 6, oy + 12);
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
 }
 
