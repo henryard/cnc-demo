@@ -54,6 +54,18 @@ button, input, select { touch-action: manipulation; }
   overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; 
 }
 .panel-top::-webkit-scrollbar { display: none; }
+
+/* ── 返回主页按钮 ── */
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none; 
+  padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);
+}
+.back-link:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-lt); }
+.back-link svg { transition: transform 0.2s ease; }
+.back-link:hover svg { transform: translateX(-3px); }
+
 .stitle{
   font-size:13px; font-weight:700; letter-spacing:1px; color:var(--text-mid); margin-bottom:8px; display:flex; align-items:center; gap:6px;
 }
@@ -256,6 +268,11 @@ canvas{ flex: 1 1 0; width: 100%; height: 100%; display: block; min-height: 0; }
 <div class="panel-left">
   
   <div class="panel-top">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      返回导航主页
+    </a>
+    
     <div>
       <div class="stitle">插补类型</div>
       <div class="mode-sw">
@@ -545,7 +562,7 @@ function setSt(t){
   if(e2) {
     e2.innerHTML=t;
     if(t.includes('完成')) { e2.style.background = 'var(--green-lt)'; e2.style.color = 'var(--green)'; }
-    else if(t.includes('运行') || t.includes('推演') || t.includes('执行')) { e2.style.background = 'var(--accent-lt)'; e2.style.color = 'var(--accent)'; }
+    else if(t.includes('运行') || t.includes('执行')) { e2.style.background = 'var(--accent-lt)'; e2.style.color = 'var(--accent)'; }
     else if(t.includes('重置') || t.includes('⚠️')) { e2.style.background = 'var(--orange-lt)'; e2.style.color = 'var(--orange)'; }
     else { e2.style.background = 'var(--surface2)'; e2.style.color = 'var(--text-mid)'; }
   }
@@ -617,7 +634,6 @@ function gp(){
   let mc = Math.max(maxCoord + 1, isMobile ? 6 : 8); 
   
   let span = mc * 2;
-  // ★ 极限压缩边距（mgX仅留8px）实现全宽铺满，同时保护顶部Y轴不被吃掉
   let mgX = isMobile ? 8 : 50; 
   let mgY = isMobile ? 32 : 50; 
   let gs = Math.min((w - mgX*2) / span, (h - mgY*2) / span);
@@ -694,7 +710,7 @@ function drawGrid(){
   if(mc > 12) step = 2;
   if(mc > 25) step = 5;
 
-  // ★ 去除所有负数和0，只渲染正半轴数字，让坐标系更纯净
+  // ★ 仅保留正半轴数字
   for(let i = 1; i <= mc; i++){
     if(i % step !== 0) continue;
     ctx.fillText(i, ox + i*gs, oy + 12); 
@@ -734,10 +750,13 @@ function drawScene(idx){
     for(let i=1;i<=idx;i++){let p=toC(steps[i].x,steps[i].y);ctx.lineTo(p.cx,p.cy);}
     ctx.stroke();
 
-    for(let i=1;i<idx;i++){
-      let s=steps[i],p=toC(s.x,s.y);
-      ctx.fillStyle=s.feed&&s.feed.includes('X')?'#2563eb':'#0d9488';
-      ctx.beginPath();ctx.arc(p.cx,p.cy,isMobile?3:4.5,0,Math.PI*2);ctx.fill();
+    for(let i=1;i<=idx;i++){
+      let s=steps[i];
+      if(s.ovX||s.ovY){
+        let p=toC(s.x,s.y);
+        if(s.ovX){ctx.fillStyle='rgba(37,99,235,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?4:6),p.cy-(isMobile?4:6),isMobile?8:12,isMobile?8:12);ctx.fill();}
+        if(s.ovY){ctx.fillStyle='rgba(13,148,136,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?3.5:5),p.cy-(isMobile?3.5:5),isMobile?7:10,isMobile?7:10);ctx.fill();}
+      }
     }
 
     let pr=steps[idx-1],cr=steps[idx];
