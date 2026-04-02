@@ -47,7 +47,7 @@ html, body {
 body { height: 100vh; overflow: hidden; }
 button, input, select, a { touch-action: manipulation; }
 
-/* ★ 桌面端响应式网格布局：允许左右侧面板在窗口缩小时智能收缩，保护画布区 ★ */
+/* ★ 桌面端响应式网格布局 ★ */
 .layout {
   display: grid;
   grid-template-columns: clamp(260px, 22vw, 330px) minmax(400px, 1fr) clamp(340px, 28vw, 480px);
@@ -78,6 +78,20 @@ button, input, select, a { touch-action: manipulation; }
 .ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:4px;}
 .ifield{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; color:var(--text); font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700; width:100%; transition:all .2s; }
 .ifield:focus{outline:none; background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lt);}
+
+/* ★ 优化坐标输入框显示，防止负数被遮挡 ★ */
+.coord-input { 
+  font-size: 13px !important; 
+  padding: 6px 4px !important; 
+  text-align: center;
+}
+.coord-input::-webkit-outer-spin-button,
+.coord-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.coord-input { -moz-appearance: textfield; }
+
 .fbox{ background:var(--accent-lt); border:1px solid #bfdbfe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
 .fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:4px;}
 .fvx{color:var(--red); font-weight:700;}
@@ -112,27 +126,25 @@ button, input, select, a { touch-action: manipulation; }
 .ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
 
 .c-actions { display: flex; align-items: center; gap: 12px; }
-/* ★ 将状态胶囊从移动端专属升级为全局显示，节约桌面端横向空间 ★ */
 .top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; }
 
-/* ★ 桌面端数据栏终极防抖设计：固定高度、垂直堆叠文字 ★ */
 .sbar { 
-  height: 64px; /* 绝对锁死高度 */
+  height: 64px; 
   padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
   display: flex; justify-content: space-around; align-items: center; 
-  z-index: 5; flex: 0 0 auto; overflow: hidden; /* 严禁换行导致容器撑大 */
+  z-index: 5; flex: 0 0 auto; overflow: hidden; 
 }
 .si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
 .sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 .sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
 
-.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden; }
+/* ★ 图例区域水平居中对齐 ★ */
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
 .lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
 
-/* ★ Canvas 物理隔离外壳，彻底解决渲染缩放抖动 Bug ★ */
 .canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; }
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 
@@ -197,7 +209,6 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   .twrap { max-height: 400px; overflow-y: auto; } 
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
 
-  /* 横向单排控制栏 */
   .action-area { 
     position: fixed; bottom: 0; left: 0; width: 100%; 
     background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -229,23 +240,23 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     </div>
 
     <div id="lc">
-      <div class="stitle">直线参数</div>
+      <div class="stitle">直线参数 (全象限)</div>
       <div class="card">
         <div style="display:flex; gap:12px; margin-bottom:12px">
-          <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield" type="number" id="lxe" value="6"></div>
-          <div style="flex:1"><div class="ilabel">终点 Ye</div><input class="ifield" type="number" id="lye" value="4"></div>
+          <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield coord-input" type="number" id="lxe" value="-6"></div>
+          <div style="flex:1"><div class="ilabel">终点 Ye</div><input class="ifield coord-input" type="number" id="lye" value="4"></div>
         </div>
         <div class="fbox">
-          <div class="fh">偏差 F = Xe·Y − Ye·X</div>
-          <div>F ≥ 0 → 偏上，进给 <span class="fvx">+X</span>，F<sub>新</sub>=F<span class="fvx">−Ye</span></div>
-          <div>F &lt; 0 → 偏下，进给 <span class="fvy">+Y</span>，F<sub>新</sub>=F<span class="fvy">+Xe</span></div>
-          <div style="color:var(--text-dim);margin-top:8px;font-size:12px">总步数 N = Xe + Ye</div>
+          <div class="fh">偏差 F = |X<sub>e</sub>|·Y<sub>i</sub> − |Y<sub>e</sub>|·X<sub>i</sub></div>
+          <div>F ≥ 0 → 进给 X 轴(方向同Xe)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F<sub>新</sub> = F <span class="fvx">− |Ye|</span></div>
+          <div>F &lt; 0 → 进给 Y 轴(方向同Ye)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F<sub>新</sub> = F <span class="fvy">+ |Xe|</span></div>
+          <div style="color:var(--text-dim);margin-top:8px;font-size:12px">总步数 N = |Xe| + |Ye|</div>
         </div>
       </div>
     </div>
 
     <div id="ac" style="display:none">
-      <div class="stitle">圆弧参数 (第一象限)</div>
+      <div class="stitle">圆弧参数 (全象限)</div>
       <div class="card">
         <div class="ilabel">圆弧走向</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px">
@@ -253,25 +264,21 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
           <button class="qbtn" onclick="setDir('SR',this)">↻ 顺圆</button>
         </div>
         <div style="display:flex; gap:8px; margin-bottom:12px">
-          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield" type="number" id="axs" value="5"></div>
-          <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield" type="number" id="ays" value="0"></div>
-          <div style="flex:1"><div class="ilabel">终X</div><input class="ifield" type="number" id="axe" value="0"></div>
-          <div style="flex:1"><div class="ilabel">终Y</div><input class="ifield" type="number" id="aye" value="5"></div>
+          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="0"></div>
+          <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield coord-input" type="number" id="ays" value="5"></div>
+          <div style="flex:1"><div class="ilabel">终X</div><input class="ifield coord-input" type="number" id="axe" value="-5"></div>
+          <div style="flex:1"><div class="ilabel">终Y</div><input class="ifield coord-input" type="number" id="aye" value="0"></div>
         </div>
         
         <div class="fbox">
           <div class="fh" style="font-family:'JetBrains Mono',monospace; margin-bottom:8px;">偏差 F = X<sub>i</sub>² + Y<sub>i</sub>² - R²</div>
-          <div style="display:grid; gap:8px;">
-            <div style="background:var(--surface); padding:8px 10px; border-radius:6px; border:1px solid var(--border);">
-              <strong style="color:var(--accent); font-size:12px;">【逆圆 NR】</strong><br>
-              <span style="font-size:12px;">F≥0 → 进给 <span class="fvx">-X</span>, F<sub>新</sub> = F - 2X<sub>i</sub> + 1</span><br>
-              <span style="font-size:12px;">F&lt;0 → 进给 <span class="fvy">+Y</span>, F<sub>新</sub> = F + 2Y<sub>i</sub> + 1</span>
-            </div>
-            <div style="background:var(--surface); padding:8px 10px; border-radius:6px; border:1px solid var(--border);">
-              <strong style="color:var(--accent); font-size:12px;">【顺圆 SR】</strong><br>
-              <span style="font-size:12px;">F≥0 → 进给 <span class="fvy">-Y</span>, F<sub>新</sub> = F - 2Y<sub>i</sub> + 1</span><br>
-              <span style="font-size:12px;">F&lt;0 → 进给 <span class="fvx">+X</span>, F<sub>新</sub> = F + 2X<sub>i</sub> + 1</span>
-            </div>
+          <div style="font-size:11px; line-height:1.5;">
+            基于当前坐标(x,y)及象限判定：<br>
+            • <b>F ≥ 0 (圆外)</b>：向圆心靠拢<br>
+            • <b>F &lt; 0 (圆内)</b>：向圆外扩展<br>
+            • <b>F<sub>新</sub></b>：根据进给轴($\pm$X或$\pm$Y)做差分运算：<br>
+            &nbsp;&nbsp; 若移 $\pm$X，F<sub>新</sub> = F $\pm$ 2x + 1<br>
+            &nbsp;&nbsp; 若移 $\pm$Y，F<sub>新</sub> = F $\pm$ 2y + 1<br>
           </div>
         </div>
       </div>
@@ -405,37 +412,85 @@ function setDir(d,el){
   el.classList.add('active');
 }
 
-function calcLine(xe,ye){
-  let s=[],x=0,y=0,F=0,N=Math.abs(xe)+Math.abs(ye);
-  s.push({i:0,x,y,F,feed:'—',nF:0,rem:N,judge:'初始化状态',
+// 核心更新：全象限直线插补
+function calcLine(xe, ye) {
+  let s = [], x = 0, y = 0, F = 0;
+  let absXe = Math.abs(xe), absYe = Math.abs(ye);
+  let N = absXe + absYe;
+  let incX = xe >= 0 ? 1 : -1;
+  let incY = ye >= 0 ? 1 : -1;
+
+  s.push({i:0, x, y, F, feed:'—', nF:0, rem:N, judge:'初始化状态',
     det:`起点(0,0)，终点(${xe},${ye})，总步数N=${N}，F₀=0`});
-  for(let k=1;k<=N;k++){
-    let oF=F,feed,nF,dx=0,dy=0,judge;
-    if(F>=0){judge='F≥0 → 偏上(或在线上)';feed='+X';nF=F-ye;dx=1;}
-    else    {judge='F<0 → 偏下';          feed='+Y';nF=F+xe;dy=1;}
-    F=nF;x+=dx;y+=dy;
-    s.push({i:k,x,y,F,feed,nF,rem:N-k,judge,oF,
-      det:`F=${oF} ${oF>=0?'≥':'<'} 0 → 进给 ${feed} → F_new = ${oF}${feed==='+X'?' − '+ye:' + '+xe} = ${nF}`});
+    
+  for (let k = 1; k <= N; k++) {
+    let oF = F, feed, nF, dx = 0, dy = 0, judge;
+    // 使用绝对值系统计算偏差，然后映射到真实象限的进给方向
+    if (F >= 0) {
+      judge = 'F≥0 → 偏上(或在线上)';
+      feed = incX > 0 ? '+X' : '−X';
+      nF = F - absYe;
+      dx = incX;
+    } else {
+      judge = 'F<0 → 偏下';
+      feed = incY > 0 ? '+Y' : '−Y';
+      nF = F + absXe;
+      dy = incY;
+    }
+    F = nF; x += dx; y += dy;
+    s.push({i:k, x, y, F, feed, nF, rem:N-k, judge, oF,
+      det:`F=${oF} ${oF>=0?'≥':'<'} 0 → 进给 ${feed} → F_new = ${oF}${oF>=0 ? ' − '+absYe : ' + '+absXe} = ${nF}`});
   }
   return s;
 }
 
-function calcArc(xs,ys,xe,ye,dir){
-  let s=[],x=xs,y=ys,F=0,N=Math.abs(xe-xs)+Math.abs(ye-ys);
-  s.push({i:0,x,y,F,feed:'—',nF:0,rem:N,judge:'初始化状态',
+// 核心更新：全象限圆弧插补
+function calcArc(xs, ys, xe, ye, dir) {
+  let s = [], x = xs, y = ys, F = 0;
+  let N = Math.abs(xe - xs) + Math.abs(ye - ys);
+  
+  s.push({i:0, x, y, F, feed:'—', nF:0, rem:N, judge:'初始化状态',
     det:`起点(${xs},${ys})，终点(${xe},${ye})，总步数N=${N}，F₀=0`});
-  for(let k=1;k<=N;k++){ 
-    let oF=F,feed,nF,dx=0,dy=0,judge,ox=x,oy=y;
-    if(dir==='NR'){
-      if(F>=0){judge='F≥0 → 偏外';feed='−X';nF=F-2*x+1;dx=-1;}
-      else    {judge='F<0 → 偏内';feed='+Y';nF=F+2*y+1;dy=1;}
-    } else {
-      if(F>=0){judge='F≥0 → 偏外';feed='−Y';nF=F-2*y+1;dy=-1;}
-      else    {judge='F<0 → 偏内';feed='+X';nF=F+2*x+1;dx=1;}
+    
+  for (let k = 1; k <= N; k++) { 
+    let oF = F, feed, nF, dx = 0, dy = 0, judge, ox = x, oy = y;
+    
+    // 动态判定当前点所在的象限
+    let q = 1; 
+    if (x > 0 && y >= 0) q = 1;
+    else if (x <= 0 && y > 0) q = 2;
+    else if (x < 0 && y <= 0) q = 3;
+    else if (x >= 0 && y < 0) q = 4;
+
+    // 结合象限与走向，判定具体的位移策略
+    if (dir === 'NR') { // 逆圆
+      if (q === 1) { if(F>=0){feed='−X';dx=-1;} else{feed='+Y';dy=1;} }
+      else if (q===2) { if(F>=0){feed='−Y';dy=-1;} else{feed='−X';dx=-1;} }
+      else if (q===3) { if(F>=0){feed='+X';dx=1;} else{feed='−Y';dy=-1;} }
+      else if (q===4) { if(F>=0){feed='+Y';dy=1;} else{feed='+X';dx=1;} }
+    } else { // 顺圆
+      if (q === 1) { if(F>=0){feed='−Y';dy=-1;} else{feed='+X';dx=1;} }
+      else if (q===2) { if(F>=0){feed='+X';dx=1;} else{feed='−Y';dy=-1;} }
+      else if (q===3) { if(F>=0){feed='+Y';dy=1;} else{feed='−X';dx=-1;} }
+      else if (q===4) { if(F>=0){feed='−X';dx=-1;} else{feed='+Y';dy=1;} }
     }
-    F=nF;x+=dx;y+=dy;
-    s.push({i:k,x,y,F,feed,nF,rem:N-k,judge,oF,ox,oy,
-      det:`F=${oF}(${oF>=0?'≥0':'<0'}) → 进给 ${feed} → F_new=${oF}${dx<0?'−2×'+ox+'+1':dy>0?'+2×'+oy+'+1':dx>0?'+2×'+ox+'+1':'−2×'+oy+'+1'}=${nF}`});
+
+    judge = F >= 0 ? 'F≥0 → 偏外' : 'F<0 → 偏内';
+    
+    // F_new 的迭代公式运算：(x±1)^2 + y^2 - R^2  或  x^2 + (y±1)^2 - R^2
+    if (dx !== 0) {
+       nF = F + 2 * ox * dx + 1; 
+    } else {
+       nF = F + 2 * oy * dy + 1;
+    }
+
+    F = nF; x += dx; y += dy;
+    let dxStr = dx > 0 ? '+1' : '-1';
+    let dyStr = dy > 0 ? '+1' : '-1';
+    let fcalc = dx !== 0 ? `${oF} + 2×(${ox})×(${dxStr}) + 1` : `${oF} + 2×(${oy})×(${dyStr}) + 1`;
+
+    s.push({i:k, x, y, F, feed, nF, rem:N-k, judge, oF, ox, oy,
+      det:`F=${oF}(${oF>=0?'≥0':'<0'}) → 进给 ${feed} → F_new=${fcalc} = ${nF}`});
   }
   return s;
 }
@@ -443,11 +498,11 @@ function calcArc(xs,ys,xe,ye,dir){
 function initSim(){
   stopAuto();steps=[];
   if(mode==='line'){
-    let xe=clamp(num('lxe',6),1,30),ye=clamp(num('lye',4),1,30);
+    let xe=clamp(num('lxe',-6),-30,30), ye=clamp(num('lye',4),-30,30);
     steps=calcLine(xe,ye);
   } else {
-    let xs=clamp(num('axs',5),-25,25),ys=clamp(num('ays',0),-25,25);
-    let xe=clamp(num('axe',0),-25,25),ye=clamp(num('aye',5),-25,25);
+    let xs=clamp(num('axs',0),-30,30), ys=clamp(num('ays',5),-30,30);
+    let xe=clamp(num('axe',-5),-30,30), ye=clamp(num('aye',0),-30,30);
     steps=calcArc(xs,ys,xe,ye,arcDir);
   }
   inited=true; cur=0; renderStep(0); updTbl(0); 
@@ -501,7 +556,6 @@ function resetSim(){
   setSt('等待开始'); drawGrid();
 }
 
-/* ★ UI 标签颜色自适应 ★ */
 function setSt(t){
   let e1 = document.getElementById('st-badge'); 
   if(e1) {
@@ -577,8 +631,8 @@ function resize(){
 
 function gp(){
   let xe,ye,xs=0,ys=0;
-  if(mode==='line'){ xe=num('lxe',6); ye=num('lye',4); } 
-  else { xs=num('axs',5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
+  if(mode==='line'){ xe=num('lxe',-6); ye=num('lye',4); } 
+  else { xs=num('axs',0); ys=num('ays',5); xe=num('axe',-5); ye=num('aye',0); }
   
   let w = canvasW || cv.parentElement.clientWidth || 300;
   let h = canvasH || cv.parentElement.clientHeight || 300;
@@ -674,36 +728,27 @@ function drawScene(idx){
   drawGrid(); let { gs, isMobile } = gp();
 
   if(mode==='line'){
-    let xe=num('lxe',6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
+    let xe=num('lxe',-6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(p0.cx,p0.cy);ctx.lineTo(pe.cx,pe.cy);ctx.stroke();ctx.restore();
     let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('终',cx,cy+(isMobile?3:4));ctx.textAlign='left';
   } else {
-    let xs=num('axs',5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
+    let xs=num('axs',0), ys=num('ays',5), xe=num('axe',-5), ye=num('aye',0);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.arc(cc.cx,cc.cy,Math.max(0, R*gs),-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR'); ctx.stroke();ctx.restore();
     let ps=toC(xs,ys),pe=toC(xe,ye);
-    ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(ps.cx,ps.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(ps.cx,ps.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#16a34a'; ctx.beginPath();ctx.arc(pe.cx,pe.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('起',ps.cx,ps.cy+(isMobile?3:4));ctx.fillText('终',pe.cx,pe.cy+(isMobile?3:4));ctx.textAlign='left';
   }
 
   if(idx>0){
-    ctx.strokeStyle='#7c3aed';ctx.lineWidth=isMobile?2.5:3.5;
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=isMobile?2.5:3.5;
     ctx.beginPath(); let s0=toC(steps[0].x,steps[0].y);ctx.moveTo(s0.cx,s0.cy);
     for(let i=1;i<=idx;i++){let p=toC(steps[i].x,steps[i].y);ctx.lineTo(p.cx,p.cy);}
     ctx.stroke();
-
-    for(let i=1;i<=idx;i++){
-      let s=steps[i];
-      if(s.ovX||s.ovY){
-        let p=toC(s.x,s.y);
-        if(s.ovX){ctx.fillStyle='rgba(37,99,235,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?4:6),p.cy-(isMobile?4:6),isMobile?8:12,isMobile?8:12);ctx.fill();}
-        if(s.ovY){ctx.fillStyle='rgba(13,148,136,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?3.5:5),p.cy-(isMobile?3.5:5),isMobile?7:10,isMobile?7:10);ctx.fill();}
-      }
-    }
 
     let pr=steps[idx-1],cr=steps[idx];
     if(pr.x!==cr.x||pr.y!==cr.y){
@@ -727,7 +772,7 @@ function drawScene(idx){
     ctx.font=isMobile?'bold 13px JetBrains Mono,monospace':'bold 15px JetBrains Mono,monospace'; 
     ctx.strokeStyle='#ffffff'; ctx.lineWidth=3;
     ctx.strokeText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
-    ctx.fillStyle='#7c3aed'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
+    ctx.fillStyle='#2563eb'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
   }
   let orig=toC(0,0);ctx.fillStyle='#4b5563';ctx.beginPath();ctx.arc(orig.cx,orig.cy,isMobile?3:5,0,Math.PI*2);ctx.fill();
 }
@@ -735,7 +780,6 @@ function drawScene(idx){
 window.addEventListener('resize',resize);
 resize();drawGrid();
 setTimeout(()=>{resize();drawGrid();},150);
-document.addEventListener("DOMContentLoaded", autoCalcN);
 </script>
 </body>
 </html>
