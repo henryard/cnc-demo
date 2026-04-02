@@ -66,7 +66,6 @@ button,input,select,a{touch-action:manipulation;}
 .ilabel{font-size:12px;font-weight:600;color:var(--text-mid);margin-bottom:4px;}
 .ifield{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:14px;font-family:'JetBrains Mono',monospace;font-weight:700;width:100%;transition:all .2s;}
 .ifield:focus{outline:none;background:var(--surface);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-lt);}
-/* 去掉 number 输入框上下调节箭头 */
 .ifield[type="number"]{-moz-appearance:textfield;appearance:textfield;}
 .ifield[type="number"]::-webkit-inner-spin-button,
 .ifield[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
@@ -246,10 +245,11 @@ canvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
         </div>
         <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">象限快捷预设</div>
         <div class="quad-presets">
-          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'NR')">NR I→I (5,0)→(0,5)</button>
-          <button class="qp-btn" onclick="setArcPreset(0,5,-5,0,'NR')">NR II (0,5)→(-5,0)</button>
-          <button class="qp-btn" onclick="setArcPreset(5,0,0,-5,'SR')">SR IV (5,0)→(0,-5)</button>
-          <button class="qp-btn" onclick="setArcPreset(0,5,5,0,'SR')">SR I (0,5)→(5,0)</button>
+          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'NR')">NR I→II (5,0)→(0,5)</button>
+          <button class="qp-btn" onclick="setArcPreset(0,5,-5,0,'NR')">NR II→III (0,5)→(-5,0)</button>
+          <button class="qp-btn" onclick="setArcPreset(5,0,0,-5,'SR')">SR I→IV (5,0)→(0,-5)</button>
+          <button class="qp-btn" onclick="setArcPreset(0,5,5,0,'SR')">SR II→I (0,5)→(5,0)</button>
+          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'SR')" style="grid-column:span 2;background:var(--orange-lt);border-color:#fed7aa;color:var(--orange)">SR 跨3象限 (5,0)→(0,5) ↻Q4→Q3→Q2</button>
         </div>
         <div class="fbox" id="arc-fbox">
           <div class="fh">偏差 F = Xᵢ² + Yᵢ² − R²</div>
@@ -390,11 +390,14 @@ function getLineQuadrant(xe,ye){
   if(xe>0&&ye<0)return{label:'第IV象限',num:4};
   return{label:'轴上',num:0};
 }
+
+// 圆弧象限判定（轴上点归入相邻象限，保持与进给规则一致）
+// 正X轴 → Q1, 正Y轴 → Q2, 负X轴 → Q3, 负Y轴 → Q4
 function getArcQuadrant(x,y){
-  if(x>0&&y>=0)return 1;
-  if(x<=0&&y>0)return 2;
-  if(x<0&&y<=0)return 3;
-  if(x>=0&&y<0)return 4;
+  if(x>0&&y>=0)return 1;  // Q1 含正X轴
+  if(x<=0&&y>0)return 2;  // Q2 含正Y轴
+  if(x<0&&y<=0)return 3;  // Q3 含负X轴
+  if(x>=0&&y<0)return 4;  // Q4 含负Y轴
   return 1;
 }
 
@@ -406,10 +409,6 @@ function updateLineQuad(){
   let q=getLineQuadrant(xe,ye);
   let badge=document.getElementById('line-quad-badge');
   if(badge)badge.textContent=q.label;
-
-  // 根据象限显示正确的偏差公式（坐标变换后均转化为第一象限）
-  // 逐点比较法直线插补：各象限坐标变换为 |Xe|,|Ye|，偏差函数相同
-  // 但进给方向随象限变化
   let signX=xe>=0?'+':'-', signY=ye>=0?'+':'-';
   let absXe=Math.abs(xe),absYe=Math.abs(ye);
   let titleEl=document.getElementById('lf-title');
@@ -441,21 +440,21 @@ function updateArcInfo(){
 }
 
 function updateArcFormula(){
-  let xs=num('axs',5),ys=num('ays',0);
+  let xs=num('axs',5),ys=num('ays',0),xe=num('axe',0),ye=num('aye',5);
   let q=getArcQuadrant(xs,ys);
   let el=document.getElementById('arc-fb');
   if(!el)return;
-  // 显示当前象限下 NR/SR 的进给规则
+  // 计算实际总步数（已修复跨象限问题）
+  let N=calcArcTotalN(xs,ys,xe,ye,arcDir);
   let rules=getArcRules(q,arcDir);
   el.innerHTML=
     `起点象限: 第${['','I','II','III','IV'][q]}象限 | ${arcDir==='NR'?'逆圆 NR':'顺圆 SR'}<br>`+
+    `<b style="color:var(--accent)">总步数 N = ${N}</b>（跨象限累加）<br>`+
     `<span class="fvx">F ≥ 0</span>：${rules.geq}<br>`+
     `<span class="fvy">F &lt; 0</span>：${rules.lt}`;
 }
 
 function getArcRules(quadrant,dir){
-  // 逐点比较法圆弧插补各象限进给规则
-  // 参考《数控机床原理与应用》标准规则表
   const rules={
     NR:{
       1:{geq:'进给 −X, F_new=F−2X+1',  lt:'进给 +Y, F_new=F+2Y+1'},
@@ -507,7 +506,6 @@ function setDir(d,el){
 
 // ================================================================
 // 算法：全象限直线插补
-// 原理：坐标变换为 |Xe|,|Ye|，偏差计算同第一象限；进给方向按象限映射
 // ================================================================
 function calcLine(xe,ye){
   let absXe=Math.abs(xe),absYe=Math.abs(ye);
@@ -533,12 +531,64 @@ function calcLine(xe,ye){
 }
 
 // ================================================================
-// 算法：全象限圆弧插补（逐点比较法标准规则表）
-// 偏差 F = X²+Y²-R²，各象限进给方向不同，自动处理象限转换
+// ★ 关键修复：计算圆弧插补正确的总步数（支持跨象限）
+//
+// 原理：逐象限累加曼哈顿距离
+//   NR(逆圆/CCW) 象限顺序：Q1→Q2→Q3→Q4→Q1
+//   SR(顺圆/CW)  象限顺序：Q1→Q4→Q3→Q2→Q1
+//
+// 各象限在不同方向下的「出口坐标轴点」：
+//   NR: Q1→(0,R), Q2→(-R,0), Q3→(0,-R), Q4→(R,0)
+//   SR: Q1→(R,0), Q2→(0,R),  Q3→(-R,0), Q4→(0,-R)
+// ================================================================
+function calcArcTotalN(xs,ys,xe,ye,dir){
+  let R=Math.round(Math.sqrt(xs*xs+ys*ys));
+  let startQ=getArcQuadrant(xs,ys);
+  let endQ=getArcQuadrant(xe,ye);
+
+  // 下一象限（按方向）
+  function nxtQ(q){
+    return dir==='NR' ? (q%4+1) : (q===1?4:q-1);
+  }
+
+  // 当前象限在给定方向下的出口坐标点
+  function exitPt(q){
+    // NR出口: Q1:(0,R) Q2:(-R,0) Q3:(0,-R) Q4:(R,0)
+    // SR出口: Q1:(R,0) Q2:(0,R)  Q3:(-R,0) Q4:(0,-R)
+    const nrPts=[[0,R],[-R,0],[0,-R],[R,0]]; // index q-1
+    const srPts=[[R,0],[0,R],[-R,0],[0,-R]]; // index q-1
+    return dir==='NR' ? nrPts[q-1] : srPts[q-1];
+  }
+
+  let N=0, cx=xs, cy=ys, cq=startQ;
+
+  // 最多循环4个象限（不处理整圆）
+  for(let iter=0;iter<5;iter++){
+    if(cq===endQ){
+      // 已到达终点所在象限，累加当前位置到终点的曼哈顿距离
+      N+=Math.abs(xe-cx)+Math.abs(ye-cy);
+      break;
+    }
+    // 累加从当前位置到本象限出口的步数
+    let[ex,ey]=exitPt(cq);
+    N+=Math.abs(ex-cx)+Math.abs(ey-cy);
+    cx=ex; cy=ey;
+    cq=nxtQ(cq);
+  }
+  return Math.max(N,1);
+}
+
+// ================================================================
+// 算法：全象限圆弧插补
+// 偏差判别规则（逐点比较法标准规则表），自动处理象限转换
+// ★ 修复：N 使用 calcArcTotalN 计算，支持 SR/NR 跨多象限情形
 // ================================================================
 function calcArc(xs,ys,xe,ye,dir){
   let R2=xs*xs+ys*ys;
-  let N=Math.abs(xe-xs)+Math.abs(ye-ys);
+
+  // ★ 修复：替换原来的曼哈顿距离公式
+  let N=calcArcTotalN(xs,ys,xe,ye,dir);
+
   let s=[],x=xs,y=ys,F=0;
   let qNames=['','I','II','III','IV'];
   s.push({i:0,x,y,F,feed:'—',nF:0,rem:N,judge:'初始化',quadrant:getArcQuadrant(x,y),
@@ -568,8 +618,10 @@ function calcArc(xs,ys,xe,ye,dir){
     }
     F=nF; x+=dx; y+=dy;
     let qAfter=getArcQuadrant(x,y);
-    s.push({i:k,x,y,F,feed,nF,rem:N-k,judge,oF,oX,oY,quadrant:q,qAfter,
-      det:`Q${qNames[q]} F=${oF}(${oF>=0?'≥0':'<0'}) → ${judge} → F_new=${nF}`});
+    // 检测是否发生了象限跨越（用于表格着色）
+    let qCross=(q!==qAfter);
+    s.push({i:k,x,y,F,feed,nF,rem:N-k,judge,oF,oX,oY,quadrant:q,qAfter,qCross,
+      det:`Q${qNames[q]} F=${oF}(${oF>=0?'≥0':'<0'}) → ${judge} → F_new=${nF}${qCross?'  ⟳象限变化:Q'+qNames[q]+'→Q'+qNames[qAfter]:''}`});
   }
   return s;
 }
@@ -665,14 +717,14 @@ function renderStep(idx){
     let pos=s.oF>=0;
     let isXfeed=s.feed.includes('X');
     let fc=isXfeed?'var(--x-color)':'var(--y-color)';
-    let qLabel=s.quadrant?`第${'IIIIIIIV'.slice((s.quadrant-1)*2,(s.quadrant-1)*2+['I','II','III','IV'][s.quadrant-1].length)}象限`:'';
-    // nicer quadrant display
     let qMap=['','第I象限','第II象限','第III象限','第IV象限'];
+    let crossHtml=s.qCross?`<div style="margin:0 0 8px 32px;font-size:12px;padding:4px 8px;background:var(--orange-lt);border-radius:4px;color:var(--orange);font-weight:700">⟳ 象限跨越：${qMap[s.quadrant]} → ${qMap[s.qAfter]}</div>`:'';
     dc.innerHTML=`
       <div class="drow"><div class="dlbl"><div class="dnum">1</div>偏差判别</div><div class="dval" style="color:${pos?'var(--accent)':'var(--red)'}">F = ${s.oF} &nbsp; ${pos?'≥ 0':'< 0'}</div></div>
       <div style="margin:0 0 8px 32px;font-size:12px;color:var(--text-dim)">${s.judge}${s.quadrant?'（'+qMap[s.quadrant]+'）':''}</div>
       <div class="drow"><div class="dlbl"><div class="dnum">2</div>坐标进给</div><div class="dval" style="color:${fc}">进给 &nbsp;${s.feed}</div></div>
       <div class="drow"><div class="dlbl"><div class="dnum">3</div>偏差更新</div><div class="dval">F_new = <span style="color:var(--accent)">${s.nF}</span></div></div>
+      ${crossHtml}
       <div class="drow"><div class="dlbl"><div class="dnum">4</div>终点判别</div><div class="dval" style="color:${s.rem===0?'var(--green)':'var(--text)'}">余 ${s.rem} 步 ${s.rem===0?'&nbsp;✅ 终点！':''}</div></div>
       <div class="dnote" style="font-size:11px">${s.det}</div>`;
   }
@@ -685,11 +737,13 @@ function updTbl(idx){
     let s=steps[i]; let tr=document.createElement('tr'); tr.id=`r${i}`;
     let fc=s.feed==='—'?'var(--text-dim)':s.feed.includes('X')?'var(--x-color)':'var(--y-color)';
     let fBg=i>0&&s.oF>=0?'var(--accent)':'var(--red)';
+    // 象限跨越行用橙色标记
+    if(s.qCross)tr.style.background='#fff7ed';
     tr.innerHTML=`
       <td style="font-weight:700;color:var(--text-mid)">${s.i}</td>
       <td style="color:${i>0?fBg:'var(--text-dim)'}">${i>0?s.oF:0}</td>
       <td style="font-size:11px">${s.i===0?'初始':s.oF>=0?'≥0':'<0'}</td>
-      <td style="color:${fc};font-weight:700;font-size:14px">${s.feed}</td>
+      <td style="color:${fc};font-weight:700;font-size:14px">${s.feed}${s.qCross?'<span style="font-size:9px;color:var(--orange);margin-left:2px">⟳</span>':''}</td>
       <td>${s.F}</td>
       <td style="color:var(--x-color);font-weight:700">${s.x}</td>
       <td style="color:var(--y-color);font-weight:700">${s.y}</td>
@@ -738,7 +792,7 @@ function toC(gx,gy){
 }
 
 // ================================================================
-// 绘制坐标网格（四象限彩色底色 + 象限标签贴角）
+// 绘制坐标网格
 // ================================================================
 function drawGrid(){
   let{mc,gs,ox,oy,isMobile}=gp();
@@ -749,12 +803,12 @@ function drawGrid(){
 
   // 四象限底色
   let qColors=['#eef7ff','#f5f0ff','#fff5f0','#f0fff8'];
-  ctx.fillStyle=qColors[0];ctx.fillRect(ox,gTop,gRight-ox,oy-gTop);       // I
-  ctx.fillStyle=qColors[1];ctx.fillRect(gLeft,gTop,ox-gLeft,oy-gTop);     // II
-  ctx.fillStyle=qColors[2];ctx.fillRect(gLeft,oy,ox-gLeft,gBottom-oy);    // III
-  ctx.fillStyle=qColors[3];ctx.fillRect(ox,oy,gRight-ox,gBottom-oy);      // IV
+  ctx.fillStyle=qColors[0];ctx.fillRect(ox,gTop,gRight-ox,oy-gTop);
+  ctx.fillStyle=qColors[1];ctx.fillRect(gLeft,gTop,ox-gLeft,oy-gTop);
+  ctx.fillStyle=qColors[2];ctx.fillRect(gLeft,oy,ox-gLeft,gBottom-oy);
+  ctx.fillStyle=qColors[3];ctx.fillRect(ox,oy,gRight-ox,gBottom-oy);
 
-  // 象限标签（各象限外角）
+  // 象限标签
   if(!isMobile){
     ctx.font='bold 12px Noto Sans SC,sans-serif';
     ctx.fillStyle='rgba(100,116,139,0.5)';
@@ -803,7 +857,7 @@ function drawGrid(){
   ctx.textAlign='center';ctx.textBaseline='bottom';
   ctx.fillText('Y',ox,gTop-axExt-(isMobile?8:12));
 
-  // 刻度数字（X轴正方向+Y轴正方向）
+  // 刻度数字
   ctx.font=isMobile?'9px JetBrains Mono':'11px JetBrains Mono';
   ctx.fillStyle='#94a3b8';ctx.textAlign='center';ctx.textBaseline='middle';
   let step=1;if(mc>12)step=2;if(mc>25)step=5;
@@ -835,22 +889,26 @@ function drawScene(idx){
     let p0=toC(0,0),pe=toC(xe,ye);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(p0.cx,p0.cy);ctx.lineTo(pe.cx,pe.cy);ctx.stroke();ctx.restore();
-    // 终点标记
     let{cx,cy}=pe;
     ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font=isMobile?'bold 10px Noto Sans SC':'bold 11px Noto Sans SC';
     ctx.textAlign='center';ctx.fillText('终',cx,cy+(isMobile?3:4));
-    // 起点标记
     let op=toC(0,0);
     ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(op.cx,op.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.fillText('起',op.cx,op.cy+(isMobile?3:4));
     ctx.textAlign='left';
   } else {
+    // 圆弧理想轨迹（虚线圆弧）
     let xs=num('axs',5),ys=num('ays',0),xe=num('axe',0),ye=num('aye',5);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
+    // canvas arc 方向：NR=逆时针在数学坐标=canvas顺时针(y轴翻转)，SR反之
+    // canvas: anticlockwise=false → CW in screen (= CCW in math)
+    let angS=-Math.atan2(ys,xs);  // canvas角度（y轴翻转）
+    let angE=-Math.atan2(ye,xe);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();
-    ctx.arc(cc.cx,cc.cy,Math.max(0,R*gs),-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR');
+    // NR(逆圆/数学CCW) → canvas中是anticlockwise=true（canvas y轴朝下）
+    ctx.arc(cc.cx,cc.cy,Math.max(0,R*gs),angS,angE,arcDir==='NR');
     ctx.stroke();ctx.restore();
     let ps=toC(xs,ys),pe=toC(xe,ye);
     ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(ps.cx,ps.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
@@ -869,6 +927,16 @@ function drawScene(idx){
     let s0=toC(steps[0].x,steps[0].y);ctx.moveTo(s0.cx,s0.cy);
     for(let i=1;i<=idx;i++){let p=toC(steps[i].x,steps[i].y);ctx.lineTo(p.cx,p.cy);}
     ctx.stroke();
+
+    // 象限跨越点特别标记
+    for(let i=1;i<=idx;i++){
+      let s=steps[i];
+      if(s.qCross){
+        let p=toC(s.x,s.y);
+        ctx.strokeStyle='var(--orange)';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(p.cx,p.cy,isMobile?8:11,0,Math.PI*2);ctx.stroke();
+      }
+    }
 
     // 进给方向点标记
     for(let i=1;i<=idx;i++){
