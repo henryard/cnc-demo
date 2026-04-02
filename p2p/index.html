@@ -79,7 +79,7 @@ button, input, select, a { touch-action: manipulation; }
 .ifield{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; color:var(--text); font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700; width:100%; transition:all .2s; }
 .ifield:focus{outline:none; background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lt);}
 
-/* ★ 优化坐标输入框显示，防止负数被遮挡 ★ */
+/* 优化坐标输入框显示，防止负数被遮挡 */
 .coord-input { 
   font-size: 13px !important; 
   padding: 6px 4px !important; 
@@ -138,7 +138,7 @@ button, input, select, a { touch-action: manipulation; }
 .sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 .sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
 
-/* ★ 图例区域水平居中对齐 ★ */
+/* 图例区域水平居中对齐 */
 .legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
@@ -243,7 +243,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
       <div class="stitle">直线参数 (全象限)</div>
       <div class="card">
         <div style="display:flex; gap:12px; margin-bottom:12px">
-          <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield coord-input" type="number" id="lxe" value="6"></div>
+          <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield coord-input" type="number" id="lxe" value="-6"></div>
           <div style="flex:1"><div class="ilabel">终点 Ye</div><input class="ifield coord-input" type="number" id="lye" value="4"></div>
         </div>
         <div class="fbox">
@@ -260,11 +260,11 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
       <div class="card">
         <div class="ilabel">圆弧走向</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px">
-          <button class="qbtn active" onclick="setDir('NR',this)">↺ 逆圆</button>
-          <button class="qbtn" onclick="setDir('SR',this)">↻ 顺圆</button>
+          <button class="qbtn" onclick="setDir('NR',this)">↺ 逆圆</button>
+          <button class="qbtn active" onclick="setDir('SR',this)">↻ 顺圆</button>
         </div>
         <div style="display:flex; gap:8px; margin-bottom:12px">
-          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="5"></div>
+          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="-5"></div>
           <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield coord-input" type="number" id="ays" value="0"></div>
           <div style="flex:1"><div class="ilabel">终X</div><input class="ifield coord-input" type="number" id="axe" value="0"></div>
           <div style="flex:1"><div class="ilabel">终Y</div><input class="ifield coord-input" type="number" id="aye" value="5"></div>
@@ -377,7 +377,8 @@ function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
 
 const cv=document.getElementById('cv');
 const ctx=cv.getContext('2d');
-let mode='line', arcDir='NR';
+// 将初始默认走向从 'NR' 改为 'SR'，贴合你测试的第二象限用例
+let mode='line', arcDir='SR';
 let steps=[],cur=-1,timer=null,running=false,inited=false;
 
 const enterFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
@@ -412,7 +413,7 @@ function setDir(d,el){
   el.classList.add('active');
 }
 
-// 核心更新：全象限直线插补
+// 全象限直线插补
 function calcLine(xe, ye) {
   let s = [], x = 0, y = 0, F = 0;
   let absXe = Math.abs(xe), absYe = Math.abs(ye);
@@ -425,7 +426,6 @@ function calcLine(xe, ye) {
     
   for (let k = 1; k <= N; k++) {
     let oF = F, feed, nF, dx = 0, dy = 0, judge;
-    // 使用绝对值系统计算偏差，然后映射到真实象限的进给方向
     if (F >= 0) {
       judge = 'F≥0 → 偏上(或在线上)';
       feed = incX > 0 ? '+X' : '−X';
@@ -444,7 +444,7 @@ function calcLine(xe, ye) {
   return s;
 }
 
-// 核心更新：全象限圆弧插补
+// 核心更新：修复了圆弧插补中顺圆（SR）第二、第四象限的 F<0 进给逻辑Bug
 function calcArc(xs, ys, xe, ye, dir) {
   let s = [], x = xs, y = ys, F = 0;
   let N = Math.abs(xe - xs) + Math.abs(ye - ys);
@@ -468,16 +468,16 @@ function calcArc(xs, ys, xe, ye, dir) {
       else if (q===2) { if(F>=0){feed='−Y';dy=-1;} else{feed='−X';dx=-1;} }
       else if (q===3) { if(F>=0){feed='+X';dx=1;} else{feed='−Y';dy=-1;} }
       else if (q===4) { if(F>=0){feed='+Y';dy=1;} else{feed='+X';dx=1;} }
-    } else { // 顺圆
+    } else { // 顺圆 (修复了Bug: Q2和Q4象限的圆内向外扩展的判断)
       if (q === 1) { if(F>=0){feed='−Y';dy=-1;} else{feed='+X';dx=1;} }
-      else if (q===2) { if(F>=0){feed='+X';dx=1;} else{feed='−Y';dy=-1;} }
+      else if (q===2) { if(F>=0){feed='+X';dx=1;} else{feed='+Y';dy=1;} }  // 修复点: 这里以前是 -Y，修正为了 +Y
       else if (q===3) { if(F>=0){feed='+Y';dy=1;} else{feed='−X';dx=-1;} }
-      else if (q===4) { if(F>=0){feed='−X';dx=-1;} else{feed='+Y';dy=1;} }
+      else if (q===4) { if(F>=0){feed='−X';dx=-1;} else{feed='−Y';dy=-1;} } // 修复点: 这里以前是 +Y，修正为了 -Y
     }
 
     judge = F >= 0 ? 'F≥0 → 偏外' : 'F<0 → 偏内';
     
-    // F_new 的迭代公式运算：(x±1)^2 + y^2 - R^2  或  x^2 + (y±1)^2 - R^2
+    // F_new 的迭代公式运算
     if (dx !== 0) {
        nF = F + 2 * ox * dx + 1; 
     } else {
@@ -501,8 +501,9 @@ function initSim(){
     let xe=clamp(num('lxe',-6),-30,30), ye=clamp(num('lye',4),-30,30);
     steps=calcLine(xe,ye);
   } else {
-    let xs=clamp(num('axs',0),-30,30), ys=clamp(num('ays',5),-30,30);
-    let xe=clamp(num('axe',-5),-30,30), ye=clamp(num('aye',0),-30,30);
+    // 默认起点设定为截图中使用的 (-5, 0)
+    let xs=clamp(num('axs',-5),-30,30), ys=clamp(num('ays',0),-30,30);
+    let xe=clamp(num('axe',0),-30,30), ye=clamp(num('aye',5),-30,30);
     steps=calcArc(xs,ys,xe,ye,arcDir);
   }
   inited=true; cur=0; renderStep(0); updTbl(0); 
@@ -632,7 +633,7 @@ function resize(){
 function gp(){
   let xe,ye,xs=0,ys=0;
   if(mode==='line'){ xe=num('lxe',-6); ye=num('lye',4); } 
-  else { xs=num('axs',0); ys=num('ays',5); xe=num('axe',-5); ye=num('aye',0); }
+  else { xs=num('axs',-5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
   
   let w = canvasW || cv.parentElement.clientWidth || 300;
   let h = canvasH || cv.parentElement.clientHeight || 300;
@@ -734,7 +735,7 @@ function drawScene(idx){
     let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('终',cx,cy+(isMobile?3:4));ctx.textAlign='left';
   } else {
-    let xs=num('axs',0), ys=num('ays',5), xe=num('axe',-5), ye=num('aye',0);
+    let xs=num('axs',-5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.arc(cc.cx,cc.cy,Math.max(0, R*gs),-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR'); ctx.stroke();ctx.restore();
