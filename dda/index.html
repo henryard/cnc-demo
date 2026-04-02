@@ -230,7 +230,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:12px">
           <div><div class="ilabel">终点 X</div><input class="ifield coord-input" type="number" id="lxe" value="6" max="15" min="-15"></div>
           <div><div class="ilabel">终点 Y</div><input class="ifield coord-input" type="number" id="lye" value="4" max="15" min="-15"></div>
-          <div><div class="ilabel" style="color:var(--accent)">位数 n ⚡</div><input class="ifield" type="number" id="nb" value="3" min="2" max="5"></div>
+          <div><div class="ilabel" style="color:var(--accent)">位数 n ⚡</div><input class="ifield" type="number" id="nb" value="3" min="2" max="10"></div>
         </div>
         <div class="fbox">
           <div class="fh">被积函数：JVx=|<span class="fvx">Xe</span>|, JVy=|<span class="fvy">Ye</span>|</div>
@@ -253,7 +253,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
           </div>
           <div>
             <div class="ilabel" style="color:var(--accent)">位数 n ⚡</div>
-            <input class="ifield" type="number" id="nba" value="3" min="2" max="5">
+            <input class="ifield" type="number" id="nba" value="3" min="2" max="10">
           </div>
         </div>
         <div style="display:flex; gap:6px; margin-bottom:12px">
@@ -391,15 +391,19 @@ document.addEventListener('fullscreenchange', () => {
   setTimeout(resize, 100);
 });
 
+// 动态修正自适应位数n (按照起终点的真实半径或线长分配计算)
 function autoCalcN() {
   if (mode === 'line') {
     let m = Math.max(Math.abs(num('lxe',6)), Math.abs(num('lye',4)));
     document.getElementById('nb').value = Math.max(2, Math.ceil(Math.log2(m + 1)));
   } else {
-    let m = Math.max(Math.abs(num('axs',5)), Math.abs(num('ays',0)), Math.abs(num('axe',0)), Math.abs(num('aye',5)));
-    document.getElementById('nba').value = Math.max(2, Math.ceil(Math.log2(m + 1)));
+    let xs = num('axs', 5), ys = num('ays', 0);
+    let R = Math.ceil(Math.sqrt(xs*xs + ys*ys));
+    document.getElementById('nba').value = Math.max(2, Math.ceil(Math.log2(R + 1)));
   }
 }
+
+// 绑定所有的输入框事件以触发n的实时自适应
 document.querySelectorAll('.coord-input').forEach(el => el.addEventListener('input', autoCalcN));
 
 const cv=document.getElementById('cv');
@@ -422,7 +426,7 @@ function setDir(d,el){
   el.classList.add('active');
 }
 
-// 数值积分计算完美多象限脉冲总数
+// 核心更新：使用数值积分严格计算出多象限中真实的曼哈顿总脉冲数，解决跨界终止问题。
 function getArcPulses(xs, ys, xe, ye, isCCW) {
     let R = Math.sqrt(xs*xs + ys*ys);
     if (R === 0) return { remX: 0, remY: 0 };
@@ -435,11 +439,9 @@ function getArcPulses(xs, ys, xe, ye, isCCW) {
     if (isCCW) {
         sweep = a2 - a1;
         if (sweep <= 0 && !(xs===xe && ys===ye)) sweep += 2*Math.PI;
-        if (xs===xe && ys===ye) sweep = 2*Math.PI;
     } else {
         sweep = a1 - a2;
         if (sweep <= 0 && !(xs===xe && ys===ye)) sweep += 2*Math.PI;
-        if (xs===xe && ys===ye) sweep = 2*Math.PI;
     }
     
     let remX = 0, remY = 0;
@@ -461,38 +463,37 @@ function calcLine(xe, ye, n) {
   let mod = Math.pow(2, n), Rx = 0, Ry = 0, x = 0, y = 0;
   let JVx = Math.abs(xe), JVy = Math.abs(ye); 
   let s = []; 
-  let remX = Math.abs(xe), remY = Math.abs(ye); 
+  let E = Math.abs(xe) + Math.abs(ye); // 采用标准总步长控制法
   let incX = xe >= 0 ? 1 : -1;
   let incY = ye >= 0 ? 1 : -1;
 
   s.push({ k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0, oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod, 
-    det: `初始化：终点(${xe},${ye})，JVx=|${xe}|=${JVx}，JVy=|${ye}|=${JVy}，2ⁿ=${mod}`
+    det: `初始化：终点(${xe},${ye})，JVx=|${xe}|=${JVx}，JVy=|${ye}|=${JVy}，总脉冲数=${E}`
   });
   
   let k = 0;
-  while (remX > 0 || remY > 0) {
+  while (E > 0) {
     k++; 
     let oRx = Rx, oRy = Ry; 
     let nRxR = Rx + JVx, nRyR = Ry + JVy; 
     let ovX = nRxR >= mod, ovY = nRyR >= mod;
-    
-    if (remX <= 0) { ovX = false; nRxR = oRx; } 
-    if (remY <= 0) { ovY = false; nRyR = oRy; }
     
     let fRx = ovX ? nRxR - mod : nRxR; 
     let fRy = ovY ? nRyR - mod : nRyR; 
     let dx = ovX ? incX : 0;
     let dy = ovY ? incY : 0;
     
+    if (ovX && dx !== 0) E--; 
+    if (E <= 0) { ovY = false; dy = 0; fRy = oRy; nRyR = oRy; } // 步数用尽，强制截断后发脉冲
+    if (ovY && dy !== 0) E--;
+    
     Rx = fRx; Ry = fRy; 
     x += dx; y += dy; 
-    if (ovX && dx !== 0) remX--; 
-    if (ovY && dy !== 0) remY--;
     
-    s.push({ k, x, y, Rx, Ry, oRx, aX: (remX <= 0 && !ovX) ? 0 : JVx, nRx: nRxR, fRx, ovX, dx, oRy, aY: (remY <= 0 && !ovY) ? 0 : JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
+    s.push({ k, x, y, Rx, Ry, oRx, aX: JVx, nRx: nRxR, fRx, ovX, dx, oRy, aY: JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
       det: `Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→ X进给(${dx>0?'+':'-'}1)` : ''}; Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→ Y进给(${dy>0?'+':'-'}1)` : ''}`
     });
-    if (k > 500) break; 
+    if (k > 5000) break; 
   } 
   return s;
 }
@@ -502,17 +503,17 @@ function calcArc(xs, ys, xe, ye, n) {
   let s = []; 
   let isCCW = (arcDir === 'NR'); 
   
-  // 使用积分函数获取多象限的完美总步长
+  // 通过曼哈顿积分严格计算出多象限的步数，彻底解决独立冻结坐标引发的问题
   let pulses = getArcPulses(xs, ys, xe, ye, isCCW);
-  let remX = pulses.remX, remY = pulses.remY;
+  let E = pulses.remX + pulses.remY;
   
   let JVx = Math.abs(ys), JVy = Math.abs(xs); 
   s.push({ k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0, oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod, 
-    det: `初始化：起点(${xs},${ys})，JVx=|Ys|=${JVx}，JVy=|Xs|=${JVy}，2ⁿ=${mod}`
+    det: `初始化：起点(${xs},${ys})，JVx=|Ys|=${JVx}，JVy=|Xs|=${JVy}，总脉冲数=${E}`
   });
   
   let k = 0;
-  while (remX > 0 || remY > 0) {
+  while (E > 0) {
     k++; 
     JVx = Math.abs(y); 
     JVy = Math.abs(x); 
@@ -521,50 +522,54 @@ function calcArc(xs, ys, xe, ye, n) {
     let nRxR = Rx + JVx, nRyR = Ry + JVy; 
     let ovX = nRxR >= mod, ovY = nRyR >= mod;
     
-    if (remX <= 0) { ovX = false; nRxR = oRx; } 
-    if (remY <= 0) { ovY = false; nRyR = oRy; }
-    
     let fRx = ovX ? nRxR - mod : nRxR; 
     let fRy = ovY ? nRyR - mod : nRyR; 
     let dx = 0, dy = 0;
     
+    let q = 1;
+    if (x > 0 && y >= 0) q = 1;
+    else if (x <= 0 && y > 0) q = 2;
+    else if (x < 0 && y <= 0) q = 3;
+    else if (x >= 0 && y < 0) q = 4;
+
     if (isCCW) { 
-      if (x > 0 && y >= 0)      { if(ovX) dx = -1; if(ovY) dy = 1; }  
-      else if (x <= 0 && y > 0) { if(ovX) dx = -1; if(ovY) dy = -1; } 
-      else if (x < 0 && y <= 0) { if(ovX) dx = 1;  if(ovY) dy = -1; } 
-      else if (x >= 0 && y < 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
+      if (q === 1)      { if(ovX) dx = -1; if(ovY) dy = 1; }  
+      else if (q === 2) { if(ovX) dx = -1; if(ovY) dy = -1; } 
+      else if (q === 3) { if(ovX) dx = 1;  if(ovY) dy = -1; } 
+      else if (q === 4) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
     } else { 
-      if (x >= 0 && y > 0)      { if(ovX) dx = 1;  if(ovY) dy = -1; } 
-      else if (x < 0 && y >= 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
-      else if (x <= 0 && y < 0) { if(ovX) dx = -1; if(ovY) dy = 1; }  
-      else if (x > 0 && y <= 0) { if(ovX) dx = -1; if(ovY) dy = -1; } 
+      if (q === 1)      { if(ovX) dx = 1;  if(ovY) dy = -1; } 
+      else if (q === 2) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
+      else if (q === 3) { if(ovX) dx = -1; if(ovY) dy = 1; }  
+      else if (q === 4) { if(ovX) dx = -1; if(ovY) dy = -1; } 
     }
 
-    if (ovX && dx !== 0) remX--; 
-    if (ovY && dy !== 0) remY--;
+    if (ovX && dx !== 0) E--; 
+    if (E <= 0) { ovY = false; dy = 0; fRy = oRy; nRyR = oRy; } 
+    if (ovY && dy !== 0) E--;
     
     Rx = fRx; Ry = fRy; 
     x += dx; y += dy;
     
-    s.push({ k, x, y, Rx, Ry, oRx, aX: (remX <= 0 && !ovX) ? 0 : JVx, nRx: nRxR, fRx, ovX, dx, oRy, aY: (remY <= 0 && !ovY) ? 0 : JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
+    s.push({ k, x, y, Rx, Ry, oRx, aX: JVx, nRx: nRxR, fRx, ovX, dx, oRy, aY: JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
       det: `Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→ X进给(${dx>0?'+':'-'}1)` : ''}; Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→ Y进给(${dy>0?'+':'-'}1)` : ''}`
     });
     
-    if (k > 5000) break; 
+    if (k > 10000) break; 
   } 
   return s;
 }
 
 function initSim(){
-  stopAuto();steps=[]; autoCalcN(); 
+  stopAuto();steps=[]; 
+  // 移除这里的 autoCalcN 确保点击"应用"不覆盖用户自己输入的n值
   if(mode==='line'){
-    let xe=clamp(num('lxe',6),-15,15),ye=clamp(num('lye',4),-15,15),n=clamp(num('nb',3),2,5);
+    let xe=clamp(num('lxe',6),-30,30),ye=clamp(num('lye',4),-30,30),n=clamp(num('nb',3),2,10);
     steps=calcLine(xe,ye,n);
   } else {
-    // 默认恢复至第一象限标准起终点
-    let xs=clamp(num('axs',5),-15,15),ys=clamp(num('ays',0),-15,15);
-    let xe=clamp(num('axe',0),-15,15),ye=clamp(num('aye',5),-15,15);
-    let n=clamp(num('nba',3),2,5); steps=calcArc(xs,ys,xe,ye,n);
+    let xs=clamp(num('axs',5),-30,30),ys=clamp(num('ays',0),-30,30);
+    let xe=clamp(num('axe',0),-30,30),ye=clamp(num('aye',5),-30,30);
+    let n=clamp(num('nba',3),2,10); steps=calcArc(xs,ys,xe,ye,n);
   }
   inited=true; cur=0; renderStep(0); updTbl(0); setSt('已初始化，准备开始');
 }
@@ -659,8 +664,7 @@ function updTbl(idx){
 
 let canvasW = 0, canvasH = 0;
 function resize(){
-  let wrap = cv.parentElement; 
-  let w = wrap.clientWidth; let h = wrap.clientHeight;
+  let wrap = cv.parentElement; let w = wrap.clientWidth; let h = wrap.clientHeight;
   if(w===0 || h===0) return; 
   canvasW = w; canvasH = h;
   let dpr = window.devicePixelRatio || 1;
@@ -682,8 +686,7 @@ function gp(){
   let maxCoord = Math.max(Math.abs(xe), Math.abs(ye), Math.abs(xs), Math.abs(ys));
   let mc = Math.max(maxCoord + 1, isMobile ? 6 : 8); 
   
-  let span = mc * 2;
-  let mgX = isMobile ? 8 : 50; let mgY = isMobile ? 32 : 50; 
+  let span = mc * 2; let mgX = isMobile ? 8 : 50; let mgY = isMobile ? 32 : 50; 
   let gs = Math.max(1, Math.min((w - mgX*2) / span, (h - mgY*2) / span));
   
   let ox = w / 2; let oy = h / 2;
