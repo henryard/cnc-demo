@@ -328,23 +328,44 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
         </div>
         <div id="n-hint-a" class="n-hint">⚡ 已自适应调整位数</div>
         <!-- 圆弧象限预设 -->
-        <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">象限快捷预设（同半径R≈5）</div>
+        <!--
+          象限预设起终点规则（圆心原点，R=5，逆时针CCW=NR，顺时针CW=SR）：
+          ┌──────┬──────────────────┬──────────────────┐
+          │象限  │ 逆圆NR(↺CCW)     │ 顺圆SR(↻CW)      │
+          ├──────┼──────────────────┼──────────────────┤
+          │  I   │ (5,0)→(0,5)      │ (0,5)→(5,0)      │
+          │  II  │ (0,5)→(-5,0)     │ (-5,0)→(0,5)     │
+          │  III │ (-5,0)→(0,-5)    │ (0,-5)→(-5,0)    │
+          │  IV  │ (0,-5)→(5,0)     │ (5,0)→(0,-5)     │
+          └──────┴──────────────────┴──────────────────┘
+          跨象限（同样遵循方向，起终点均在轴上 or 象限内）：
+          逆圆 I+II：(5,0)→(-5,0)   经过Q1、Q2（经Y轴正半轴）
+          顺圆 I+IV：(0,5)→(0,-5)   经过Q1、Q4（经X轴正半轴）
+          逆圆 I→II斜：(3,4)→(-4,3) R=5，两点均在圆上
+          顺圆 IV→III：(4,-3)→(-3,-4) R=5，从Q4顺时针到Q3
+        -->
+        <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">象限快捷预设（R=5，圆心在原点）</div>
         <div class="quad-presets" style="grid-template-columns: 1fr 1fr;">
-          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'NR')">↺ 逆圆 I象限</button>
-          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'SR')">↻ 顺圆 I象限</button>
-          <button class="qp-btn" onclick="setArcPreset(0,5,-5,0,'NR')">↺ 逆圆 II象限</button>
-          <button class="qp-btn" onclick="setArcPreset(0,5,-5,0,'SR')">↻ 顺圆 II象限</button>
-          <button class="qp-btn" onclick="setArcPreset(-5,0,0,-5,'NR')">↺ 逆圆 III象限</button>
-          <button class="qp-btn" onclick="setArcPreset(-5,0,0,-5,'SR')">↻ 顺圆 III象限</button>
-          <button class="qp-btn" onclick="setArcPreset(0,-5,5,0,'NR')">↺ 逆圆 IV象限</button>
-          <button class="qp-btn" onclick="setArcPreset(0,-5,5,0,'SR')">↻ 顺圆 IV象限</button>
+          <!-- 逆圆NR：沿CCW（逆时针）走，在该象限内弧 -->
+          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'NR')" title="起(5,0)→终(0,5)，X减Y增，第I象限内逆时针">↺ 逆圆 I象限</button>
+          <!-- 顺圆SR：沿CW（顺时针）走，在该象限内弧 -->
+          <button class="qp-btn" onclick="setArcPreset(0,5,5,0,'SR')" title="起(0,5)→终(5,0)，X增Y减，第I象限内顺时针">↻ 顺圆 I象限</button>
+
+          <button class="qp-btn" onclick="setArcPreset(0,5,-5,0,'NR')" title="起(0,5)→终(-5,0)，第II象限逆时针">↺ 逆圆 II象限</button>
+          <button class="qp-btn" onclick="setArcPreset(-5,0,0,5,'SR')" title="起(-5,0)→终(0,5)，第II象限顺时针">↻ 顺圆 II象限</button>
+
+          <button class="qp-btn" onclick="setArcPreset(-5,0,0,-5,'NR')" title="起(-5,0)→终(0,-5)，第III象限逆时针">↺ 逆圆 III象限</button>
+          <button class="qp-btn" onclick="setArcPreset(0,-5,-5,0,'SR')" title="起(0,-5)→终(-5,0)，第III象限顺时针">↻ 顺圆 III象限</button>
+
+          <button class="qp-btn" onclick="setArcPreset(0,-5,5,0,'NR')" title="起(0,-5)→终(5,0)，第IV象限逆时针">↺ 逆圆 IV象限</button>
+          <button class="qp-btn" onclick="setArcPreset(5,0,0,-5,'SR')" title="起(5,0)→终(0,-5)，第IV象限顺时针">↻ 顺圆 IV象限</button>
         </div>
         <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:4px;margin-top:8px;">跨象限预设</div>
         <div class="quad-presets" style="grid-template-columns: 1fr 1fr;">
-          <button class="qp-btn" onclick="setArcPreset(5,0,-5,0,'NR')">↺ 逆圆 I→II</button>
-          <button class="qp-btn" onclick="setArcPreset(5,0,-5,0,'SR')">↻ 顺圆 I→IV</button>
-          <button class="qp-btn" onclick="setArcPreset(3,4,-4,3,'NR')">↺ 逆圆 I→II斜</button>
-          <button class="qp-btn" onclick="setArcPreset(4,-3,-3,-4,'SR')">↻ 顺圆 IV→III</button>
+          <button class="qp-btn" onclick="setArcPreset(5,0,-5,0,'NR')" title="起(5,0)→终(-5,0)，经Q1+Q2，逆时针半圆">↺ 逆圆 I+II</button>
+          <button class="qp-btn" onclick="setArcPreset(0,5,0,-5,'SR')" title="起(0,5)→终(0,-5)，经Q1+Q4，顺时针半圆">↻ 顺圆 I+IV</button>
+          <button class="qp-btn" onclick="setArcPreset(3,4,-4,3,'NR')" title="起(3,4)→终(-4,3)，R=5，I→II逆时针斜弧">↺ 逆圆 I→II斜</button>
+          <button class="qp-btn" onclick="setArcPreset(4,-3,-3,-4,'SR')" title="起(4,-3)→终(-3,-4)，R=5，IV→III顺时针斜弧">↻ 顺圆 IV→III</button>
         </div>
         <div class="fbox" style="margin-top:8px">
           <div class="fh" id="arc-fh">积分器被积函数</div>
@@ -789,16 +810,19 @@ function calcArc(xs, ys, xe, ye, n) {
 }
 
 // 轴上点方向预判（用于跨象限转折处）
+// 逆圆(NR/CCW)：+X轴→走向Q1，+Y轴→走向Q2，-X轴→走向Q3，-Y轴→走向Q4
+// 顺圆(SR/CW) ：+Y轴→走向Q1，+X轴→走向Q4，-Y轴→走向Q3，-X轴→走向Q2
+// 即：逆圆在轴正半轴"进入"对应象限，顺圆方向相反
 function predictBoundaryQuad(x, y, dir) {
-  // x轴上：y=0
   if (y === 0) {
-    if (x > 0) return dir === 'NR' ? 1 : 4;
-    if (x < 0) return dir === 'NR' ? 3 : 2;
+    // 在X轴上
+    if (x > 0) return dir === 'NR' ? 1 : 4;  // NR从+X轴进Q1，SR从+X轴进Q4
+    if (x < 0) return dir === 'NR' ? 3 : 2;  // NR从-X轴进Q3，SR从-X轴进Q2
   }
-  // y轴上：x=0
   if (x === 0) {
-    if (y > 0) return dir === 'NR' ? 2 : 1;
-    if (y < 0) return dir === 'NR' ? 4 : 3;
+    // 在Y轴上
+    if (y > 0) return dir === 'NR' ? 2 : 1;  // NR从+Y轴进Q2，SR从+Y轴进Q1
+    if (y < 0) return dir === 'NR' ? 4 : 3;  // NR从-Y轴进Q4，SR从-Y轴进Q3
   }
   return 1;
 }
