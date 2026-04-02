@@ -80,6 +80,23 @@ button, input, select, a { touch-action: manipulation; }
 .ilabel{font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:4px;}
 .ifield{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; color:var(--text); font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700; width:100%; transition:all .2s; }
 .ifield:focus{outline:none; background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lt);}
+
+/* ★ 优化坐标输入框显示，防止负数被遮挡 ★ */
+.coord-input { 
+  font-size: 13px !important; 
+  padding: 6px 4px !important; 
+  text-align: center;
+}
+/* 隐藏原生数字输入框的上下箭头，腾出空间 */
+.coord-input::-webkit-outer-spin-button,
+.coord-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.coord-input {
+  -moz-appearance: textfield;
+}
+
 .fbox{ background:var(--accent-lt); border:1px solid #d8b4fe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
 .fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:4px;}
 .fvx{color:var(--x-color); font-weight:700;}
@@ -131,7 +148,7 @@ button, input, select, a { touch-action: manipulation; }
 
 /* 桌面端数据栏 */
 .sbar { 
-  height: 64px; /* 绝对锁死高度 */
+  height: 64px; 
   padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
   display: flex; justify-content: space-around; align-items: center; 
   z-index: 5; flex: 0 0 auto; overflow: hidden; 
@@ -140,7 +157,8 @@ button, input, select, a { touch-action: manipulation; }
 .sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 .sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
 
-.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden; }
+/* ★ 添加了 justify-content: center 让图例居中对齐 ★ */
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
@@ -212,7 +230,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   .sv { font-size: clamp(11px, 2.5vw, 14px); height: auto; font-weight: bold; white-space: nowrap; letter-spacing: -0.5px;}
 
   .legend-wrap { padding: 10px 8px; height: auto; min-height: 48px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
-  .legend-group { font-size: 10px; gap: 6px 10px; }
+  .legend-group { font-size: 10px; gap: 6px 10px; justify-content: center; width: 100%; flex-wrap: wrap;}
   .ldot, .lsq { width: 10px; height: 10px; }
   .lline { width: 16px; }
   
@@ -288,7 +306,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
           </div>
         </div>
         <div style="display:flex; gap:6px; margin-bottom:12px">
-          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="5"></div>
+          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="-5"></div>
           <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield coord-input" type="number" id="ays" value="0"></div>
           <div style="flex:1"><div class="ilabel">终X</div><input class="ifield coord-input" type="number" id="axe" value="0"></div>
           <div style="flex:1"><div class="ilabel">终Y</div><input class="ifield coord-input" type="number" id="aye" value="5"></div>
@@ -455,13 +473,10 @@ function setDir(d,el){
 
 function calcLine(xe, ye, n) {
   let mod = Math.pow(2, n), Rx = 0, Ry = 0, x = 0, y = 0;
-  // 被积函数取终点坐标的绝对值
   let JVx = Math.abs(xe), JVy = Math.abs(ye); 
   let s = []; 
-  // 剩余步长取绝对值
   let remX = Math.abs(xe), remY = Math.abs(ye); 
   
-  // 动态判断进给方向：根据终点坐标正负决定加1还是减1
   let incX = xe >= 0 ? 1 : -1;
   let incY = ye >= 0 ? 1 : -1;
 
@@ -484,14 +499,12 @@ function calcLine(xe, ye, n) {
     let fRx = ovX ? nRxR - mod : nRxR; 
     let fRy = ovY ? nRyR - mod : nRyR; 
     
-    // 如果溢出，则按照之前判断好的方向进行位移
     let dx = ovX ? incX : 0;
     let dy = ovY ? incY : 0;
     
     Rx = fRx; Ry = fRy; 
     x += dx; y += dy; 
     
-    // 扣减剩余步长
     if (ovX && dx !== 0) remX--; 
     if (ovY && dy !== 0) remY--;
     
@@ -509,7 +522,6 @@ function calcArc(xs, ys, xe, ye, n) {
   let mod = Math.pow(2, n), Rx = 0, Ry = 0, x = xs, y = ys;
   let JVx = Math.abs(ys), JVy = Math.abs(xs); 
   let s = []; 
-  // 采用总步长法作为终点判别
   let remX = Math.abs(xe - xs), remY = Math.abs(ye - ys);
   
   s.push({
@@ -519,7 +531,7 @@ function calcArc(xs, ys, xe, ye, n) {
   });
   
   let k = 0;
-  let isCCW = (arcDir === 'NR'); // 判断是否为逆圆
+  let isCCW = (arcDir === 'NR'); 
 
   while (remX > 0 || remY > 0) {
     k++; 
@@ -530,7 +542,6 @@ function calcArc(xs, ys, xe, ye, n) {
     let nRxR = Rx + JVx, nRyR = Ry + JVy; 
     let ovX = nRxR >= mod, ovY = nRyR >= mod;
     
-    // 如果该轴已经到达终点步数，则停止该轴的累加和溢出
     if (remX <= 0) { ovX = false; nRxR = oRx; } 
     if (remY <= 0) { ovY = false; nRyR = oRy; }
     
@@ -538,20 +549,18 @@ function calcArc(xs, ys, xe, ye, n) {
     let fRy = ovY ? nRyR - mod : nRyR; 
     let dx = 0, dy = 0;
     
-    // 核心修改：动态判断四象限进给方向
-    if (isCCW) { // 逆时针 (NR)
-      if (x > 0 && y >= 0)      { if(ovX) dx = -1; if(ovY) dy = 1; }  // 第一象限 & +X轴
-      else if (x <= 0 && y > 0) { if(ovX) dx = -1; if(ovY) dy = -1; } // 第二象限 & +Y轴
-      else if (x < 0 && y <= 0) { if(ovX) dx = 1;  if(ovY) dy = -1; } // 第三象限 & -X轴
-      else if (x >= 0 && y < 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  // 第四象限 & -Y轴
-    } else { // 顺时针 (SR)
-      if (x >= 0 && y > 0)      { if(ovX) dx = 1;  if(ovY) dy = -1; } // 第一象限 & +Y轴
-      else if (x < 0 && y >= 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  // 第二象限 & -X轴
-      else if (x <= 0 && y < 0) { if(ovX) dx = -1; if(ovY) dy = 1; }  // 第三象限 & -Y轴
-      else if (x > 0 && y <= 0) { if(ovX) dx = -1; if(ovY) dy = -1; } // 第四象限 & +X轴
+    if (isCCW) { 
+      if (x > 0 && y >= 0)      { if(ovX) dx = -1; if(ovY) dy = 1; }  
+      else if (x <= 0 && y > 0) { if(ovX) dx = -1; if(ovY) dy = -1; } 
+      else if (x < 0 && y <= 0) { if(ovX) dx = 1;  if(ovY) dy = -1; } 
+      else if (x >= 0 && y < 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
+    } else { 
+      if (x >= 0 && y > 0)      { if(ovX) dx = 1;  if(ovY) dy = -1; } 
+      else if (x < 0 && y >= 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
+      else if (x <= 0 && y < 0) { if(ovX) dx = -1; if(ovY) dy = 1; }  
+      else if (x > 0 && y <= 0) { if(ovX) dx = -1; if(ovY) dy = -1; } 
     }
 
-    // 只有在发生有效位移时，才扣减剩余步长
     if (ovX && dx !== 0) remX--; 
     if (ovY && dy !== 0) remY--;
     
@@ -564,7 +573,6 @@ function calcArc(xs, ys, xe, ye, n) {
       det: `Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→ X进给(${dx>0?'+':'-'}1)` : ''}; Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→ Y进给(${dy>0?'+':'-'}1)` : ''}`
     });
     
-    // 防止死循环的兜底逻辑
     if (k > 1000) break; 
   } 
   return s;
@@ -576,7 +584,7 @@ function initSim(){
     let xe=clamp(num('lxe',-6),-15,15),ye=clamp(num('lye',4),-15,15),n=clamp(num('nb',3),2,5);
     steps=calcLine(xe,ye,n);
   } else {
-    let xs=clamp(num('axs',5),-15,15),ys=clamp(num('ays',0),-15,15);
+    let xs=clamp(num('axs',-5),-15,15),ys=clamp(num('ays',0),-15,15);
     let xe=clamp(num('axe',0),-15,15),ye=clamp(num('aye',5),-15,15);
     let n=clamp(num('nba',3),2,5); steps=calcArc(xs,ys,xe,ye,n);
   }
@@ -695,7 +703,7 @@ function resize(){
 function gp(){
   let xe,ye,xs=0,ys=0;
   if(mode==='line'){ xe=num('lxe',-6); ye=num('lye',4); } 
-  else { xs=num('axs',5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
+  else { xs=num('axs',-5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
   
   let w = canvasW || cv.parentElement.clientWidth || 300;
   let h = canvasH || cv.parentElement.clientHeight || 300;
@@ -796,7 +804,7 @@ function drawScene(idx){
     let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('终',cx,cy+(isMobile?3:4));ctx.textAlign='left';
   } else {
-    let xs=num('axs',5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
+    let xs=num('axs',-5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.arc(cc.cx,cc.cy,Math.max(0, R*gs),-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR'); ctx.stroke();ctx.restore();
