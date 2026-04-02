@@ -47,14 +47,12 @@ html, body {
 body { height: 100vh; overflow: hidden; }
 button, input, select, a { touch-action: manipulation; }
 
-/* ★ 桌面端响应式网格布局 ★ */
 .layout {
   display: grid;
   grid-template-columns: clamp(260px, 22vw, 330px) minmax(400px, 1fr) clamp(340px, 28vw, 480px);
   height: 100vh;
 }
 
-/* ── 左侧面板 ── */
 .panel-left{ background:var(--surface); border-right:1px solid var(--border); padding:16px; display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10; }
 .panel-top { display: flex; flex-direction: column; gap: 14px; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; }
 .panel-top::-webkit-scrollbar { display: none; }
@@ -79,17 +77,8 @@ button, input, select, a { touch-action: manipulation; }
 .ifield{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; color:var(--text); font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700; width:100%; transition:all .2s; }
 .ifield:focus{outline:none; background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lt);}
 
-/* 优化坐标输入框显示，防止负数被遮挡 */
-.coord-input { 
-  font-size: 13px !important; 
-  padding: 6px 4px !important; 
-  text-align: center;
-}
-.coord-input::-webkit-outer-spin-button,
-.coord-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+.coord-input { font-size: 13px !important; padding: 6px 4px !important; text-align: center; }
+.coord-input::-webkit-outer-spin-button, .coord-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .coord-input { -moz-appearance: textfield; }
 
 .fbox{ background:var(--accent-lt); border:1px solid #bfdbfe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
@@ -101,15 +90,9 @@ button, input, select, a { touch-action: manipulation; }
 .spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none;}
 .spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
 
-/* ── 控制按钮 ── */
 .action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
 .brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-.btn{ 
-  padding:12px 10px; border-radius:14px; border:none; cursor:pointer; user-select: none;
-  font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; 
-  font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; 
-  display:flex; align-items:center; justify-content:center; gap:6px; 
-}
+.btn{ padding:12px 10px; border-radius:14px; border:none; cursor:pointer; user-select: none; font-family:-apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; font-size:14px; font-weight:600; transition:transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; display:flex; align-items:center; justify-content:center; gap:6px; }
 .btn:active { transform: scale(0.95); }
 .btn-reset { background: var(--ios-gray); color: #8E8E93; }
 .btn-reset:hover { background: #E5E5EA; color: var(--ios-text); }
@@ -120,7 +103,6 @@ button, input, select, a { touch-action: manipulation; }
 .btn-s { background: var(--ios-orange); color: #fff; box-shadow: 0 4px 10px rgba(255, 149, 0, 0.2); }
 .btn-s:hover { background: #E08300; box-shadow: 0 6px 14px rgba(255, 149, 0, 0.3); }
 
-/* ── 中间面板 ── */
 .panel-center{background:var(--surface2); display:flex; flex-direction:column; border-right:1px solid var(--border); height: 100vh;}
 .ctoolbar{ height: 60px; padding: 0 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.02); z-index: 6; flex: 0 0 auto; }
 .ctitle{font-size:18px; font-weight:700; color:var(--text); letter-spacing: 0.5px;}
@@ -128,17 +110,11 @@ button, input, select, a { touch-action: manipulation; }
 .c-actions { display: flex; align-items: center; gap: 12px; }
 .top-badge { display: inline-block; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: all 0.2s ease; }
 
-.sbar { 
-  height: 64px; 
-  padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); 
-  display: flex; justify-content: space-around; align-items: center; 
-  z-index: 5; flex: 0 0 auto; overflow: hidden; 
-}
+.sbar { height: 64px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 5; flex: 0 0 auto; overflow: hidden; }
 .si { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
 .sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 .sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
 
-/* 图例区域水平居中对齐 */
 .legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
@@ -148,7 +124,6 @@ button, input, select, a { touch-action: manipulation; }
 .canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; }
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 
-/* ── 右侧面板 ── */
 .panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
 .rhead{ height: 60px; padding: 0 20px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
 .rhead-actions { display: flex; align-items: center; gap: 12px; }
@@ -179,9 +154,6 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 .scr::-webkit-scrollbar-track{background:transparent;}
 .scr::-webkit-scrollbar-thumb{background:var(--border2); border-radius:3px;}
 
-/* ========================================= */
-/* ===== 移动端及小屏幕深度自适应适配 ===== */
-/* ========================================= */
 @media (max-width: 1024px) {
   html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 100px; }
   .layout { display: flex; flex-direction: column; height: auto; }
@@ -195,9 +167,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   .ctoolbar { padding: 12px 16px; height: auto; }
   .top-badge { font-size: 11px; padding: 4px 8px; }
   
-  .sbar { 
-    height: 64px; justify-content: space-between; padding: 0 16px; 
-  }
+  .sbar { height: 64px; justify-content: space-between; padding: 0 16px; }
 
   .legend-wrap { padding: 10px 8px; height: auto; min-height: 48px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
   .legend-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; font-size: 11px; line-height: 1.6; width: 100%; }
@@ -209,13 +179,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   .twrap { max-height: 400px; overflow-y: auto; } 
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
 
-  .action-area { 
-    position: fixed; bottom: 0; left: 0; width: 100%; 
-    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); 
-    display: flex; flex-direction: row; gap: 0; 
-  }
+  .action-area { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: row; gap: 0; }
   .action-area .brow { display: contents; }
   .btn { flex: 1; padding: 12px 0; margin: 0 4px; font-size: 14px; border-radius: 14px; justify-content: center;}
 }
@@ -243,7 +207,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
       <div class="stitle">直线参数 (全象限)</div>
       <div class="card">
         <div style="display:flex; gap:12px; margin-bottom:12px">
-          <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield coord-input" type="number" id="lxe" value="-6"></div>
+          <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield coord-input" type="number" id="lxe" value="6"></div>
           <div style="flex:1"><div class="ilabel">终点 Ye</div><input class="ifield coord-input" type="number" id="lye" value="4"></div>
         </div>
         <div class="fbox">
@@ -256,15 +220,15 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     </div>
 
     <div id="ac" style="display:none">
-      <div class="stitle">圆弧参数 (全象限)</div>
+      <div class="stitle">圆弧参数 (全象限跨界支持)</div>
       <div class="card">
         <div class="ilabel">圆弧走向</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px">
-          <button class="qbtn" onclick="setDir('NR',this)">↺ 逆圆</button>
-          <button class="qbtn active" onclick="setDir('SR',this)">↻ 顺圆</button>
+          <button class="qbtn active" onclick="setDir('NR',this)">↺ 逆圆</button>
+          <button class="qbtn" onclick="setDir('SR',this)">↻ 顺圆</button>
         </div>
         <div style="display:flex; gap:8px; margin-bottom:12px">
-          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="-5"></div>
+          <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="5"></div>
           <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield coord-input" type="number" id="ays" value="0"></div>
           <div style="flex:1"><div class="ilabel">终X</div><input class="ifield coord-input" type="number" id="axe" value="0"></div>
           <div style="flex:1"><div class="ilabel">终Y</div><input class="ifield coord-input" type="number" id="aye" value="5"></div>
@@ -377,8 +341,8 @@ function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
 
 const cv=document.getElementById('cv');
 const ctx=cv.getContext('2d');
-// 将初始默认走向从 'NR' 改为 'SR'，贴合你测试的第二象限用例
-let mode='line', arcDir='SR';
+// 默认恢复为第一象限经典逆时针圆弧
+let mode='line', arcDir='NR';
 let steps=[],cur=-1,timer=null,running=false,inited=false;
 
 const enterFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
@@ -413,7 +377,41 @@ function setDir(d,el){
   el.classList.add('active');
 }
 
-// 全象限直线插补
+// 数值积分计算完美多象限脉冲总数
+function getArcPulses(xs, ys, xe, ye, isCCW) {
+    let R = Math.sqrt(xs*xs + ys*ys);
+    if (R === 0) return { remX: 0, remY: 0 };
+    let a1 = Math.atan2(ys, xs);
+    let a2 = Math.atan2(ye, xe);
+    if (a1 < 0) a1 += 2*Math.PI;
+    if (a2 < 0) a2 += 2*Math.PI;
+    
+    let sweep = 0;
+    if (isCCW) {
+        sweep = a2 - a1;
+        if (sweep <= 0 && !(xs===xe && ys===ye)) sweep += 2*Math.PI;
+        if (xs===xe && ys===ye) sweep = 2*Math.PI;
+    } else {
+        sweep = a1 - a2;
+        if (sweep <= 0 && !(xs===xe && ys===ye)) sweep += 2*Math.PI;
+        if (xs===xe && ys===ye) sweep = 2*Math.PI;
+    }
+    
+    let remX = 0, remY = 0;
+    let prevX = xs, prevY = ys;
+    let segments = Math.max(10, Math.ceil(sweep / 0.005)); 
+    for (let i = 1; i <= segments; i++) {
+        let t = isCCW ? a1 + (sweep * i / segments) : a1 - (sweep * i / segments);
+        let cx = R * Math.cos(t);
+        let cy = R * Math.sin(t);
+        remX += Math.abs(cx - prevX);
+        remY += Math.abs(cy - prevY);
+        prevX = cx;
+        prevY = cy;
+    }
+    return { remX: Math.round(remX), remY: Math.round(remY) };
+}
+
 function calcLine(xe, ye) {
   let s = [], x = 0, y = 0, F = 0;
   let absXe = Math.abs(xe), absYe = Math.abs(ye);
@@ -444,10 +442,13 @@ function calcLine(xe, ye) {
   return s;
 }
 
-// 全象限圆弧插补
 function calcArc(xs, ys, xe, ye, dir) {
   let s = [], x = xs, y = ys, F = 0;
-  let N = Math.abs(xe - xs) + Math.abs(ye - ys);
+  let isCCW = (dir === 'NR');
+  
+  // 使用积分函数获取多象限的完美总步长，解决提前跨象限终止问题
+  let pulses = getArcPulses(xs, ys, xe, ye, isCCW);
+  let N = pulses.remX + pulses.remY;
   
   s.push({i:0, x, y, F, feed:'—', nF:0, rem:N, judge:'初始化状态',
     det:`起点(${xs},${ys})，终点(${xe},${ye})，总步数N=${N}，F₀=0`});
@@ -455,39 +456,33 @@ function calcArc(xs, ys, xe, ye, dir) {
   for (let k = 1; k <= N; k++) { 
     let oF = F, feed, nF, dx = 0, dy = 0, judge, ox = x, oy = y;
     
-    // 动态判定当前点所在的象限
     let q = 1; 
     if (x > 0 && y >= 0) q = 1;
     else if (x <= 0 && y > 0) q = 2;
     else if (x < 0 && y <= 0) q = 3;
     else if (x >= 0 && y < 0) q = 4;
 
-    // 结合象限与走向，判定具体的位移策略
-    if (dir === 'NR') { // 逆圆
+    if (isCCW) { 
       if (q === 1) { if(F>=0){feed='−X';dx=-1;} else{feed='+Y';dy=1;} }
       else if (q===2) { if(F>=0){feed='−Y';dy=-1;} else{feed='−X';dx=-1;} }
       else if (q===3) { if(F>=0){feed='+X';dx=1;} else{feed='−Y';dy=-1;} }
       else if (q===4) { if(F>=0){feed='+Y';dy=1;} else{feed='+X';dx=1;} }
-    } else { // 顺圆
+    } else { 
       if (q === 1) { if(F>=0){feed='−Y';dy=-1;} else{feed='+X';dx=1;} }
-      else if (q===2) { if(F>=0){feed='+X';dx=1;} else{feed='+Y';dy=1;} } 
+      else if (q===2) { if(F>=0){feed='+X';dx=1;} else{feed='+Y';dy=1;} }  
       else if (q===3) { if(F>=0){feed='+Y';dy=1;} else{feed='−X';dx=-1;} }
       else if (q===4) { if(F>=0){feed='−X';dx=-1;} else{feed='−Y';dy=-1;} } 
     }
 
     judge = F >= 0 ? 'F≥0 → 偏外' : 'F<0 → 偏内';
     
-    // F_new 的迭代公式运算
-    if (dx !== 0) {
-       nF = F + 2 * ox * dx + 1; 
-    } else {
-       nF = F + 2 * oy * dy + 1;
-    }
+    if (dx !== 0) { nF = F + 2 * ox * dx + 1; } 
+    else { nF = F + 2 * oy * dy + 1; }
 
     F = nF; x += dx; y += dy;
     let dxStr = dx > 0 ? '+1' : '-1';
     let dyStr = dy > 0 ? '+1' : '-1';
-    let fcalc = dx !== 0 ? `${oF} + 2×(${ox})×(${dxStr}) + 1` : `${oF} + 2×(${oy})×(${dyStr}) + 1`;
+    let fcalc = dx !== 0 ? `${oF} ${dx>0?'+':'-'} 2×(${ox}) + 1` : `${oF} ${dy>0?'+':'-'} 2×(${oy}) + 1`;
 
     s.push({i:k, x, y, F, feed, nF, rem:N-k, judge, oF, ox, oy,
       det:`F=${oF}(${oF>=0?'≥0':'<0'}) → 进给 ${feed} → F_new=${fcalc} = ${nF}`});
@@ -498,54 +493,38 @@ function calcArc(xs, ys, xe, ye, dir) {
 function initSim(){
   stopAuto();steps=[];
   if(mode==='line'){
-    let xe=clamp(num('lxe',-6),-30,30), ye=clamp(num('lye',4),-30,30);
+    let xe=clamp(num('lxe',6),-30,30), ye=clamp(num('lye',4),-30,30);
     steps=calcLine(xe,ye);
   } else {
-    // 默认起点设定为截图中使用的 (-5, 0)
-    let xs=clamp(num('axs',-5),-30,30), ys=clamp(num('ays',0),-30,30);
+    // 默认恢复至第一象限标准起终点
+    let xs=clamp(num('axs',5),-30,30), ys=clamp(num('ays',0),-30,30);
     let xe=clamp(num('axe',0),-30,30), ye=clamp(num('aye',5),-30,30);
     steps=calcArc(xs,ys,xe,ye,arcDir);
   }
-  inited=true; cur=0; renderStep(0); updTbl(0); 
-  setSt('已初始化，准备开始');
+  inited=true; cur=0; renderStep(0); updTbl(0); setSt('已初始化，准备开始');
 }
 
 function stepOnce(){
   if(!inited) initSim();
-  if(cur >= steps.length-1) {
-    setSt('⚠️ 请重置或应用'); return;
-  }
+  if(cur >= steps.length-1) { setSt('⚠️ 请重置或应用'); return; }
   cur++; renderStep(cur); updTbl(cur);
-  if(cur === steps.length-1) {
-    setSt('✅ 插补完成！'); stopAuto();
-  } else {
-    if(!running) setSt('👣 单步推演中...');
-  }
+  if(cur === steps.length-1) { setSt('✅ 插补完成！'); stopAuto(); } 
+  else { if(!running) setSt('👣 单步推演中...'); }
 }
 
 function startAuto(){
   if(!inited) initSim();
-  if(cur >= steps.length-1) {
-    setSt('⚠️ 请重置或应用'); return;
-  }
+  if(cur >= steps.length-1) { setSt('⚠️ 请重置或应用'); return; }
   if(running){stopAuto();return;}
-  running=true;
-  document.getElementById('bta').innerHTML='⏸ 暂停';
-  document.getElementById('bta').classList.add('running');
-  setSt('▶ 正在运行中...'); tick();
+  running=true; document.getElementById('bta').innerHTML='⏸ 暂停'; document.getElementById('bta').classList.add('running'); setSt('▶ 正在运行中...'); tick();
 }
 
 function tick(){
-  if(!running) return;
-  stepOnce();
-  if(cur>=steps.length-1){stopAuto();return;}
-  timer=setTimeout(tick, 2100-num('speed',800)); 
+  if(!running) return; stepOnce(); if(cur>=steps.length-1){stopAuto();return;} timer=setTimeout(tick, 2100-num('speed',800)); 
 }
 
 function stopAuto(){
-  running=false;clearTimeout(timer);
-  document.getElementById('bta').innerHTML='▶ 自动';
-  document.getElementById('bta').classList.remove('running');
+  running=false;clearTimeout(timer); document.getElementById('bta').innerHTML='▶ 自动'; document.getElementById('bta').classList.remove('running');
   if(inited && cur > 0 && cur < steps.length-1) setSt('⏸ 已暂停');
 }
 
@@ -553,15 +532,13 @@ function resetSim(){
   stopAuto();inited=false;cur=-1;steps=[];
   document.getElementById('tb').innerHTML='<tr><td colspan="8" style="color:var(--text-dim);padding:40px;text-align:center;font-size:15px">请应用参数后开始演示</td></tr>';
   document.getElementById('dc').innerHTML='等待开始演示…';
-  ['ss','sx','sy','sf','sn'].forEach(id=>document.getElementById(id).textContent='—');
-  setSt('等待开始'); drawGrid();
+  ['ss','sx','sy','sf','sn'].forEach(id=>document.getElementById(id).textContent='—'); setSt('等待开始'); drawGrid();
 }
 
 function setSt(t){
   let e1 = document.getElementById('st-badge'); 
   if(e1) {
-    e1.style.display = 'inline-block';
-    e1.innerHTML=t;
+    e1.style.display = 'inline-block'; e1.innerHTML=t;
     if(t.includes('完成')) { e1.style.background = 'var(--green-lt)'; e1.style.color = 'var(--green)'; }
     else if(t.includes('运行') || t.includes('推演') || t.includes('执行')) { e1.style.background = 'var(--accent-lt)'; e1.style.color = 'var(--accent)'; }
     else if(t.includes('重置') || t.includes('⚠️')) { e1.style.background = 'var(--orange-lt)'; e1.style.color = 'var(--orange)'; }
@@ -571,18 +548,14 @@ function setSt(t){
 
 function renderStep(idx){
   let s=steps[idx];
-  document.getElementById('ss').textContent=s.i;
-  document.getElementById('sx').textContent=s.x;
-  document.getElementById('sy').textContent=s.y;
-  document.getElementById('sf').textContent=s.F;
-  document.getElementById('sn').textContent=s.rem;
+  document.getElementById('ss').textContent=s.i; document.getElementById('sx').textContent=s.x; document.getElementById('sy').textContent=s.y;
+  document.getElementById('sf').textContent=s.F; document.getElementById('sn').textContent=s.rem;
 
   let dc=document.getElementById('dc');
   if(idx===0){
     dc.innerHTML=`<div style="color:var(--text-mid);font-size:15px;line-height:1.9;font-weight:600;padding:8px 0">${s.det}</div>`;
   } else {
-    let pos=s.oF>=0;
-    let fc=s.feed.includes('X')?'var(--x-color)':'var(--y-color)';
+    let pos=s.oF>=0; let fc=s.feed.includes('X')?'var(--x-color)':'var(--y-color)';
     dc.innerHTML=`
       <div class="drow"><div class="dlbl"><div class="dnum">1</div>偏差判别</div><div class="dval" style="color:${pos?'var(--accent)':'var(--red)'}">F = ${s.oF} &nbsp; ${pos?'≥ 0':'< 0'}</div></div>
       <div style="margin:0 0 10px 32px;font-size:13px;color:var(--text-dim)">${s.judge}</div>
@@ -608,20 +581,15 @@ function updTbl(idx){
       <td style="color:var(--x-color);font-weight:700">${s.x}</td>
       <td style="color:var(--y-color);font-weight:700">${s.y}</td>
       <td style="color:${s.rem===0?'var(--green)':'var(--text-mid)'};font-weight:${s.rem===0?700:500}">${s.rem}${s.rem===0?' ✓':''}</td>`;
-    if (i === idx) tr.classList.add('cur'); else tr.classList.add('done');
-    tb.appendChild(tr);
+    if (i === idx) tr.classList.add('cur'); else tr.classList.add('done'); tb.appendChild(tr);
   }
   let r = document.getElementById(`r${idx}`); let twrap = document.querySelector('.twrap');
-  if (r && twrap) {
-    let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40);
-    twrap.scrollTo({ top: targetTop, left: twrap.scrollLeft, behavior: 'smooth' });
-  }
+  if (r && twrap) { let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40); twrap.scrollTo({ top: targetTop, left: twrap.scrollLeft, behavior: 'smooth' }); }
 }
 
 let canvasW = 0, canvasH = 0;
 function resize(){
-  let wrap = cv.parentElement; 
-  let w = wrap.clientWidth; let h = wrap.clientHeight;
+  let wrap = cv.parentElement; let w = wrap.clientWidth; let h = wrap.clientHeight;
   if(w===0 || h===0) return; 
   canvasW = w; canvasH = h;
   let dpr = window.devicePixelRatio || 1;
@@ -632,48 +600,33 @@ function resize(){
 
 function gp(){
   let xe,ye,xs=0,ys=0;
-  if(mode==='line'){ xe=num('lxe',-6); ye=num('lye',4); } 
-  else { xs=num('axs',-5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
+  if(mode==='line'){ xe=num('lxe',6); ye=num('lye',4); } 
+  else { xs=num('axs',5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
   
   let w = canvasW || cv.parentElement.clientWidth || 300;
   let h = canvasH || cv.parentElement.clientHeight || 300;
-  
-  if (w < 100) w = window.innerWidth || 300;
-  if (h < 100) h = 380;
+  if (w < 100) w = window.innerWidth || 300; if (h < 100) h = 380;
   
   let isMobile = w < 600;
   let maxCoord = Math.max(Math.abs(xe), Math.abs(ye), Math.abs(xs), Math.abs(ys));
   let mc = Math.max(maxCoord + 1, isMobile ? 6 : 8); 
   
-  let span = mc * 2;
-  let mgX = isMobile ? 8 : 50; 
-  let mgY = isMobile ? 32 : 50; 
+  let span = mc * 2; let mgX = isMobile ? 8 : 50; let mgY = isMobile ? 32 : 50; 
   let gs = Math.max(1, Math.min((w - mgX*2) / span, (h - mgY*2) / span));
   
-  let ox = w / 2;
-  let oy = h / 2;
+  let ox = w / 2; let oy = h / 2;
   return { mc, gs, ox, oy, isMobile };
 }
 
-function toC(gx,gy){
-  let {gs, ox, oy} = gp(); return {cx: ox + gx*gs, cy: oy - gy*gs};
-}
+function toC(gx,gy){ let {gs, ox, oy} = gp(); return {cx: ox + gx*gs, cy: oy - gy*gs}; }
 
 function drawGrid(){
   let w = cv.clientWidth, h = cv.clientHeight;
-  ctx.clearRect(0,0,w,h);
-  let { mc, gs, ox, oy, isMobile } = gp();
+  ctx.clearRect(0,0,w,h); let { mc, gs, ox, oy, isMobile } = gp();
 
-  let gLeft = ox - mc * gs;
-  let gRight = ox + mc * gs;
-  let gTop = oy - mc * gs;
-  let gBottom = oy + mc * gs;
-
-  ctx.fillStyle = '#f8fafc'; 
-  ctx.fillRect(gLeft, gTop, gRight - gLeft, gBottom - gTop);
-  ctx.strokeStyle = '#e2e8f0'; 
-  ctx.lineWidth = 1;
-  ctx.strokeRect(gLeft, gTop, gRight - gLeft, gBottom - gTop);
+  let gLeft = ox - mc * gs, gRight = ox + mc * gs, gTop = oy - mc * gs, gBottom = oy + mc * gs;
+  ctx.fillStyle = '#f8fafc'; ctx.fillRect(gLeft, gTop, gRight - gLeft, gBottom - gTop);
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1; ctx.strokeRect(gLeft, gTop, gRight - gLeft, gBottom - gTop);
 
   ctx.beginPath();
   for(let i = -mc + 1; i < mc; i++){
@@ -685,42 +638,22 @@ function drawGrid(){
   ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath();
   let axExt = isMobile ? 6 : 20; 
   ctx.moveTo(gLeft - axExt, oy); ctx.lineTo(gRight + axExt, oy); 
-  ctx.moveTo(ox, gBottom + axExt); ctx.lineTo(ox, gTop - axExt); 
-  ctx.stroke();
+  ctx.moveTo(ox, gBottom + axExt); ctx.lineTo(ox, gTop - axExt); ctx.stroke();
   
-  ctx.fillStyle = '#94a3b8';
-  let arrSize = isMobile ? 8 : 10;
-  let ar=(x,y,d)=>{
-    ctx.beginPath();
-    if(d==='r'){ctx.moveTo(x-arrSize/2,y-arrSize/2);ctx.lineTo(x+arrSize,y);ctx.lineTo(x-arrSize/2,y+arrSize/2);}
-    else{ctx.moveTo(x-arrSize/2,y+arrSize/2);ctx.lineTo(x,y-arrSize);ctx.lineTo(x+arrSize/2,y+arrSize/2);}
-    ctx.fill();
-  }; ar(gRight + axExt, oy, 'r'); ar(ox, gTop - axExt, 'u');
+  ctx.fillStyle = '#94a3b8'; let arrSize = isMobile ? 8 : 10;
+  let ar=(x,y,d)=>{ ctx.beginPath(); if(d==='r'){ctx.moveTo(x-arrSize/2,y-arrSize/2);ctx.lineTo(x+arrSize,y);ctx.lineTo(x-arrSize/2,y+arrSize/2);} else{ctx.moveTo(x-arrSize/2,y+arrSize/2);ctx.lineTo(x,y-arrSize);ctx.lineTo(x+arrSize/2,y+arrSize/2);} ctx.fill(); }; 
+  ar(gRight + axExt, oy, 'r'); ar(ox, gTop - axExt, 'u');
   
-  ctx.font = isMobile ? 'bold 13px Noto Sans SC,sans-serif' : 'bold 14px Noto Sans SC,sans-serif';
-  ctx.fillStyle = '#64748b';
+  ctx.font = isMobile ? 'bold 13px Noto Sans SC,sans-serif' : 'bold 14px Noto Sans SC,sans-serif'; ctx.fillStyle = '#64748b';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('X', gRight + axExt + (isMobile ? 10 : 14), oy); 
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('Y', ox, gTop - axExt - (isMobile ? 8 : 12));
   
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillText('X', gRight + axExt + (isMobile ? 10 : 14), oy); 
-  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  ctx.fillText('Y', ox, gTop - axExt - (isMobile ? 8 : 12));
-  
-  ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace';
-  ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = isMobile ? '10px JetBrains Mono,monospace' : '12px JetBrains Mono,monospace'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
-  let step = 1;
-  if(mc > 12) step = 2;
-  if(mc > 25) step = 5;
-
-  for(let i = 1; i <= mc; i++){
-    if(i % step !== 0) continue;
-    ctx.fillText(i, ox + i*gs, oy + 12); 
-  }
+  let step = 1; if(mc > 12) step = 2; if(mc > 25) step = 5;
+  for(let i = 1; i <= mc; i++){ if(i % step !== 0) continue; ctx.fillText(i, ox + i*gs, oy + 12); }
   ctx.textAlign = 'right';
-  for(let i = 1; i <= mc; i++){
-    if(i % step !== 0) continue;
-    ctx.fillText(i, ox - 6, oy - i*gs); 
-  }
+  for(let i = 1; i <= mc; i++){ if(i % step !== 0) continue; ctx.fillText(i, ox - 6, oy - i*gs); }
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
 }
 
@@ -729,13 +662,13 @@ function drawScene(idx){
   drawGrid(); let { gs, isMobile } = gp();
 
   if(mode==='line'){
-    let xe=num('lxe',-6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
+    let xe=num('lxe',6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(p0.cx,p0.cy);ctx.lineTo(pe.cx,pe.cy);ctx.stroke();ctx.restore();
     let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('终',cx,cy+(isMobile?3:4));ctx.textAlign='left';
   } else {
-    let xs=num('axs',-5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
+    let xs=num('axs',5), ys=num('ays',0), xe=num('axe',0), ye=num('aye',5);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.arc(cc.cx,cc.cy,Math.max(0, R*gs),-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR'); ctx.stroke();ctx.restore();
@@ -753,8 +686,7 @@ function drawScene(idx){
 
     let pr=steps[idx-1],cr=steps[idx];
     if(pr.x!==cr.x||pr.y!==cr.y){
-      let pp=toC(pr.x,pr.y),cp=toC(cr.x,cr.y);
-      let isX=Math.abs(cr.x-pr.x)>0;
+      let pp=toC(pr.x,pr.y),cp=toC(cr.x,cr.y); let isX=Math.abs(cr.x-pr.x)>0;
       ctx.strokeStyle=isX?'#2563eb':'#0d9488';ctx.lineWidth=isMobile?3:4;
       ctx.beginPath();ctx.moveTo(pp.cx,pp.cy);ctx.lineTo(cp.cx,cp.cy);ctx.stroke();
       let ang=Math.atan2(cp.cy-pp.cy,cp.cx-pp.cx);
@@ -765,22 +697,18 @@ function drawScene(idx){
     }
 
     let sc=steps[idx],pc=toC(sc.x,sc.y);
-    ctx.fillStyle='#ea580c'; 
-    let toolR = isMobile ? 5 : 7.5;
+    ctx.fillStyle='#ea580c'; let toolR = isMobile ? 5 : 7.5;
     ctx.beginPath();ctx.arc(pc.cx,pc.cy,toolR,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#ffffff';ctx.lineWidth=2; ctx.beginPath();ctx.arc(pc.cx,pc.cy,toolR,0,Math.PI*2);ctx.stroke();
     
     ctx.font=isMobile?'bold 13px JetBrains Mono,monospace':'bold 15px JetBrains Mono,monospace'; 
-    ctx.strokeStyle='#ffffff'; ctx.lineWidth=3;
-    ctx.strokeText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=3; ctx.strokeText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
     ctx.fillStyle='#2563eb'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
   }
   let orig=toC(0,0);ctx.fillStyle='#4b5563';ctx.beginPath();ctx.arc(orig.cx,orig.cy,isMobile?3:5,0,Math.PI*2);ctx.fill();
 }
 
-window.addEventListener('resize',resize);
-resize();drawGrid();
-setTimeout(()=>{resize();drawGrid();},150);
+window.addEventListener('resize',resize); resize();drawGrid(); setTimeout(()=>{resize();drawGrid();},150);
 </script>
 </body>
 </html>
