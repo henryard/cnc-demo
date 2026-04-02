@@ -140,8 +140,8 @@ button, input, select, a { touch-action: manipulation; }
 .sk { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 .sv { font-size: 16px; font-family: 'JetBrains Mono',monospace; font-weight: 700; color: var(--text); display: flex; align-items: center; height: 22px;}
 
-.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; justify-content: center; }
+.legend-wrap { height: 48px; padding: 0 20px; background: var(--surface2); z-index: 4; flex: 0 0 auto; display: flex; align-items: center; overflow: hidden; }
+.legend-group { display: flex; align-items: center; gap: 16px; white-space: nowrap; flex-shrink: 0; }
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
 .lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
@@ -198,7 +198,6 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   .top-badge { font-size: 11px; padding: 4px 8px; }
   .desktop-only { display: none !important; }
 
-  /* ★ 彻底去除隐藏的第8个DOM元素，保证7列网格完美对齐不换行 ★ */
   .sbar { 
     display: grid; 
     grid-template-columns: repeat(7, minmax(0, 1fr)); 
@@ -212,8 +211,8 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   .sk { font-size: clamp(9px, 2vw, 11px); margin-bottom: 2px; color: var(--text-dim); white-space: nowrap; }
   .sv { font-size: clamp(11px, 2.5vw, 14px); height: auto; font-weight: bold; white-space: nowrap; letter-spacing: -0.5px;}
 
-  .legend-wrap { padding: 10px 8px; height: auto; min-height: 48px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; justify-content: center; }
-  .legend-group { font-size: 10px; gap: 6px 10px; flex-wrap: wrap; justify-content: center; white-space: normal; }
+  .legend-wrap { padding: 10px 8px; height: auto; min-height: 48px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
+  .legend-group { font-size: 10px; gap: 6px 10px; }
   .ldot, .lsq { width: 10px; height: 10px; }
   .lline { width: 16px; }
   
@@ -257,23 +256,23 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     </div>
 
     <div id="lc">
-      <div class="stitle">直线参数</div>
+      <div class="stitle">直线参数 (全象限支持)</div>
       <div class="card">
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:12px">
-          <div><div class="ilabel">终点 X</div><input class="ifield coord-input" type="number" id="lxe" value="6" min="1" max="15"></div>
-          <div><div class="ilabel">终点 Y</div><input class="ifield coord-input" type="number" id="lye" value="4" min="1" max="15"></div>
+          <div><div class="ilabel">终点 X</div><input class="ifield coord-input" type="number" id="lxe" value="-6" max="15" min="-15"></div>
+          <div><div class="ilabel">终点 Y</div><input class="ifield coord-input" type="number" id="lye" value="4" max="15" min="-15"></div>
           <div><div class="ilabel" style="color:var(--accent)">位数 n ⚡</div><input class="ifield" type="number" id="nb" value="3" min="2" max="5"></div>
         </div>
         <div class="fbox">
-          <div class="fh">被积函数：JVx=<span class="fvx">Xe</span>，JVy=<span class="fvy">Ye</span></div>
-          <div>Rx += <span class="fvx">Xe</span> &nbsp;→ 溢出则输出 <span class="fvx">ΔX</span></div>
-          <div>Ry += <span class="fvy">Ye</span> &nbsp;→ 溢出则输出 <span class="fvy">ΔY</span></div>
+          <div class="fh">被积函数：JVx=|<span class="fvx">Xe</span>|, JVy=|<span class="fvy">Ye</span>|</div>
+          <div>Rx += JVx &nbsp;→ 溢出则 X 进给 (由Xe符号决定)</div>
+          <div>Ry += JVy &nbsp;→ 溢出则 Y 进给 (由Ye符号决定)</div>
         </div>
       </div>
     </div>
 
     <div id="ac" style="display:none">
-      <div class="stitle">圆弧参数 (第一象限)</div>
+      <div class="stitle">圆弧参数 (全象限支持)</div> 
       <div class="card">
         <div style="display:grid; grid-template-columns:3fr 2fr; gap:6px; margin-bottom:10px">
           <div>
@@ -295,9 +294,12 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
           <div style="flex:1"><div class="ilabel">终Y</div><input class="ifield coord-input" type="number" id="aye" value="5"></div>
         </div>
         <div class="fbox">
-          <div class="fh">JVx=|<span class="fvy">y</span>|, JVy=|<span class="fvx">x</span>|</div>
-          <div>逆: Rx满→<span class="fvx">-X</span>, Ry满→<span class="fvy">+Y</span></div>
-          <div>顺: Rx满→<span class="fvx">+X</span>, Ry满→<span class="fvy">-Y</span></div>
+          <div class="fh">被积函数：JVx=|<span class="fvy">y</span>|, JVy=|<span class="fvx">x</span>|</div>
+          <div style="font-size:11px; line-height:1.5; margin-top:4px;">
+            进给方向由<b>当前象限</b>与<b>旋转方向</b>共同决定：<br>
+            • 逆圆 Q1(X>0,Y>0)：<span class="fvx">-X</span>, <span class="fvy">+Y</span><br>
+            • 顺圆 Q3(X<0,Y<0)：<span class="fvx">-X</span>, <span class="fvy">+Y</span>
+          </div>
         </div>
       </div>
     </div>
@@ -451,44 +453,127 @@ function setDir(d,el){
   el.classList.add('active');
 }
 
-function calcLine(xe,ye,n){
-  let mod=Math.pow(2,n),Rx=0,Ry=0,x=0,y=0;
-  let JVx=xe,JVy=ye; let s=[]; let remX=xe, remY=ye; 
-  s.push({k:0,x,y,Rx,Ry,oRx:0,aX:0,nRx:0,ovX:false,dx:0,oRy:0,aY:0,nRy:0,ovY:false,dy:0,JVx,JVy,mod, det:`初始化：JVx=${JVx}，JVy=${JVy}，模数2ⁿ=${mod}，Rx=Ry=0`});
-  let k=0;
-  while(remX > 0 || remY > 0){
-    k++; let oRx=Rx, oRy=Ry; let nRxR=Rx+JVx, nRyR=Ry+JVy; let ovX=nRxR>=mod, ovY=nRyR>=mod;
-    if(remX <= 0) { ovX = false; nRxR = oRx; } if(remY <= 0) { ovY = false; nRyR = oRy; }
-    let fRx=ovX?nRxR-mod:nRxR; let fRy=ovY?nRyR-mod:nRyR; let dx=ovX?1:0, dy=ovY?1:0;
-    Rx=fRx; Ry=fRy; x+=dx; y+=dy; if(ovX) remX--; if(ovY) remY--;
-    s.push({k,x,y,Rx,Ry,oRx,aX:remX<=0&&!ovX?0:JVx,nRx:nRxR,fRx,ovX,dx, oRy,aY:remY<=0&&!ovY?0:JVy,nRy:nRyR,fRy,ovY,dy,JVx,JVy,mod,
-      det:`Rx:${oRx}+${JVx}=${nRxR}${ovX?' →溢出! 归'+fRx+' →ΔX↑':''} | Ry:${oRy}+${JVy}=${nRyR}${ovY?' →溢出! 归'+fRy+' →ΔY↑':''}`});
-    if(k>500) break; 
-  } return s;
+function calcLine(xe, ye, n) {
+  let mod = Math.pow(2, n), Rx = 0, Ry = 0, x = 0, y = 0;
+  // 被积函数取终点坐标的绝对值
+  let JVx = Math.abs(xe), JVy = Math.abs(ye); 
+  let s = []; 
+  // 剩余步长取绝对值
+  let remX = Math.abs(xe), remY = Math.abs(ye); 
+  
+  // 动态判断进给方向：根据终点坐标正负决定加1还是减1
+  let incX = xe >= 0 ? 1 : -1;
+  let incY = ye >= 0 ? 1 : -1;
+
+  s.push({
+    k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0, 
+    oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod, 
+    det: `初始化：终点(${xe},${ye})，JVx=|${xe}|=${JVx}，JVy=|${ye}|=${JVy}，2ⁿ=${mod}`
+  });
+  
+  let k = 0;
+  while (remX > 0 || remY > 0) {
+    k++; 
+    let oRx = Rx, oRy = Ry; 
+    let nRxR = Rx + JVx, nRyR = Ry + JVy; 
+    let ovX = nRxR >= mod, ovY = nRyR >= mod;
+    
+    if (remX <= 0) { ovX = false; nRxR = oRx; } 
+    if (remY <= 0) { ovY = false; nRyR = oRy; }
+    
+    let fRx = ovX ? nRxR - mod : nRxR; 
+    let fRy = ovY ? nRyR - mod : nRyR; 
+    
+    // 如果溢出，则按照之前判断好的方向进行位移
+    let dx = ovX ? incX : 0;
+    let dy = ovY ? incY : 0;
+    
+    Rx = fRx; Ry = fRy; 
+    x += dx; y += dy; 
+    
+    // 扣减剩余步长
+    if (ovX && dx !== 0) remX--; 
+    if (ovY && dy !== 0) remY--;
+    
+    s.push({
+      k, x, y, Rx, Ry, oRx, aX: (remX <= 0 && !ovX) ? 0 : JVx, nRx: nRxR, fRx, ovX, dx, 
+      oRy, aY: (remY <= 0 && !ovY) ? 0 : JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
+      det: `Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→ X进给(${dx>0?'+':'-'}1)` : ''}; Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→ Y进给(${dy>0?'+':'-'}1)` : ''}`
+    });
+    if (k > 500) break; 
+  } 
+  return s;
 }
 
-function calcArc(xs,ys,xe,ye,n){
-  let mod=Math.pow(2,n), Rx=0, Ry=0, x=xs, y=ys;
-  let JVx=Math.abs(ys), JVy=Math.abs(xs); let s=[]; let remX=Math.abs(xe-xs), remY=Math.abs(ye-ys);
-  s.push({k:0,x,y,Rx,Ry,oRx:0,aX:0,nRx:0,ovX:false,dx:0,oRy:0,aY:0,nRy:0,ovY:false,dy:0,JVx,JVy,mod, det:`初始化：起点(${xs},${ys})，JVx=|Ys|=${JVx}，JVy=|Xs|=${JVy}，2ⁿ=${mod}`});
-  let k=0;
-  while(remX > 0 || remY > 0){
-    k++; JVx=Math.abs(y); JVy=Math.abs(x); let oRx=Rx, oRy=Ry; let nRxR=Rx+JVx, nRyR=Ry+JVy; let ovX=nRxR>=mod, ovY=nRyR>=mod;
-    if(remX <= 0) { ovX = false; nRxR = oRx; } if(remY <= 0) { ovY = false; nRyR = oRy; }
-    let fRx=ovX?nRxR-mod:nRxR; let fRy=ovY?nRyR-mod:nRyR; let dx=0, dy=0;
-    if (arcDir === 'NR') { if(ovX){ dx = -1; remX--; } if(ovY){ dy = 1; remY--; } } 
-    else { if(ovX){ dx = 1; remX--; } if(ovY){ dy = -1; remY--; } }
-    Rx=fRx; Ry=fRy; x+=dx; y+=dy;
-    s.push({k,x,y,Rx,Ry,oRx,aX:remX<=0&&!ovX?0:JVx,nRx:nRxR,fRx,ovX,dx, oRy,aY:remY<=0&&!ovY?0:JVy,nRy:nRyR,fRy,ovY,dy,JVx,JVy,mod,
-      det:`Rx:${oRx}+${JVx}=${nRxR}${ovX?' →溢出→ X进给':''}; Ry:${oRy}+${JVy}=${nRyR}${ovY?' →溢出→ Y进给':''}`});
-    if(k>500) break; 
-  } return s;
+function calcArc(xs, ys, xe, ye, n) {
+  let mod = Math.pow(2, n), Rx = 0, Ry = 0, x = xs, y = ys;
+  let JVx = Math.abs(ys), JVy = Math.abs(xs); 
+  let s = []; 
+  // 采用总步长法作为终点判别
+  let remX = Math.abs(xe - xs), remY = Math.abs(ye - ys);
+  
+  s.push({
+    k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0, 
+    oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod, 
+    det: `初始化：起点(${xs},${ys})，JVx=|Ys|=${JVx}，JVy=|Xs|=${JVy}，2ⁿ=${mod}`
+  });
+  
+  let k = 0;
+  let isCCW = (arcDir === 'NR'); // 判断是否为逆圆
+
+  while (remX > 0 || remY > 0) {
+    k++; 
+    JVx = Math.abs(y); 
+    JVy = Math.abs(x); 
+    
+    let oRx = Rx, oRy = Ry; 
+    let nRxR = Rx + JVx, nRyR = Ry + JVy; 
+    let ovX = nRxR >= mod, ovY = nRyR >= mod;
+    
+    // 如果该轴已经到达终点步数，则停止该轴的累加和溢出
+    if (remX <= 0) { ovX = false; nRxR = oRx; } 
+    if (remY <= 0) { ovY = false; nRyR = oRy; }
+    
+    let fRx = ovX ? nRxR - mod : nRxR; 
+    let fRy = ovY ? nRyR - mod : nRyR; 
+    let dx = 0, dy = 0;
+    
+    // 核心修改：动态判断四象限进给方向
+    if (isCCW) { // 逆时针 (NR)
+      if (x > 0 && y >= 0)      { if(ovX) dx = -1; if(ovY) dy = 1; }  // 第一象限 & +X轴
+      else if (x <= 0 && y > 0) { if(ovX) dx = -1; if(ovY) dy = -1; } // 第二象限 & +Y轴
+      else if (x < 0 && y <= 0) { if(ovX) dx = 1;  if(ovY) dy = -1; } // 第三象限 & -X轴
+      else if (x >= 0 && y < 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  // 第四象限 & -Y轴
+    } else { // 顺时针 (SR)
+      if (x >= 0 && y > 0)      { if(ovX) dx = 1;  if(ovY) dy = -1; } // 第一象限 & +Y轴
+      else if (x < 0 && y >= 0) { if(ovX) dx = 1;  if(ovY) dy = 1; }  // 第二象限 & -X轴
+      else if (x <= 0 && y < 0) { if(ovX) dx = -1; if(ovY) dy = 1; }  // 第三象限 & -Y轴
+      else if (x > 0 && y <= 0) { if(ovX) dx = -1; if(ovY) dy = -1; } // 第四象限 & +X轴
+    }
+
+    // 只有在发生有效位移时，才扣减剩余步长
+    if (ovX && dx !== 0) remX--; 
+    if (ovY && dy !== 0) remY--;
+    
+    Rx = fRx; Ry = fRy; 
+    x += dx; y += dy;
+    
+    s.push({
+      k, x, y, Rx, Ry, oRx, aX: (remX <= 0 && !ovX) ? 0 : JVx, nRx: nRxR, fRx, ovX, dx, 
+      oRy, aY: (remY <= 0 && !ovY) ? 0 : JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
+      det: `Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→ X进给(${dx>0?'+':'-'}1)` : ''}; Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→ Y进给(${dy>0?'+':'-'}1)` : ''}`
+    });
+    
+    // 防止死循环的兜底逻辑
+    if (k > 1000) break; 
+  } 
+  return s;
 }
 
 function initSim(){
   stopAuto();steps=[]; autoCalcN(); 
   if(mode==='line'){
-    let xe=clamp(num('lxe',6),1,15),ye=clamp(num('lye',4),1,15),n=clamp(num('nb',3),2,5);
+    let xe=clamp(num('lxe',-6),-15,15),ye=clamp(num('lye',4),-15,15),n=clamp(num('nb',3),2,5);
     steps=calcLine(xe,ye,n);
   } else {
     let xs=clamp(num('axs',5),-15,15),ys=clamp(num('ays',0),-15,15);
@@ -609,7 +694,7 @@ function resize(){
 
 function gp(){
   let xe,ye,xs=0,ys=0;
-  if(mode==='line'){ xe=num('lxe',6); ye=num('lye',4); } 
+  if(mode==='line'){ xe=num('lxe',-6); ye=num('lye',4); } 
   else { xs=num('axs',5); ys=num('ays',0); xe=num('axe',0); ye=num('aye',5); }
   
   let w = canvasW || cv.parentElement.clientWidth || 300;
@@ -705,7 +790,7 @@ function drawScene(idx){
   drawGrid(); let { gs, isMobile } = gp();
 
   if(mode==='line'){
-    let xe=num('lxe',6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
+    let xe=num('lxe',-6), ye=num('lye',4), p0=toC(0,0),pe=toC(xe,ye);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(p0.cx,p0.cy);ctx.lineTo(pe.cx,pe.cy);ctx.stroke();ctx.restore();
     let{cx,cy}=pe; ctx.fillStyle='#16a34a';ctx.beginPath();ctx.arc(cx,cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
