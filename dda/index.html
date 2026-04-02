@@ -705,41 +705,64 @@ function calcLine(xe, ye, n) {
 // ================================================================
 // 圆弧插补计算（支持全象限 & 跨象限，自适应进给方向）
 // ================================================================
+// 【终止原理】
+//   DDA 圆弧插补的标准终止方式是"进给步数计数法"：
+//   总步数 Nsp = |xe - xs| + |ye - ys|（曼哈顿距离）
+//   X 积分器溢出一次 → 消耗一步（remX--）
+//   Y 积分器溢出一次 → 消耗一步（remY--）
+//   remX 和 remY 同时归零时停止，与坐标值是否匹配无关。
+//
+// 【进给方向原理】
+//   JVx = |y_cur|（当前点 y 坐标绝对值）
+//   JVy = |x_cur|（当前点 x 坐标绝对值）
+//   溢出时按所在象限选择进给符号：
+//     逆圆 NR: Q1→(-X,+Y), Q2→(-X,-Y), Q3→(+X,-Y), Q4→(+X,+Y)
+//     顺圆 SR: Q1→(+X,-Y), Q2→(+X,+Y), Q3→(-X,+Y), Q4→(-X,-Y)
+//   跨象限时，坐标过轴后象限自动切换，进给方向随之切换。
+// ================================================================
 function calcArc(xs, ys, xe, ye, n) {
   let mod = Math.pow(2, n);
   let Rx = 0, Ry = 0, x = xs, y = ys;
-  let R2 = xs * xs + ys * ys;  // 目标半径平方（验证用）
+  let R = Math.sqrt(xs*xs + ys*ys);
 
-  // 计算总步数（曼哈顿距离估计）
-  // 实际通过比较终点检测是否到达
+  // ── 终止计数：曼哈顿步数，分 X/Y 两个方向独立倒计 ──
+  // remX = |xe - xs|：X 方向还需输出多少步
+  // remY = |ye - ys|：Y 方向还需输出多少步
+  let remX = Math.abs(xe - xs);
+  let remY = Math.abs(ye - ys);
+  let Nsp  = remX + remY;   // 总步数（用于显示）
+
   let s = [];
-  let JVx = Math.abs(ys), JVy = Math.abs(xs);
+  let JVx = Math.abs(y), JVy = Math.abs(x);
 
   s.push({
     k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0,
     oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod,
-    det: `初始化：起点(${xs},${ys})，终点(${xe},${ye})，R=${Math.sqrt(R2).toFixed(2)}，JVx=|y|=${JVx}，JVy=|x|=${JVy}，2ⁿ=${mod}`
+    det: `初始化：起(${xs},${ys})→终(${xe},${ye})，R=${R.toFixed(2)}，Nsp=${Nsp}(remX=${remX},remY=${remY})，2ⁿ=${mod}`
   });
 
   let k = 0;
-  // 终止条件：到达终点（坐标匹配）
-  while (!(x === xe && y === ye)) {
+  // ── 终止条件：X 和 Y 方向剩余步数均归零 ──
+  while (remX > 0 || remY > 0) {
     k++;
-    // 更新 JVx, JVy（基于当前坐标绝对值）
+
+    // 每步开始时，用当前坐标更新被积函数值
     JVx = Math.abs(y);
     JVy = Math.abs(x);
 
     let oRx = Rx, oRy = Ry;
-    let nRxR = Rx + JVx;
-    let nRyR = Ry + JVy;
-    let ovX = nRxR >= mod;
-    let ovY = nRyR >= mod;
-    let fRx = ovX ? nRxR - mod : nRxR;
-    let fRy = ovY ? nRyR - mod : nRyR;
+    // 若某方向已耗尽步数，停止对该积分器累加（冻结）
+    let addX = remX > 0 ? JVx : 0;
+    let addY = remY > 0 ? JVy : 0;
+    let nRxR = Rx + addX;
+    let nRyR = Ry + addY;
+    let ovX  = remX > 0 && nRxR >= mod;
+    let ovY  = remY > 0 && nRyR >= mod;
+    let fRx  = ovX ? nRxR - mod : nRxR;
+    let fRy  = ovY ? nRyR - mod : nRyR;
 
-    // 根据当前点所在象限决定进给方向
+    // 根据当前点象限决定进给方向
     let quad = getPointQuadrant(x, y);
-    // 边界处理：轴上的点按方向预判
     if (quad === 0) quad = predictBoundaryQuad(x, y, arcDir);
 
     let feed = getArcFeedDelta(quad, arcDir);
@@ -747,23 +770,20 @@ function calcArc(xs, ys, xe, ye, n) {
     let dy = ovY ? feed.dy : 0;
 
     Rx = fRx; Ry = fRy;
-    let nx = x + dx, ny = y + dy;
-
-    // 防止越过终点（锁定单轴）
-    if (ovX && nx !== xe) { /* 允许移动 */ }
-    if (ovY && ny !== ye) { /* 允许移动 */ }
-
-    x = nx; y = ny;
+    x += dx; y += dy;
+    if (ovX) remX--;   // X 方向消耗一步
+    if (ovY) remY--;   // Y 方向消耗一步
 
     let quadLabel = quad ? `Q${quad}` : 'Axis';
     s.push({
       k, x, y, Rx, Ry, oRx,
-      aX: JVx, nRx: nRxR, fRx, ovX, dx,
-      oRy, aY: JVy, nRy: nRyR, fRy, ovY, dy,
+      aX: addX, nRx: nRxR, fRx, ovX, dx,
+      oRy, aY: addY, nRy: nRyR, fRy, ovY, dy,
       JVx, JVy, mod, quad,
-      det: `[${quadLabel}] Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→X${dx>0?'+':dx<0?'-':'0'}1` : ''} | Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→Y${dy>0?'+':dy<0?'-':'0'}1` : ''}`
+      remX, remY,
+      det: `[${quadLabel}|剩X:${remX},Y:${remY}] Rx:${oRx}+${addX}=${nRxR}${ovX?` →溢出→X${dx>0?'+':'-'}1`:''} | Ry:${oRy}+${addY}=${nRyR}${ovY?` →溢出→Y${dy>0?'+':'-'}1`:''}`
     });
-    if (k > 2000) break;
+    if (k > 3000) break;  // 安全上限
   }
   return s;
 }
@@ -800,7 +820,8 @@ function initSim() {
     let R1 = Math.round(Math.sqrt(xs*xs+ys*ys)*100)/100;
     let R2 = Math.round(Math.sqrt(xe*xe+ye*ye)*100)/100;
     if (xs === xe && ys === ye) { setSt('⚠️ 起终点相同'); return; }
-    if (Math.abs(R1-R2) > 1.5) { setSt(`⚠️ 起终点半径不等(${R1} vs ${R2})`); return; }
+    let Rmax = Math.max(R1, R2);
+    if (Rmax > 0.1 && Math.abs(R1-R2)/Rmax > 0.15) { setSt(`⚠️ 起终点半径差异过大(${R1} vs ${R2})，建议修正`); return; }
     steps = calcArc(xs, ys, xe, ye, n);
   }
   inited = true; cur = 0; renderStep(0); updTbl(0); setSt('已初始化，准备开始');
@@ -887,12 +908,16 @@ function renderStep(idx) {
   } else {
     let xDirStr = s.dx !== 0 ? (s.dx > 0 ? '+X' : '-X') : '';
     let yDirStr = s.dy !== 0 ? (s.dy > 0 ? '+Y' : '-Y') : '';
+    let remInfo = (mode === 'arc' && s.remX !== undefined)
+      ? `<div class="drow"><div class="dlbl"><div class="dnum">4</div>剩余步数</div><div class="dval" style="font-size:13px">X剩<span style="color:var(--x-color);margin:0 4px">${s.remX}</span>步 &nbsp; Y剩<span style="color:var(--y-color);margin:0 4px">${s.remY}</span>步</div></div>`
+      : '';
     dc.innerHTML = `
       <div class="drow"><div class="dlbl"><div class="dnum">1</div>X 积分器累加</div><div class="dval" style="color:var(--x-color)">${s.oRx} + ${s.aX} = ${s.nRx}</div></div>
       <div style="margin:0 0 8px 32px;font-size:12px;color:${s.ovX?'var(--green)':'var(--text-dim)'};font-weight:${s.ovX?600:400}">${s.ovX?`✅ 溢出(≥${mod})! Rx←${s.fRx}，输出 ${xDirStr||'ΔX'}`:`❌ 未溢出(<${mod})，Rx=${s.fRx}`}</div>
       <div class="drow"><div class="dlbl"><div class="dnum">2</div>Y 积分器累加</div><div class="dval" style="color:var(--y-color)">${s.oRy} + ${s.aY} = ${s.nRy}</div></div>
       <div style="margin:0 0 8px 32px;font-size:12px;color:${s.ovY?'var(--green)':'var(--text-dim)'};font-weight:${s.ovY?600:400}">${s.ovY?`✅ 溢出(≥${mod})! Ry←${s.fRy}，输出 ${yDirStr||'ΔY'}`:`❌ 未溢出(<${mod})，Ry=${s.fRy}`}</div>
       <div class="drow"><div class="dlbl"><div class="dnum">3</div>当前坐标</div><div class="dval">X=<span style="color:var(--x-color)">${s.x}</span>, Y=<span style="color:var(--y-color)">${s.y}</span></div></div>
+      ${remInfo}
       <div class="dnote">${s.det}</div>`;
   }
   drawScene(idx);
