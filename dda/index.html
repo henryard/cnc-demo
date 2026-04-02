@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>数字积分法（DDA）插补演示</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<title>逐点比较法插补演示</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
 
@@ -18,14 +18,13 @@
   --text-mid:  #4b5563;
   --text-dim:  #6b7280;
   
-  --accent:    #7c3aed; 
-  --accent-lt: #f5f3ff;
-  --x-color:   #2563eb; 
-  --y-color:   #0d9488; 
-  --green:     #16a34a; 
-  --green-lt:  #f0fdf4;
+  --accent:    #2563eb; 
+  --accent-lt: #eff6ff;
+  --red:       #dc2626; 
   --orange:    #ea580c; 
   --orange-lt: #fff7ed;
+  --green:     #16a34a; 
+  --green-lt:  #f0fdf4;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow:    0 4px 6px -1px rgba(0, 0, 0, 0.08);
@@ -39,31 +38,17 @@
 
 *{box-sizing:border-box;margin:0;padding:0;}
 
-html, body { 
-  background:var(--bg); color:var(--text); 
-  font-family:'Noto Sans SC',sans-serif; font-size:15px; 
-  line-height:1.5; 
-  -webkit-text-size-adjust: 100%;
-}
+html, body { background:var(--bg); color:var(--text); font-family:'Noto Sans SC',sans-serif; font-size:15px; line-height:1.5; -webkit-text-size-adjust: 100%; }
 body { height: 100vh; overflow: hidden; }
 button, input, select, a { touch-action: manipulation; }
 
-.layout {
-  display: grid;
-  grid-template-columns: clamp(260px, 22vw, 330px) minmax(400px, 1fr) clamp(340px, 28vw, 480px);
-  height: 100vh;
-}
+.layout { display: grid; grid-template-columns: clamp(260px, 22vw, 330px) minmax(400px, 1fr) clamp(340px, 28vw, 480px); height: 100vh; }
 
 .panel-left{ background:var(--surface); border-right:1px solid var(--border); padding:16px; display:flex; flex-direction:column; height: 100vh; overflow:hidden; box-shadow: 4px 0 15px rgba(0,0,0,0.02); z-index: 10; }
 .panel-top { display: flex; flex-direction: column; gap: 14px; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; }
 .panel-top::-webkit-scrollbar { display: none; }
 
-.back-link {
-  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
-  font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none; 
-  padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 8px; transition: all 0.2s ease; box-shadow: var(--shadow-sm);
-}
+.back-link { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none; padding: 6px 12px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
 .back-link:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-lt); }
 .back-link svg { transition: transform 0.2s ease; }
 .back-link:hover svg { transform: translateX(-3px); }
@@ -82,26 +67,14 @@ button, input, select, a { touch-action: manipulation; }
 .coord-input::-webkit-outer-spin-button, .coord-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .coord-input { -moz-appearance: textfield; }
 
-.fbox{ background:var(--accent-lt); border:1px solid #d8b4fe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
+.fbox{ background:var(--accent-lt); border:1px solid #bfdbfe; border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; color:var(--text-mid); margin-top:10px;}
 .fh{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:4px;}
-.fvx{color:var(--x-color); font-weight:700;}
-.fvy{color:var(--y-color); font-weight:700;}
+.fvx{color:var(--red); font-weight:700;}
+.fvy{color:var(--orange); font-weight:700;}
 .qbtn{ padding:6px 2px; background:var(--surface2); border:1px solid var(--border); color:var(--text-mid); border-radius:4px; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
 .qbtn.active{border-color:var(--accent); color:var(--accent); background:var(--accent-lt);}
 .spslider{flex:1; -webkit-appearance:none; height:4px; background:var(--border2); border-radius:2px; outline:none;}
 .spslider::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; background:var(--surface); border:2px solid var(--accent); border-radius:50%; cursor:pointer; box-shadow:var(--shadow-sm);}
-
-.reg-block{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:0 10px; height: 80px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
-.reg-title{font-size:11px; font-weight:700; color:var(--text-mid); margin-bottom:6px; font-family:'JetBrains Mono',monospace;}
-.reg-row{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
-.reg-row:last-child{margin-bottom:0;}
-.reg-lbl{font-size:12px; font-family:'JetBrains Mono',monospace; font-weight:700; width:18px;}
-.reg-track{flex:1; height:14px; background:var(--border); border-radius:3px; overflow:hidden;}
-.reg-fill{height:100%; border-radius:3px; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; font-size:10px; font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; transition:width .2s ease; min-width:0;}
-.reg-num{font-size:12px; font-family:'JetBrains Mono',monospace; font-weight:700; width:24px; text-align:right;}
-.ovf-badge{font-size:10px; padding:2px 4px; border-radius:4px; font-weight:700; width:36px; text-align:center;}
-.ovf-yes{background:var(--green-lt); color:var(--green); border:1px solid var(--green);}
-.ovf-no {background:var(--surface); color:var(--text-dim); border:1px solid var(--border2);}
 
 .action-area {flex: 0 0 auto; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;}
 .brow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
@@ -133,13 +106,12 @@ button, input, select, a { touch-action: manipulation; }
 .leg{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-mid); font-weight:500;}
 .ldot{width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;}
 .lline{width:24px; height:3px; border-radius:2px; display:inline-block; flex-shrink:0;}
-.lsq{width:12px; height:12px; border-radius:2px; display:inline-block; flex-shrink:0;}
 
 .canvas-wrap { flex: 1 1 0; width: 100%; position: relative; min-height: 0; overflow: hidden; }
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 
 .panel-right{background:var(--surface); display:flex; flex-direction:column; height: 100vh; overflow:hidden;}
-.rhead{ height: 60px; padding: 0 24px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+.rhead{ height: 60px; padding: 0 20px; background:var(--surface); color:var(--text); font-size:16px; font-weight:700; border-bottom:1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
 .rhead-actions { display: flex; align-items: center; gap: 12px; }
 .rhead-badge {font-size: 12px; background: var(--accent-lt); color: var(--accent); padding: 4px 10px; border-radius: 12px; font-weight: 600;}
 
@@ -155,7 +127,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 .stab tr.done td{color:var(--text-mid);}
 
 .sdetail{ flex: 0 0 280px; height: 280px; box-sizing: border-box; overflow-y: auto; border-top:1px solid var(--border); padding:20px 24px; background:var(--surface); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 10; }
-.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--accent); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.sdtitle{font-size:15px; font-weight:700; letter-spacing:1px; color:var(--orange); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
 .drow{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px;}
 .dlbl{color:var(--text-mid); display:flex; align-items:center; gap:10px; font-weight: 500;}
 .dnum{ width:22px; height:22px; background:var(--surface2); color:var(--text-dim); border:1px solid var(--border2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
@@ -172,34 +144,26 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 100px; }
   .layout { display: flex; flex-direction: column; height: auto; }
   .panel-left, .panel-center, .panel-right { height: auto !important; overflow: visible !important; }
-  
   .panel-left { order: 1; width: 100%; display: block; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; padding: 20px 12px 24px 12px; }
   .panel-top { display: flex; flex-direction: column; gap: 20px; height: auto; overflow: visible; }
-
   .panel-center { order: 0; width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
-  
   .ctoolbar { padding: 12px 16px; height: auto; }
   .top-badge { font-size: 11px; padding: 4px 8px; }
-  
   .sbar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; padding: 12px 0; border-bottom: 1px solid var(--border); background: var(--surface); width: 100%; box-sizing: border-box; height: auto; }
   .si { border-right: 1px solid var(--border2); padding: 0 1px; min-width: 0; overflow: hidden; }
   .si:last-child { border-right: none; }
   .sk { font-size: clamp(9px, 2vw, 11px); margin-bottom: 2px; color: var(--text-dim); white-space: nowrap; }
   .sv { font-size: clamp(11px, 2.5vw, 14px); height: auto; font-weight: bold; white-space: nowrap; letter-spacing: -0.5px;}
-
   .legend-wrap { padding: 10px 8px; height: auto; min-height: 48px; border-bottom: none; background: transparent; width: 100%; box-sizing: border-box; }
   .legend-group { font-size: 10px; gap: 6px 10px; justify-content: center; width: 100%; flex-wrap: wrap;}
   .ldot, .lsq { width: 10px; height: 10px; }
   .lline { width: 16px; }
-  
   .canvas-wrap { flex: none; height: 380px !important; width: 100%; }
   .fs-btn { display: none !important; }
-
   .panel-right { order: 3; width: 100%; display: block; }
   .rhead { padding: 16px; height: auto; }
   .twrap { max-height: 400px; overflow-y: auto; } 
   .sdetail { height: auto; max-height: none; padding: 24px 16px; }
-
   .action-area { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 10px 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: row; gap: 0; }
   .action-area .brow { display: contents; }
   .btn { flex: 1; padding: 12px 0; margin: 0 4px; font-size: 14px; border-radius: 14px; justify-content: center;}
@@ -225,49 +189,45 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     </div>
 
     <div id="lc">
-      <div class="stitle">直线参数 (全象限支持)</div>
+      <div class="stitle">直线参数 (第一象限默认)</div>
       <div class="card">
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:12px">
-          <div><div class="ilabel">终点 X</div><input class="ifield coord-input" type="number" id="lxe" value="6" max="15" min="-15"></div>
-          <div><div class="ilabel">终点 Y</div><input class="ifield coord-input" type="number" id="lye" value="4" max="15" min="-15"></div>
-          <div><div class="ilabel" style="color:var(--accent)">位数 n ⚡</div><input class="ifield" type="number" id="nb" value="3" min="2" max="10"></div>
+        <div style="display:flex; gap:12px; margin-bottom:12px">
+          <div style="flex:1"><div class="ilabel">终点 Xe</div><input class="ifield coord-input" type="number" id="lxe" value="6"></div>
+          <div style="flex:1"><div class="ilabel">终点 Ye</div><input class="ifield coord-input" type="number" id="lye" value="4"></div>
         </div>
         <div class="fbox">
-          <div class="fh">被积函数：JVx=|<span class="fvx">Xe</span>|, JVy=|<span class="fvy">Ye</span>|</div>
-          <div>Rx += JVx &nbsp;→ 溢出则 X 进给 (由Xe符号决定)</div>
-          <div>Ry += JVy &nbsp;→ 溢出则 Y 进给 (由Ye符号决定)</div>
+          <div class="fh">偏差 F = |X<sub>e</sub>|·Y<sub>i</sub> − |Y<sub>e</sub>|·X<sub>i</sub></div>
+          <div>F ≥ 0 → 进给 X 轴(方向同Xe)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F<sub>新</sub> = F <span class="fvx">− |Ye|</span></div>
+          <div>F &lt; 0 → 进给 Y 轴(方向同Ye)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;F<sub>新</sub> = F <span class="fvy">+ |Xe|</span></div>
+          <div style="color:var(--text-dim);margin-top:8px;font-size:12px">总步数 N = |Xe| + |Ye|</div>
         </div>
       </div>
     </div>
 
     <div id="ac" style="display:none">
-      <div class="stitle">圆弧参数 (全象限跨界支持)</div> 
+      <div class="stitle">圆弧参数 (第一象限默认)</div>
       <div class="card">
-        <div style="display:grid; grid-template-columns:3fr 2fr; gap:6px; margin-bottom:10px">
-          <div>
-            <div class="ilabel">圆弧走向</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px">
-              <button class="qbtn active" onclick="setDir('NR',this)">↺ 逆圆</button>
-              <button class="qbtn" onclick="setDir('SR',this)">↻ 顺圆</button>
-            </div>
-          </div>
-          <div>
-            <div class="ilabel" style="color:var(--accent)">位数 n ⚡</div>
-            <input class="ifield" type="number" id="nba" value="3" min="2" max="10">
-          </div>
+        <div class="ilabel">圆弧走向</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px">
+          <button class="qbtn active" onclick="setDir('NR',this)">↺ 逆圆</button>
+          <button class="qbtn" onclick="setDir('SR',this)">↻ 顺圆</button>
         </div>
-        <div style="display:flex; gap:6px; margin-bottom:12px">
+        <div style="display:flex; gap:8px; margin-bottom:12px">
           <div style="flex:1"><div class="ilabel">起X</div><input class="ifield coord-input" type="number" id="axs" value="5"></div>
           <div style="flex:1"><div class="ilabel">起Y</div><input class="ifield coord-input" type="number" id="ays" value="0"></div>
           <div style="flex:1"><div class="ilabel">终X</div><input class="ifield coord-input" type="number" id="axe" value="0"></div>
           <div style="flex:1"><div class="ilabel">终Y</div><input class="ifield coord-input" type="number" id="aye" value="5"></div>
         </div>
+        
         <div class="fbox">
-          <div class="fh">被积函数：JVx=|<span class="fvy">y</span>|, JVy=|<span class="fvx">x</span>|</div>
-          <div style="font-size:11px; line-height:1.5; margin-top:4px;">
-            进给方向由<b>当前象限</b>与<b>旋转方向</b>共同决定：<br>
-            • 逆圆 Q1(X>0,Y>0)：<span class="fvx">-X</span>, <span class="fvy">+Y</span><br>
-            • 顺圆 Q3(X<0,Y<0)：<span class="fvx">-X</span>, <span class="fvy">+Y</span>
+          <div class="fh" style="font-family:'JetBrains Mono',monospace; margin-bottom:8px;">偏差 F = X<sub>i</sub>² + Y<sub>i</sub>² - R²</div>
+          <div style="font-size:11px; line-height:1.5;">
+            基于当前坐标(x,y)及象限判定：<br>
+            • <b>F ≥ 0 (圆外)</b>：向圆心靠拢<br>
+            • <b>F &lt; 0 (圆内)</b>：向圆外扩展<br>
+            • <b>F<sub>新</sub></b>：根据进给轴(±X或±Y)做差分运算：<br>
+            &nbsp;&nbsp; 若移 ±X，F<sub>新</sub> = F ± 2x + 1<br>
+            &nbsp;&nbsp; 若移 ±Y，F<sub>新</sub> = F ± 2y + 1<br>
           </div>
         </div>
       </div>
@@ -275,21 +235,14 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 
     <div>
       <div class="stitle">演示速度</div>
-      <div class="card" style="padding:12px 16px; display:flex; align-items:center; gap:16px;">
+      <div class="card" style="padding:14px 16px; display:flex; align-items:center; gap:16px;">
         <span style="font-size:13px;color:var(--text-dim);font-weight:600">慢</span>
         <input type="range" class="spslider" id="speed" min="100" max="2000" value="800">
         <span style="font-size:13px;color:var(--text-dim);font-weight:600">快</span>
       </div>
     </div>
-
-    <div>
-      <div class="stitle">积分器状态 (实时)</div>
-      <div class="reg-block" id="regvis">
-        <div style="color:var(--text-dim);font-size:12px;text-align:center;">等待开始演示...</div>
-      </div>
-    </div>
   </div>
-
+  
   <div class="action-area">
     <div class="brow">
       <button class="btn btn-reset" onclick="resetSim()">↺ 重置</button>
@@ -304,7 +257,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 
 <div class="panel-center">
   <div class="ctoolbar">
-    <span class="ctitle">⚡ 数字积分法插补</span>
+    <span class="ctitle">📐 逐点比较法插补</span>
     <div class="c-actions">
        <span class="top-badge" id="st-badge">等待开始</span>
        <button id="fsBtn" class="fs-btn" onclick="toggleFullScreen()">
@@ -316,23 +269,21 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     </div>
   </div>
   
-  <div class="sbar dda-data-grid">
-    <div class="si"><span class="sk">迭代</span><span class="sv" id="si">—</span></div>
-    <div class="si"><span class="sk">X</span><span class="sv" id="sx" style="color:var(--x-color)">—</span></div>
-    <div class="si"><span class="sk">Y</span><span class="sv" id="sy" style="color:var(--y-color)">—</span></div>
-    <div class="si"><span class="sk">Rx</span><span class="sv" id="srx">—</span></div>
-    <div class="si"><span class="sk">Ry</span><span class="sv" id="sry">—</span></div>
-    <div class="si"><span class="sk">ΔX</span><span class="sv" id="spx" style="color:var(--x-color)">—</span></div>
-    <div class="si"><span class="sk">ΔY</span><span class="sv" id="spy" style="color:var(--y-color)">—</span></div>
+  <div class="sbar">
+    <div class="si"><span class="sk">步骤</span><span class="sv" id="ss">—</span></div>
+    <div class="si"><span class="sk">X 坐标</span><span class="sv" id="sx" style="color:var(--x-color)">—</span></div>
+    <div class="si"><span class="sk">Y 坐标</span><span class="sv" id="sy" style="color:var(--y-color)">—</span></div>
+    <div class="si"><span class="sk">偏差 F</span><span class="sv" id="sf">—</span></div>
+    <div class="si"><span class="sk">剩余 N</span><span class="sv" id="sn">—</span></div>
   </div>
 
   <div class="legend-wrap">
     <div class="legend-group">
-      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>理想轨迹</div>
-      <div class="leg"><span class="lline" style="background:var(--accent)"></span>实际路径</div>
+      <div class="leg"><span class="lline" style="background:transparent;border-top:2px dashed #9ca3af"></span>理想</div>
+      <div class="leg"><span class="lline" style="background:var(--accent)"></span>实际</div>
       <div class="leg"><span class="ldot" style="background:var(--orange); border: 1.5px solid #fff; box-shadow: 0 0 0 1px var(--border2)"></span>刀具</div>
-      <div class="leg"><span class="lsq" style="background:var(--x-color);opacity:0.6"></span>ΔX 脉冲</div>
-      <div class="leg"><span class="lsq" style="background:var(--y-color);opacity:0.6"></span>ΔY 脉冲</div>
+      <div class="leg"><span class="ldot" style="background:var(--x-color)"></span>±X</div>
+      <div class="leg"><span class="ldot" style="background:var(--y-color)"></span>±Y</div>
     </div>
   </div>
 
@@ -343,7 +294,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 
 <div class="panel-right">
   <div class="rhead">
-    <span>DDA 迭代过程记录</span>
+    <span>插补步骤记录</span>
     <div class="rhead-actions">
       <span class="rhead-badge">动态更新</span>
     </div>
@@ -351,28 +302,32 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
   <div class="twrap scr">
     <table class="stab">
       <thead><tr>
-        <th>迭代</th>
-        <th>旧Rx</th><th>+JVx</th><th>新Rx</th><th>ΔX</th>
-        <th>旧Ry</th><th>+JVy</th><th>新Ry</th><th>ΔY</th>
-        <th>X</th><th>Y</th>
+        <th>步</th><th>F 值</th><th>判别</th><th>进给</th><th>新 F</th>
+        <th>X</th><th>Y</th><th>余步N</th>
       </tr></thead>
       <tbody id="tb">
-        <tr><td colspan="11" style="color:var(--text-dim);padding:40px;text-align:center;font-size:15px">请应用参数后开始演示</td></tr>
+        <tr><td colspan="8" style="color:var(--text-dim);padding:40px;text-align:center;font-size:15px">请应用参数后开始演示</td></tr>
       </tbody>
     </table>
   </div>
   
   <div class="sdetail scr">
-    <div class="sdtitle">📍 当前迭代明细</div>
+    <div class="sdtitle">📍 当前节拍推演明细</div>
     <div id="dc" style="color:var(--text-dim);font-size:15px;padding:4px 0">等待开始演示…</div>
   </div>
 </div>
+
 </div>
 
 <script>
 function v(id){return document.getElementById(id).value;}
 function num(id, def){let val = v(id); return val === '' ? def : Number(val);}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
+
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+let mode='line', arcDir='NR';
+let steps=[],cur=-1,timer=null,running=false,inited=false;
 
 const enterFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
 const exitFsIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
@@ -391,33 +346,13 @@ document.addEventListener('fullscreenchange', () => {
   setTimeout(resize, 100);
 });
 
-// 动态修正自适应位数n (按照起终点的真实半径或线长分配计算)
-function autoCalcN() {
-  if (mode === 'line') {
-    let m = Math.max(Math.abs(num('lxe',6)), Math.abs(num('lye',4)));
-    document.getElementById('nb').value = Math.max(2, Math.ceil(Math.log2(m + 1)));
-  } else {
-    let xs = num('axs', 5), ys = num('ays', 0);
-    let R = Math.ceil(Math.sqrt(xs*xs + ys*ys));
-    document.getElementById('nba').value = Math.max(2, Math.ceil(Math.log2(R + 1)));
-  }
-}
-
-// 绑定所有的输入框事件以触发n的实时自适应
-document.querySelectorAll('.coord-input').forEach(el => el.addEventListener('input', autoCalcN));
-
-const cv=document.getElementById('cv');
-const ctx=cv.getContext('2d');
-let mode='line', arcDir='NR';
-let steps=[],cur=-1,timer=null,running=false,inited=false;
-
 function setMode(m){
   mode=m;
   document.getElementById('bml').classList.toggle('active',m==='line');
   document.getElementById('bma').classList.toggle('active',m==='arc');
   document.getElementById('lc').style.display=m==='line'?'block':'none';
   document.getElementById('ac').style.display=m==='arc'?'block':'none';
-  autoCalcN(); resetSim();
+  resetSim();
 }
 
 function setDir(d,el){
@@ -426,7 +361,7 @@ function setDir(d,el){
   el.classList.add('active');
 }
 
-// 核心更新：使用数值积分严格计算出多象限中真实的曼哈顿总脉冲数，解决跨界终止问题。
+// 核心优化：数值积分准确计算跨象限曼哈顿总步数
 function getArcPulses(xs, ys, xe, ye, isCCW) {
     let R = Math.sqrt(xs*xs + ys*ys);
     if (R === 0) return { remX: 0, remY: 0 };
@@ -459,117 +394,94 @@ function getArcPulses(xs, ys, xe, ye, isCCW) {
     return { remX: Math.round(remX), remY: Math.round(remY) };
 }
 
-function calcLine(xe, ye, n) {
-  let mod = Math.pow(2, n), Rx = 0, Ry = 0, x = 0, y = 0;
-  let JVx = Math.abs(xe), JVy = Math.abs(ye); 
-  let s = []; 
-  let E = Math.abs(xe) + Math.abs(ye); // 采用标准总步长控制法
+function calcLine(xe, ye) {
+  let s = [], x = 0, y = 0, F = 0;
+  let absXe = Math.abs(xe), absYe = Math.abs(ye);
+  let N = absXe + absYe; 
   let incX = xe >= 0 ? 1 : -1;
   let incY = ye >= 0 ? 1 : -1;
 
-  s.push({ k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0, oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod, 
-    det: `初始化：终点(${xe},${ye})，JVx=|${xe}|=${JVx}，JVy=|${ye}|=${JVy}，总脉冲数=${E}`
-  });
-  
-  let k = 0;
-  while (E > 0) {
-    k++; 
-    let oRx = Rx, oRy = Ry; 
-    let nRxR = Rx + JVx, nRyR = Ry + JVy; 
-    let ovX = nRxR >= mod, ovY = nRyR >= mod;
+  s.push({i:0, x, y, F, feed:'—', nF:0, rem:N, judge:'初始化状态',
+    det:`起点(0,0)，终点(${xe},${ye})，总步数N=${N}，F₀=0`});
     
-    let fRx = ovX ? nRxR - mod : nRxR; 
-    let fRy = ovY ? nRyR - mod : nRyR; 
-    let dx = ovX ? incX : 0;
-    let dy = ovY ? incY : 0;
-    
-    if (ovX && dx !== 0) E--; 
-    if (E <= 0) { ovY = false; dy = 0; fRy = oRy; nRyR = oRy; } // 步数用尽，强制截断后发脉冲
-    if (ovY && dy !== 0) E--;
-    
-    Rx = fRx; Ry = fRy; 
-    x += dx; y += dy; 
-    
-    s.push({ k, x, y, Rx, Ry, oRx, aX: JVx, nRx: nRxR, fRx, ovX, dx, oRy, aY: JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
-      det: `Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→ X进给(${dx>0?'+':'-'}1)` : ''}; Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→ Y进给(${dy>0?'+':'-'}1)` : ''}`
-    });
-    if (k > 5000) break; 
-  } 
+  for (let k = 1; k <= N; k++) {
+    let oF = F, feed, nF, dx = 0, dy = 0, judge;
+    if (F >= 0) {
+      judge = 'F≥0 → 偏上(或在线上)';
+      feed = incX > 0 ? '+X' : '−X';
+      nF = F - absYe;
+      dx = incX;
+    } else {
+      judge = 'F<0 → 偏下';
+      feed = incY > 0 ? '+Y' : '−Y';
+      nF = F + absXe;
+      dy = incY;
+    }
+    F = nF; x += dx; y += dy;
+    s.push({i:k, x, y, F, feed, nF, rem:N-k, judge, oF,
+      det:`F=${oF} ${oF>=0?'≥':'<'} 0 → 进给 ${feed} → F_new = ${oF}${oF>=0 ? ' − '+absYe : ' + '+absXe} = ${nF}`});
+  }
   return s;
 }
 
-function calcArc(xs, ys, xe, ye, n) {
-  let mod = Math.pow(2, n), Rx = 0, Ry = 0, x = xs, y = ys;
-  let s = []; 
-  let isCCW = (arcDir === 'NR'); 
+function calcArc(xs, ys, xe, ye, dir) {
+  let s = [], x = xs, y = ys, F = 0;
+  let isCCW = (dir === 'NR');
   
-  // 通过曼哈顿积分严格计算出多象限的步数，彻底解决独立冻结坐标引发的问题
+  // 核心修复：用真实的曼哈顿距离总和替换掉易出错的单象限差值公式
   let pulses = getArcPulses(xs, ys, xe, ye, isCCW);
-  let E = pulses.remX + pulses.remY;
+  let N = pulses.remX + pulses.remY;
   
-  let JVx = Math.abs(ys), JVy = Math.abs(xs); 
-  s.push({ k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0, oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod, 
-    det: `初始化：起点(${xs},${ys})，JVx=|Ys|=${JVx}，JVy=|Xs|=${JVy}，总脉冲数=${E}`
-  });
-  
-  let k = 0;
-  while (E > 0) {
-    k++; 
-    JVx = Math.abs(y); 
-    JVy = Math.abs(x); 
+  s.push({i:0, x, y, F, feed:'—', nF:0, rem:N, judge:'初始化状态',
+    det:`起点(${xs},${ys})，终点(${xe},${ye})，总步数N=${N}，F₀=0`});
     
-    let oRx = Rx, oRy = Ry; 
-    let nRxR = Rx + JVx, nRyR = Ry + JVy; 
-    let ovX = nRxR >= mod, ovY = nRyR >= mod;
+  for (let k = 1; k <= N; k++) { 
+    let oF = F, feed, nF, dx = 0, dy = 0, judge, ox = x, oy = y;
     
-    let fRx = ovX ? nRxR - mod : nRxR; 
-    let fRy = ovY ? nRyR - mod : nRyR; 
-    let dx = 0, dy = 0;
-    
-    let q = 1;
+    let q = 1; 
     if (x > 0 && y >= 0) q = 1;
     else if (x <= 0 && y > 0) q = 2;
     else if (x < 0 && y <= 0) q = 3;
     else if (x >= 0 && y < 0) q = 4;
 
     if (isCCW) { 
-      if (q === 1)      { if(ovX) dx = -1; if(ovY) dy = 1; }  
-      else if (q === 2) { if(ovX) dx = -1; if(ovY) dy = -1; } 
-      else if (q === 3) { if(ovX) dx = 1;  if(ovY) dy = -1; } 
-      else if (q === 4) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
+      if (q === 1)      { if(F>=0){feed='−X';dx=-1;} else{feed='+Y';dy=1;} }
+      else if (q === 2) { if(F>=0){feed='−Y';dy=-1;} else{feed='−X';dx=-1;} }
+      else if (q === 3) { if(F>=0){feed='+X';dx=1;}  else{feed='−Y';dy=-1;} }
+      else if (q === 4) { if(F>=0){feed='+Y';dy=1;}  else{feed='+X';dx=1;} }
     } else { 
-      if (q === 1)      { if(ovX) dx = 1;  if(ovY) dy = -1; } 
-      else if (q === 2) { if(ovX) dx = 1;  if(ovY) dy = 1; }  
-      else if (q === 3) { if(ovX) dx = -1; if(ovY) dy = 1; }  
-      else if (q === 4) { if(ovX) dx = -1; if(ovY) dy = -1; } 
+      if (q === 1)      { if(F>=0){feed='−Y';dy=-1;} else{feed='+X';dx=1;} }
+      else if (q === 2) { if(F>=0){feed='+X';dx=1;}  else{feed='+Y';dy=1;} }  
+      else if (q === 3) { if(F>=0){feed='+Y';dy=1;}  else{feed='−X';dx=-1;} }
+      else if (q === 4) { if(F>=0){feed='−X';dx=-1;} else{feed='−Y';dy=-1;} } 
     }
 
-    if (ovX && dx !== 0) E--; 
-    if (E <= 0) { ovY = false; dy = 0; fRy = oRy; nRyR = oRy; } 
-    if (ovY && dy !== 0) E--;
+    judge = F >= 0 ? 'F≥0 → 偏外' : 'F<0 → 偏内';
     
-    Rx = fRx; Ry = fRy; 
-    x += dx; y += dy;
-    
-    s.push({ k, x, y, Rx, Ry, oRx, aX: JVx, nRx: nRxR, fRx, ovX, dx, oRy, aY: JVy, nRy: nRyR, fRy, ovY, dy, JVx, JVy, mod,
-      det: `Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→ X进给(${dx>0?'+':'-'}1)` : ''}; Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→ Y进给(${dy>0?'+':'-'}1)` : ''}`
-    });
-    
-    if (k > 10000) break; 
-  } 
+    if (dx !== 0) { nF = F + 2 * ox * dx + 1; } 
+    else { nF = F + 2 * oy * dy + 1; }
+
+    F = nF; x += dx; y += dy;
+    let dxStr = dx > 0 ? '+1' : '-1';
+    let dyStr = dy > 0 ? '+1' : '-1';
+    let fcalc = dx !== 0 ? `${oF} ${dx>0?'+':'-'} 2×(${Math.abs(ox)}) + 1` : `${oF} ${dy>0?'+':'-'} 2×(${Math.abs(oy)}) + 1`;
+
+    s.push({i:k, x, y, F, feed, nF, rem:N-k, judge, oF, ox, oy,
+      det:`F=${oF}(${oF>=0?'≥0':'<0'}) → 进给 ${feed} → F_new=${fcalc} = ${nF}`});
+  }
   return s;
 }
 
 function initSim(){
-  stopAuto();steps=[]; 
-  // 移除这里的 autoCalcN 确保点击"应用"不覆盖用户自己输入的n值
+  stopAuto();steps=[];
   if(mode==='line'){
-    let xe=clamp(num('lxe',6),-30,30),ye=clamp(num('lye',4),-30,30),n=clamp(num('nb',3),2,10);
-    steps=calcLine(xe,ye,n);
+    let xe=clamp(num('lxe',6),-30,30), ye=clamp(num('lye',4),-30,30);
+    steps=calcLine(xe,ye);
   } else {
-    let xs=clamp(num('axs',5),-30,30),ys=clamp(num('ays',0),-30,30);
-    let xe=clamp(num('axe',0),-30,30),ye=clamp(num('aye',5),-30,30);
-    let n=clamp(num('nba',3),2,10); steps=calcArc(xs,ys,xe,ye,n);
+    // 强制起终点默认为第一象限
+    let xs=clamp(num('axs',5),-30,30), ys=clamp(num('ays',0),-30,30);
+    let xe=clamp(num('axe',0),-30,30), ye=clamp(num('aye',5),-30,30);
+    steps=calcArc(xs,ys,xe,ye,arcDir);
   }
   inited=true; cur=0; renderStep(0); updTbl(0); setSt('已初始化，准备开始');
 }
@@ -599,10 +511,10 @@ function stopAuto(){
 }
 
 function resetSim(){
-  stopAuto();inited=false;cur=-1;steps=[]; autoCalcN();
-  document.getElementById('tb').innerHTML='<tr><td colspan="11" style="color:var(--text-dim);padding:40px;text-align:center;font-size:15px">请应用参数后开始演示</td></tr>';
-  document.getElementById('dc').innerHTML='等待开始演示…'; document.getElementById('regvis').innerHTML='<div style="color:var(--text-dim);font-size:12px;text-align:center;">等待开始演示...</div>';
-  ['si','sx','sy','srx','sry','spx','spy'].forEach(id=>document.getElementById(id).textContent='—'); setSt('等待开始'); drawGrid();
+  stopAuto();inited=false;cur=-1;steps=[];
+  document.getElementById('tb').innerHTML='<tr><td colspan="8" style="color:var(--text-dim);padding:40px;text-align:center;font-size:15px">请应用参数后开始演示</td></tr>';
+  document.getElementById('dc').innerHTML='等待开始演示…';
+  ['ss','sx','sy','sf','sn'].forEach(id=>document.getElementById(id).textContent='—'); setSt('等待开始'); drawGrid();
 }
 
 function setSt(t){
@@ -618,44 +530,39 @@ function setSt(t){
 
 function renderStep(idx){
   let s=steps[idx];
-  document.getElementById('si').textContent=s.k; document.getElementById('sx').textContent=s.x; document.getElementById('sy').textContent=s.y;
-  document.getElementById('srx').textContent=s.Rx; document.getElementById('sry').textContent=s.Ry;
-  
-  document.getElementById('spx').innerHTML=idx>0&&s.ovX?'<span style="letter-spacing:-1px">↑溢出</span>':'—'; 
-  document.getElementById('spy').innerHTML=idx>0&&s.ovY?'<span style="letter-spacing:-1px">↑溢出</span>':'—';
-
-  let mod=s.mod; let rxPct=Math.min(s.Rx/mod*100,100).toFixed(1); let ryPct=Math.min(s.Ry/mod*100,100).toFixed(1);
-  document.getElementById('regvis').innerHTML=`
-    <div style="width:100%">
-      <div class="reg-title">模数 2ⁿ = ${mod} &nbsp;|&nbsp; JVx = ${s.JVx}, JVy = ${s.JVy}</div>
-      <div class="reg-row"><div class="reg-lbl" style="color:var(--x-color)">Rx</div><div class="reg-track"><div class="reg-fill" style="width:${rxPct}%;background:var(--x-color)">${s.Rx}</div></div><div class="reg-num" style="color:var(--x-color)">${s.Rx}</div><div class="ovf-badge ${s.ovX&&idx>0?'ovf-yes':'ovf-no'}">${s.ovX&&idx>0?'溢出':'—'}</div></div>
-      <div class="reg-row"><div class="reg-lbl" style="color:var(--y-color)">Ry</div><div class="reg-track"><div class="reg-fill" style="width:${ryPct}%;background:var(--y-color)">${s.Ry}</div></div><div class="reg-num" style="color:var(--y-color)">${s.Ry}</div><div class="ovf-badge ${s.ovY&&idx>0?'ovf-yes':'ovf-no'}">${s.ovY&&idx>0?'溢出':'—'}</div></div>
-    </div>`;
+  document.getElementById('ss').textContent=s.i; document.getElementById('sx').textContent=s.x; document.getElementById('sy').textContent=s.y;
+  document.getElementById('sf').textContent=s.F; document.getElementById('sn').textContent=s.rem;
 
   let dc=document.getElementById('dc');
-  if(idx===0){ dc.innerHTML=`<div style="color:var(--text-mid);font-size:14px;line-height:1.9;font-weight:600;padding:8px 0">${s.det}</div>`; } 
-  else {
+  if(idx===0){
+    dc.innerHTML=`<div style="color:var(--text-mid);font-size:15px;line-height:1.9;font-weight:600;padding:8px 0">${s.det}</div>`;
+  } else {
+    let pos=s.oF>=0; let fc=s.feed.includes('X')?'var(--x-color)':'var(--y-color)';
     dc.innerHTML=`
-      <div class="drow"><div class="dlbl"><div class="dnum">1</div>X 积分器累加</div><div class="dval" style="color:var(--x-color)">${s.oRx} + ${s.aX} = ${s.nRx}</div></div>
-      <div style="margin:0 0 8px 32px;font-size:13px;color:${s.ovX?'var(--green)':'var(--text-dim)'}">${s.ovX?`✅ 溢出（≥${mod}）! Rx=${s.fRx}，输出 ΔX`:`❌ 未溢出（<${mod}），Rx=${s.fRx}`}</div>
-      <div class="drow"><div class="dlbl"><div class="dnum">2</div>Y 积分器累加</div><div class="dval" style="color:var(--y-color)">${s.oRy} + ${s.aY} = ${s.nRy}</div></div>
-      <div style="margin:0 0 8px 32px;font-size:13px;color:${s.ovY?'var(--green)':'var(--text-dim)'}">${s.ovY?`✅ 溢出（≥${mod}）! Ry=${s.fRy}，输出 ΔY`:`❌ 未溢出（<${mod}），Ry=${s.fRy}`}</div>
-      <div class="drow"><div class="dlbl"><div class="dnum">3</div>当前坐标</div><div class="dval">X=<span style="color:var(--x-color)">${s.x}</span>, Y=<span style="color:var(--y-color)">${s.y}</span></div></div>
+      <div class="drow"><div class="dlbl"><div class="dnum">1</div>偏差判别</div><div class="dval" style="color:${pos?'var(--accent)':'var(--red)'}">F = ${s.oF} &nbsp; ${pos?'≥ 0':'< 0'}</div></div>
+      <div style="margin:0 0 10px 32px;font-size:13px;color:var(--text-dim)">${s.judge}</div>
+      <div class="drow"><div class="dlbl"><div class="dnum">2</div>坐标进给</div><div class="dval" style="color:${fc}">进给 &nbsp;${s.feed}</div></div>
+      <div class="drow"><div class="dlbl"><div class="dnum">3</div>偏差更新</div><div class="dval">F_new = <span style="color:var(--accent)">${s.nF}</span></div></div>
+      <div class="drow"><div class="dlbl"><div class="dnum">4</div>终点判别</div><div class="dval" style="color:${s.rem===0?'var(--green)':'var(--text)'}">余 ${s.rem} 步 ${s.rem===0?'&nbsp;✅ 终点！':''}</div></div>
       <div class="dnote">${s.det}</div>`;
-  } drawScene(idx);
+  }
+  drawScene(idx);
 }
 
 function updTbl(idx){
   let tb = document.getElementById('tb'); tb.innerHTML = ''; 
   for(let i=0; i<=idx; i++){
     let s = steps[i]; let tr = document.createElement('tr'); tr.id = `r${i}`;
-    if(i===0){ tr.innerHTML=`<td colspan="11" style="color:var(--text-dim);font-size:12px">初始化：Rx=Ry=0，X=${s.x}，Y=${s.y}</td>`; } 
-    else {
-      tr.innerHTML = `
-        <td style="font-weight:700;color:var(--text-mid)">${s.k}</td><td>${s.oRx}</td><td style="color:var(--x-color)">+${s.aX}</td><td>${s.nRx}</td><td style="color:${s.ovX?'var(--green)':'var(--text-dim)'};font-weight:${s.ovX?700:400}">${s.ovX?'✓':'—'}</td>
-        <td>${s.oRy}</td><td style="color:var(--y-color)">+${s.aY}</td><td>${s.nRy}</td><td style="color:${s.ovY?'var(--green)':'var(--text-dim)'};font-weight:${s.ovY?700:400}">${s.ovY?'✓':'—'}</td>
-        <td style="color:var(--x-color);font-weight:700">${s.x}</td><td style="color:var(--y-color);font-weight:700">${s.y}</td>`;
-    }
+    let fc = s.feed === '—' ? 'var(--text-dim)' : s.feed.includes('X') ? 'var(--x-color)' : 'var(--y-color)';
+    tr.innerHTML = `
+      <td style="font-weight:700;color:var(--text-mid)">${s.i}</td>
+      <td style="color:${s.i>0&&s.oF>=0?'var(--accent)':'var(--red)'}">${s.i>0?s.oF:0}</td>
+      <td style="font-size:13px">${s.i===0?'初始':s.oF>=0?'≥0 ↑':'<0 ↓'}</td>
+      <td style="color:${fc};font-weight:700;font-size:15px">${s.feed}</td>
+      <td>${s.F}</td>
+      <td style="color:var(--x-color);font-weight:700">${s.x}</td>
+      <td style="color:var(--y-color);font-weight:700">${s.y}</td>
+      <td style="color:${s.rem===0?'var(--green)':'var(--text-mid)'};font-weight:${s.rem===0?700:500}">${s.rem}${s.rem===0?' ✓':''}</td>`;
     if (i === idx) tr.classList.add('cur'); else tr.classList.add('done'); tb.appendChild(tr);
   }
   let r = document.getElementById(`r${idx}`); let twrap = document.querySelector('.twrap');
@@ -748,25 +655,16 @@ function drawScene(idx){
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.arc(cc.cx,cc.cy,Math.max(0, R*gs),-Math.atan2(ys,xs),-Math.atan2(ye,xe),arcDir==='NR'); ctx.stroke();ctx.restore();
     let ps=toC(xs,ys),pe=toC(xe,ye);
-    ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(ps.cx,ps.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(ps.cx,ps.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#16a34a'; ctx.beginPath();ctx.arc(pe.cx,pe.cy,isMobile?6:9,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font = isMobile ? 'bold 10px Noto Sans SC' : 'bold 11px Noto Sans SC'; ctx.textAlign='center'; ctx.fillText('起',ps.cx,ps.cy+(isMobile?3:4));ctx.fillText('终',pe.cx,pe.cy+(isMobile?3:4));ctx.textAlign='left';
   }
 
   if(idx>0){
-    ctx.strokeStyle='#7c3aed';ctx.lineWidth=isMobile?2.5:3.5;
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=isMobile?2.5:3.5;
     ctx.beginPath(); let s0=toC(steps[0].x,steps[0].y);ctx.moveTo(s0.cx,s0.cy);
     for(let i=1;i<=idx;i++){let p=toC(steps[i].x,steps[i].y);ctx.lineTo(p.cx,p.cy);}
     ctx.stroke();
-
-    for(let i=1;i<=idx;i++){
-      let s=steps[i];
-      if(s.ovX||s.ovY){
-        let p=toC(s.x,s.y);
-        if(s.ovX){ctx.fillStyle='rgba(37,99,235,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?4:6),p.cy-(isMobile?4:6),isMobile?8:12,isMobile?8:12);ctx.fill();}
-        if(s.ovY){ctx.fillStyle='rgba(13,148,136,0.4)';ctx.beginPath();ctx.rect(p.cx-(isMobile?3.5:5),p.cy-(isMobile?3.5:5),isMobile?7:10,isMobile?7:10);ctx.fill();}
-      }
-    }
 
     let pr=steps[idx-1],cr=steps[idx];
     if(pr.x!==cr.x||pr.y!==cr.y){
@@ -787,13 +685,12 @@ function drawScene(idx){
     
     ctx.font=isMobile?'bold 13px JetBrains Mono,monospace':'bold 15px JetBrains Mono,monospace'; 
     ctx.strokeStyle='#ffffff'; ctx.lineWidth=3; ctx.strokeText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
-    ctx.fillStyle='#7c3aed'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
+    ctx.fillStyle='#2563eb'; ctx.fillText(`(${sc.x}, ${sc.y})`,pc.cx+12,pc.cy-10);
   }
   let orig=toC(0,0);ctx.fillStyle='#4b5563';ctx.beginPath();ctx.arc(orig.cx,orig.cy,isMobile?3:5,0,Math.PI*2);ctx.fill();
 }
 
 window.addEventListener('resize',resize); resize();drawGrid(); setTimeout(()=>{resize();drawGrid();},150);
-document.addEventListener("DOMContentLoaded", autoCalcN);
 </script>
 </body>
 </html>
