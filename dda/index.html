@@ -329,8 +329,8 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
         <div id="n-hint-a" class="n-hint">⚡ 已自适应调整位数</div>
         <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">象限快捷预设（R=5，圆心在原点）</div>
         <div class="quad-presets" style="grid-template-columns: 1fr 1fr;">
-          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'NR')" title="起(5,0)→终(0,5)，X减Y增，第I象限内逆时针">↺ 逆圆 I象限</button>
-          <button class="qp-btn" onclick="setArcPreset(0,5,5,0,'SR')" title="起(0,5)→终(5,0)，X增Y减，第I象限内顺时针">↻ 顺圆 I象限</button>
+          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'NR')" title="起(5,0)→终(0,5)，第I象限内逆时针">↺ 逆圆 I象限</button>
+          <button class="qp-btn" onclick="setArcPreset(0,5,5,0,'SR')" title="起(0,5)→终(5,0)，第I象限内顺时针">↻ 顺圆 I象限</button>
           <button class="qp-btn" onclick="setArcPreset(0,5,-5,0,'NR')" title="起(0,5)→终(-5,0)，第II象限逆时针">↺ 逆圆 II象限</button>
           <button class="qp-btn" onclick="setArcPreset(-5,0,0,5,'SR')" title="起(-5,0)→终(0,5)，第II象限顺时针">↻ 顺圆 II象限</button>
           <button class="qp-btn" onclick="setArcPreset(-5,0,0,-5,'NR')" title="起(-5,0)→终(0,-5)，第III象限逆时针">↺ 逆圆 III象限</button>
@@ -475,6 +475,9 @@ document.addEventListener('fullscreenchange', () => {
   setTimeout(resize, 100);
 });
 
+// ================================================================
+// 象限判定工具函数
+// ================================================================
 function getLineQuadrant(xe, ye) {
   if (xe > 0 && ye > 0) return { label: '第I象限', num: 1 };
   if (xe < 0 && ye > 0) return { label: '第II象限', num: 2 };
@@ -492,15 +495,17 @@ function getPointQuadrant(x, y) {
   if (x < 0 && y > 0) return 2;
   if (x < 0 && y < 0) return 3;
   if (x > 0 && y < 0) return 4;
-  return 0;
+  return 0; // on axis
 }
 
+// 直线各象限进给方向
 function getLineFeedDir(xe, ye) {
   const sx = xe >= 0 ? +1 : -1;
   const sy = ye >= 0 ? +1 : -1;
   return { sx, sy };
 }
 
+// 圆弧各象限进给规则（DDA法）
 function getArcFeedDelta(quadrant, dir) {
   if (dir === 'NR') {
     switch(quadrant) {
@@ -521,11 +526,13 @@ function getArcFeedDelta(quadrant, dir) {
   }
 }
 
+// ================================================================
+// 自适应位数计算
+// ================================================================
 function autoCalcN() {
   if (mode === 'line') {
     let m = Math.max(Math.abs(num('lxe',6)), Math.abs(num('lye',4)));
     let newN = Math.max(2, Math.ceil(Math.log2(m + 1)));
-    let curN = num('nb', 3);
     document.getElementById('nb').value = newN;
     let hint = document.getElementById('n-hint-l');
     if (hint) { hint.textContent = `⚡ 自适应: n=${newN}，2ⁿ=${Math.pow(2,newN)}`; hint.classList.add('show'); }
@@ -538,12 +545,14 @@ function autoCalcN() {
   }
 }
 
+// ================================================================
+// 象限标签与公式说明更新
+// ================================================================
 function updateLineQuad() {
   let xe = num('lxe', 6), ye = num('lye', 4);
   let q = getLineQuadrant(xe, ye);
   let badge = document.getElementById('line-quad-badge');
   if (badge) badge.textContent = q.label;
-
   let fd = getLineFeedDir(xe, ye);
   let dirEl = document.getElementById('lf-dir');
   if (dirEl) {
@@ -551,7 +560,6 @@ function updateLineQuad() {
     let ydir = fd.sy > 0 ? '+Y' : '-Y';
     dirEl.textContent = `进给方向: ${xdir}, ${ydir}（溢出时）`;
   }
-
   let titleEl = document.getElementById('lf-title');
   let bodyEl  = document.getElementById('lf-body');
   if (titleEl && bodyEl) {
@@ -564,22 +572,18 @@ function updateArcInfo() {
   let xs = num('axs',5), ys = num('ays',0), xe = num('axe',0), ye = num('aye',5);
   let R = Math.sqrt(xs*xs + ys*ys).toFixed(2);
   let Re = Math.sqrt(xe*xe + ye*ye).toFixed(2);
-
   let q = getPointQuadrant(xs, ys);
   let qLabel = q ? `第${['','I','II','III','IV'][q]}象限` : '轴上';
   let badge = document.getElementById('arc-quad-badge');
   if (badge) badge.textContent = qLabel + ` R≈${R}`;
-
   let qe = getPointQuadrant(xe, ye);
   let cross = (q !== qe && q !== 0 && qe !== 0);
-
   let fdEl = document.getElementById('arc-fd');
   if (fdEl) {
     fdEl.textContent = cross
       ? `⚠️ 跨象限: 起点${qLabel} → 终点第${['','I','II','III','IV'][qe]||'?'}象限，逐步切换进给方向`
       : `R(起)=${R}, R(终)=${Re}${Math.abs(R-Re)>0.5?' ⚠️半径不等':''}`;
   }
-
   let fhEl = document.getElementById('arc-fh');
   let fbEl = document.getElementById('arc-fb');
   if (fhEl && fbEl) {
@@ -607,6 +611,9 @@ function setArcPreset(xs, ys, xe, ye, dir) {
   autoCalcN(); updateArcInfo(); resetSim();
 }
 
+// ================================================================
+// 核心状态
+// ================================================================
 const cv  = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 let mode = 'line', arcDir = 'NR';
@@ -630,11 +637,14 @@ function setDir(d, el) {
   updateArcInfo();
 }
 
+// ================================================================
+// 直线插补计算（支持全象限）
+// ================================================================
 function calcLine(xe, ye, n) {
   let mod = Math.pow(2, n);
   let Rx = 0, Ry = 0, x = 0, y = 0;
   let JVx = Math.abs(xe), JVy = Math.abs(ye);
-  let { sx, sy } = getLineFeedDir(xe, ye);  
+  let { sx, sy } = getLineFeedDir(xe, ye);
   let s = [];
   let remX = Math.abs(xe), remY = Math.abs(ye);
   let q = getLineQuadrant(xe, ye);
@@ -656,7 +666,7 @@ function calcLine(xe, ye, n) {
     if (remY <= 0) { nRyR = oRy; }
     let fRx = ovX ? nRxR - mod : nRxR;
     let fRy = ovY ? nRyR - mod : nRyR;
-    let dx = ovX ? sx : 0;   
+    let dx = ovX ? sx : 0;
     let dy = ovY ? sy : 0;
     Rx = fRx; Ry = fRy; x += dx; y += dy;
     if (ovX) remX--; if (ovY) remY--;
@@ -673,29 +683,97 @@ function calcLine(xe, ye, n) {
   return s;
 }
 
-// ── 修改点：修复跨象限圆弧插补计算逻辑 ──
+// ================================================================
+// ★ 修复核心：计算圆弧插补总步数（支持跨象限）
+//
+// 原理：将圆弧路径按经过的坐标轴分成若干单象限段，
+//       每段的步数 = 该段起终点坐标的曼哈顿距离。
+//       总步数 Nsp = 所有段的曼哈顿距离之和。
+//
+// 旧代码用 remX=|xe-xs|, remY=|ye-ys| 独立控制两轴冻结，
+// 对于 (5,0)→(-5,0) NR 这类跨象限弧，remY=|0-0|=0，
+// Y 轴积分器从头被冻结 → JVx=|y|=0 → X 也永远不动 → 死锁。
+// ================================================================
+function computeArcNsp(xs, ys, xe, ye, dir) {
+  let R = Math.sqrt(xs * xs + ys * ys);
+
+  // 将角度规范化到 [0, 2π)
+  function normAngle(a) {
+    a = a % (2 * Math.PI);
+    if (a < 0) a += 2 * Math.PI;
+    return a;
+  }
+
+  let a0 = normAngle(Math.atan2(ys, xs));
+  let a1 = normAngle(Math.atan2(ye, xe));
+
+  // 圆上四个轴交点（取最近整数，与 DDA 输入坐标保持一致）
+  let Ri = Math.round(R);
+  let axisPoints = [
+    { angle: 0,                x:  Ri, y:   0 },
+    { angle: Math.PI / 2,      x:   0, y:  Ri },
+    { angle: Math.PI,          x: -Ri, y:   0 },
+    { angle: 3 * Math.PI / 2,  x:   0, y: -Ri }
+  ];
+
+  let waypoints = [{ x: xs, y: ys }];
+  let intermediates = [];
+
+  if (dir === 'NR') {
+    // 逆圆(CCW)：角度从 a0 增大到 a1
+    let sweep = normAngle(a1 - a0);
+    if (sweep < 1e-9) sweep = 2 * Math.PI; // 全圆
+
+    for (let ap of axisPoints) {
+      let da = normAngle(ap.angle - a0);
+      // 严格在弧段内（不含端点）
+      if (da > 1e-9 && da < sweep - 1e-9) {
+        intermediates.push({ x: ap.x, y: ap.y, da });
+      }
+    }
+    intermediates.sort((a, b) => a.da - b.da);
+
+  } else {
+    // 顺圆(CW)：角度从 a0 减小到 a1
+    let sweep = normAngle(a0 - a1);
+    if (sweep < 1e-9) sweep = 2 * Math.PI;
+
+    for (let ap of axisPoints) {
+      let da = normAngle(a0 - ap.angle);
+      if (da > 1e-9 && da < sweep - 1e-9) {
+        intermediates.push({ x: ap.x, y: ap.y, da });
+      }
+    }
+    intermediates.sort((a, b) => a.da - b.da);
+  }
+
+  for (let p of intermediates) waypoints.push({ x: p.x, y: p.y });
+  waypoints.push({ x: xe, y: ye });
+
+  // 各段曼哈顿距离之和即为总脉冲数
+  let total = 0;
+  for (let i = 1; i < waypoints.length; i++) {
+    total += Math.abs(waypoints[i].x - waypoints[i - 1].x)
+           + Math.abs(waypoints[i].y - waypoints[i - 1].y);
+  }
+  return total;
+}
+
+// ================================================================
+// 圆弧插补计算（支持全象限 & 跨象限）
+//
+// ★ 关键修复：使用单一总步数计数器 rem（由 computeArcNsp 计算），
+//   每输出一个脉冲（ΔX 或 ΔY）rem--，归零即停。
+//   不再对两轴独立冻结，彻底解决跨象限起点在轴上时卡死问题。
+// ================================================================
 function calcArc(xs, ys, xe, ye, n) {
   let mod = Math.pow(2, n);
   let Rx = 0, Ry = 0, x = xs, y = ys;
-  let R = Math.sqrt(xs*xs + ys*ys);
+  let R = Math.sqrt(xs * xs + ys * ys);
 
-  // 1. 预演计算真实的 X 和 Y 脉冲需求数（解决跨象限曼哈顿距离计算错误的 Bug）
-  let reqX = 0, reqY = 0;
-  let tx = xs, ty = ys, tRx = 0, tRy = 0, tk = 0;
-  while ((tx !== xe || ty !== ye) && tk < 5000) {
-    let tJVx = Math.abs(ty), tJVy = Math.abs(tx);
-    tRx += tJVx; tRy += tJVy;
-    let tquad = getPointQuadrant(tx, ty);
-    if (tquad === 0) tquad = predictBoundaryQuad(tx, ty, arcDir);
-    let tfeed = getArcFeedDelta(tquad, arcDir);
-    if (tRx >= mod) { tRx -= mod; tx += tfeed.dx; reqX++; }
-    if (tRy >= mod) { tRy -= mod; ty += tfeed.dy; reqY++; }
-    tk++;
-  }
-
-  let remX = reqX;
-  let remY = reqY;
-  let Nsp  = remX + remY;
+  // ── 总步数（修复核心）──
+  let Nsp = computeArcNsp(xs, ys, xe, ye, arcDir);
+  let rem = Nsp;
 
   let s = [];
   let JVx = Math.abs(y), JVy = Math.abs(x);
@@ -703,31 +781,27 @@ function calcArc(xs, ys, xe, ye, n) {
   s.push({
     k: 0, x, y, Rx, Ry, oRx: 0, aX: 0, nRx: 0, ovX: false, dx: 0,
     oRy: 0, aY: 0, nRy: 0, ovY: false, dy: 0, JVx, JVy, mod,
-    det: `初始化：起(${xs},${ys})→终(${xe},${ye})，R=${R.toFixed(2)}，Nsp=${Nsp}(经预演X需${remX}步,Y需${remY}步)`
+    remTotal: rem,
+    det: `初始化：起(${xs},${ys})→终(${xe},${ye})，R=${R.toFixed(2)}，Nsp=${Nsp}，2ⁿ=${mod}`
   });
 
   let k = 0;
-  // 2. 终止条件：到达预估的脉冲需求总数
-  while (remX > 0 || remY > 0) {
+  while (rem > 0) {
     k++;
 
-    // 每步开始时，用当前坐标更新被积函数值
+    // 每步用当前坐标实时更新被积函数
     JVx = Math.abs(y);
     JVy = Math.abs(x);
 
     let oRx = Rx, oRy = Ry;
-    
-    // DDA圆弧插补中，两个积分器必须始终运行，即使跨过象限轴也不应被强制停止
-    let addX = JVx;
-    let addY = JVy;
-    
-    let nRxR = Rx + addX;
-    let nRyR = Ry + addY;
-    let ovX  = nRxR >= mod;
-    let ovY  = nRyR >= mod;
-    let fRx  = ovX ? nRxR - mod : nRxR;
-    let fRy  = ovY ? nRyR - mod : nRyR;
+    let nRxR = Rx + JVx;
+    let nRyR = Ry + JVy;
+    let ovX = nRxR >= mod;
+    let ovY = nRyR >= mod;
+    let fRx = ovX ? nRxR - mod : nRxR;
+    let fRy = ovY ? nRyR - mod : nRyR;
 
+    // 根据当前点象限决定进给方向
     let quad = getPointQuadrant(x, y);
     if (quad === 0) quad = predictBoundaryQuad(x, y, arcDir);
 
@@ -737,35 +811,42 @@ function calcArc(xs, ys, xe, ye, n) {
 
     Rx = fRx; Ry = fRy;
     x += dx; y += dy;
-    if (ovX) remX--;
-    if (ovY) remY--;
+
+    // 每输出一个脉冲消耗一步
+    if (ovX) rem--;
+    if (ovY) rem--;
+    if (rem < 0) rem = 0; // 防止同帧双溢出越界
 
     let quadLabel = quad ? `Q${quad}` : 'Axis';
     s.push({
       k, x, y, Rx, Ry, oRx,
-      aX: addX, nRx: nRxR, fRx, ovX, dx,
-      oRy, aY: addY, nRy: nRyR, fRy, ovY, dy,
+      aX: JVx, nRx: nRxR, fRx, ovX, dx,
+      oRy, aY: JVy, nRy: nRyR, fRy, ovY, dy,
       JVx, JVy, mod, quad,
-      remX, remY,
-      det: `[${quadLabel}|剩X:${remX},Y:${remY}] Rx:${oRx}+${addX}=${nRxR}${ovX?` →溢出→X${dx>0?'+':'-'}1`:''} | Ry:${oRy}+${addY}=${nRyR}${ovY?` →溢出→Y${dy>0?'+':'-'}1`:''}`
+      remTotal: rem,
+      det: `[${quadLabel}|剩:${rem}] Rx:${oRx}+${JVx}=${nRxR}${ovX ? ` →溢出→X${dx > 0 ? '+' : '-'}1` : ''} | Ry:${oRy}+${JVy}=${nRyR}${ovY ? ` →溢出→Y${dy > 0 ? '+' : '-'}1` : ''}`
     });
-    if (k > 5000) break; // 安全保护
+    if (k > 3000) break;
   }
   return s;
 }
 
+// 轴上点方向预判（跨象限转折处）
 function predictBoundaryQuad(x, y, dir) {
   if (y === 0) {
-    if (x > 0) return dir === 'NR' ? 1 : 4;  
-    if (x < 0) return dir === 'NR' ? 3 : 2;  
+    if (x > 0) return dir === 'NR' ? 1 : 4;
+    if (x < 0) return dir === 'NR' ? 3 : 2;
   }
   if (x === 0) {
-    if (y > 0) return dir === 'NR' ? 2 : 1;  
-    if (y < 0) return dir === 'NR' ? 4 : 3;  
+    if (y > 0) return dir === 'NR' ? 2 : 1;
+    if (y < 0) return dir === 'NR' ? 4 : 3;
   }
   return 1;
 }
 
+// ================================================================
+// 仿真控制
+// ================================================================
 function initSim() {
   stopAuto(); steps = []; autoCalcN();
   if (mode === 'line') {
@@ -839,6 +920,9 @@ function setSt(t) {
   }
 }
 
+// ================================================================
+// 渲染与UI更新
+// ================================================================
 function renderStep(idx) {
   let s = steps[idx];
   document.getElementById('si').textContent = s.k;
@@ -865,8 +949,9 @@ function renderStep(idx) {
   } else {
     let xDirStr = s.dx !== 0 ? (s.dx > 0 ? '+X' : '-X') : '';
     let yDirStr = s.dy !== 0 ? (s.dy > 0 ? '+Y' : '-Y') : '';
-    let remInfo = (mode === 'arc' && s.remX !== undefined)
-      ? `<div class="drow"><div class="dlbl"><div class="dnum">4</div>剩余步数</div><div class="dval" style="font-size:13px">X剩<span style="color:var(--x-color);margin:0 4px">${s.remX}</span>步 &nbsp; Y剩<span style="color:var(--y-color);margin:0 4px">${s.remY}</span>步</div></div>`
+    // ★ 修复：圆弧显示总剩余步数而非分轴步数
+    let remInfo = (mode === 'arc' && s.remTotal !== undefined)
+      ? `<div class="drow"><div class="dlbl"><div class="dnum">4</div>剩余步数</div><div class="dval" style="font-size:13px">总剩 <span style="color:var(--accent);margin:0 4px;font-weight:700">${s.remTotal}</span> 步</div></div>`
       : '';
     dc.innerHTML = `
       <div class="drow"><div class="dlbl"><div class="dnum">1</div>X 积分器累加</div><div class="dval" style="color:var(--x-color)">${s.oRx} + ${s.aX} = ${s.nRx}</div></div>
@@ -905,6 +990,9 @@ function updTbl(idx) {
   if (r && twrap) { let targetTop = Math.max(0, r.offsetTop - twrap.clientHeight / 2 + 40); twrap.scrollTo({ top: targetTop, behavior: 'smooth' }); }
 }
 
+// ================================================================
+// Canvas 绘制
+// ================================================================
 let canvasW = 0, canvasH = 0;
 
 function resize() {
@@ -954,11 +1042,12 @@ function drawGrid() {
   let gLeft = ox - mc * gs, gRight = ox + mc * gs;
   let gTop = oy - mc * gs, gBottom = oy + mc * gs;
 
+  // 四象限不同底色
   let quadColors = ['#eef7ff', '#f5f0ff', '#fff5f0', '#f0fff8'];
-  ctx.fillStyle = quadColors[0]; ctx.fillRect(ox, gTop, gRight - ox, oy - gTop);       
-  ctx.fillStyle = quadColors[1]; ctx.fillRect(gLeft, gTop, ox - gLeft, oy - gTop);      
-  ctx.fillStyle = quadColors[2]; ctx.fillRect(gLeft, oy, ox - gLeft, gBottom - oy);     
-  ctx.fillStyle = quadColors[3]; ctx.fillRect(ox, oy, gRight - ox, gBottom - oy);       
+  ctx.fillStyle = quadColors[0]; ctx.fillRect(ox, gTop, gRight - ox, oy - gTop);
+  ctx.fillStyle = quadColors[1]; ctx.fillRect(gLeft, gTop, ox - gLeft, oy - gTop);
+  ctx.fillStyle = quadColors[2]; ctx.fillRect(gLeft, oy, ox - gLeft, gBottom - oy);
+  ctx.fillStyle = quadColors[3]; ctx.fillRect(ox, oy, gRight - ox, gBottom - oy);
 
   if (!isMobile) {
     ctx.font = 'bold 12px Noto Sans SC,sans-serif';
@@ -1114,10 +1203,12 @@ function drawScene(idx) {
   ctx.fillStyle = '#4b5563'; ctx.beginPath(); ctx.arc(orig.cx, orig.cy, isMobile ? 3 : 5, 0, Math.PI*2); ctx.fill();
 }
 
+// ================================================================
+// 初始化
+// ================================================================
 window.addEventListener('resize', resize);
 resize(); drawGrid();
 setTimeout(() => { resize(); drawGrid(); }, 150);
-
 updateLineQuad();
 autoCalcN();
 </script>
