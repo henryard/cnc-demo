@@ -31,7 +31,7 @@
 
 @media(prefers-color-scheme:dark){
   :root{
-    --bg:#16151200;--bg:#141412;
+    --bg:#141412;
     --surface:#1e1d1a;--surface2:#252420;
     --border:#2e2d28;--border2:#3a3930;
     --text:#f0ede6;--text2:#a09d90;--text3:#5a5850;
@@ -266,8 +266,8 @@ body{
       <div class="header-badge">J19 型 · V1.1</div>
     </div>
     <div class="tab-row">
-      <button class="tab active" onclick="switchTab('format',this)">3B 格式</button>
-      <button class="tab" onclick="switchTab('program',this)">编程方法</button>
+      <button class="tab" onclick="switchTab('format',this)">3B 格式</button>
+      <button class="tab active" onclick="switchTab('program',this)">编程方法</button>
       <button class="tab" onclick="switchTab('operate',this)">开机操作</button>
       <button class="tab" onclick="switchTab('advanced',this)">高级功能</button>
       <button class="tab" onclick="switchTab('shortcuts',this)">快捷键</button>
@@ -278,8 +278,7 @@ body{
 
 <main class="main">
 
-<!-- ====== 3B 格式 ====== -->
-<div class="page active" id="page-format">
+<div class="page" id="page-format">
 
   <div class="card">
     <div class="card-title"><span class="badge b-purple">基础</span>3B 程序格式结构</div>
@@ -338,14 +337,14 @@ body{
 
 </div>
 
-<!-- ====== 编程方法 ====== -->
-<div class="page" id="page-program">
+<div class="page active" id="page-program">
 
   <div class="card">
     <div class="card-title"><span class="badge b-teal">类型一</span>直线编程</div>
     <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">起点在坐标原点，沿 X 轴或 Y 轴方向的直线。X、Y 值均为 0，可省略不写；计数长度 J 为终点坐标绝对值。</p>
+    
     <div class="ex-block">
-      <div class="ex-title">示例：沿 +Y 方向走 15.8 mm（即 15800 μm）</div>
+      <div class="ex-title">示例 1：沿 +Y 方向走 15.8 mm（即 15800 μm）</div>
       <div class="ex-code">
         <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
         <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
@@ -356,6 +355,20 @@ body{
       </div>
       <div class="ex-note">X=0 省略，Y=0 省略，J=15800，计数方向 GY（与 L2 对应的 +Y 轴方向一致）</div>
     </div>
+
+    <div class="ex-block" style="margin-top:.65rem">
+      <div class="ex-title">示例 2：沿 -X 方向走 20.0 mm（即 20000 μm）</div>
+      <div class="ex-code">
+        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
+        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
+        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
+        <span style="background:var(--teal-bg);color:var(--teal-dark);padding:2px 9px;border-radius:5px;font-size:13px;font-family:var(--mono)">20000</span>&thinsp;
+        <span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;
+        <span class="f f-z" style="font-size:12px;padding:2px 7px">L3</span>
+      </div>
+      <div class="ex-note">X=0 省略，Y=0 省略，J=20000，计数方向 GX（与 L3 对应的 -X 轴方向一致）</div>
+    </div>
+    
     <div class="warn">⚠ B 分隔符必须写 3 个，即使 X 和 Y 省略，格式仍为 BBB[J][G][Z]</div>
   </div>
 
@@ -415,6 +428,39 @@ body{
   </div>
 
   <div class="card">
+    <div class="card-title"><span class="badge b-blue">类型四</span>连续图形（矩形）编程</div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">将多条直线或圆弧指令连接起来形成封闭图形。最后一段指令后必须加 <b>DD</b> 表示全程序结束。</p>
+    <div class="ex-block">
+      <div class="ex-title">示例：切割一个 20mm × 10mm 的矩形（起点为左下角，逆时针切割）</div>
+      <div class="ex-code">
+        <div style="margin-bottom:4px">
+          <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段1</span>
+          <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">20000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L1</span>
+          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 +X 走 20mm (底边)</span>
+        </div>
+        <div style="margin-bottom:4px">
+          <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段2</span>
+          <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">10000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L2</span>
+          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 +Y 走 10mm (右侧边)</span>
+        </div>
+        <div style="margin-bottom:4px">
+          <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段3</span>
+          <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">20000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L3</span>
+          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 -X 走 20mm (顶边)</span>
+        </div>
+        <div>
+          <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段4</span>
+          <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">10000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L4</span>&thinsp;<span style="background:var(--coral-bg);color:var(--coral-dark);padding:2px 7px;border-radius:4px;font-weight:bold;font-size:12px">DD</span>
+          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 -Y 走 10mm (左侧边) 并停机</span>
+        </div>
+      </div>
+    </div>
+    <div class="info" style="margin-top:.75rem">
+      <b>引线切割说明：</b>实际加工中，为避免在工件轮廓上留下起步痕迹，通常会从图形外的穿丝孔开始，先切一条<b>引线</b>进入图形轮廓，最后再切回穿丝孔。
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-title"><span class="badge b-amber">要点</span>完整程序编写注意事项</div>
     <div style="font-size:14px;line-height:1.85;color:var(--text2)">
       <p>① 每条指令固定由 3 个 <b>B</b> 分隔 X、Y、J 三段数据，格式不可改变</p>
@@ -424,18 +470,18 @@ body{
       <p>⑤ 坐标单位统一为 <b>μm</b>（微米），1 mm = 1000 μm</p>
     </div>
     <div class="div"></div>
-    <p style="font-size:13px;font-weight:700;margin-bottom:.5rem">三种编程类型对比示例</p>
+    <p style="font-size:13px;font-weight:700;margin-bottom:.5rem">常见编程类型代码对比</p>
     <table class="tbl">
       <tr><th>类型</th><th>示例代码</th><th>说明</th></tr>
       <tr><td>直线</td><td style="font-family:var(--mono);font-size:12px">BBB15800GYL2</td><td style="font-size:12px">沿Y轴走15.8mm</td></tr>
       <tr><td>斜线</td><td style="font-family:var(--mono);font-size:12px">B12000B8000B12000GXL1</td><td style="font-size:12px">终点(12,8)mm斜线</td></tr>
       <tr><td>圆弧</td><td style="font-family:var(--mono);font-size:12px">B2000B9000B25440GYNR2</td><td style="font-size:12px">逆圆弧NR2</td></tr>
+      <tr><td>矩形</td><td style="font-family:var(--mono);font-size:12px">四段连续直线指令后接 DD</td><td style="font-size:12px">封闭图形全停机</td></tr>
     </table>
   </div>
 
 </div>
 
-<!-- ====== 开机操作 ====== -->
 <div class="page" id="page-operate">
 
   <div class="card">
@@ -493,7 +539,6 @@ body{
 
 </div>
 
-<!-- ====== 高级功能 ====== -->
 <div class="page" id="page-advanced">
 
   <div class="card">
@@ -565,7 +610,6 @@ body{
 
 </div>
 
-<!-- ====== 快捷键 ====== -->
 <div class="page" id="page-shortcuts">
 
   <div class="card">
@@ -624,7 +668,6 @@ body{
 
 </div>
 
-<!-- ====== 故障排查 ====== -->
 <div class="page" id="page-fault">
 
   <div class="card">
