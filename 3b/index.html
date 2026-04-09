@@ -74,7 +74,7 @@ body{
   border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;
   white-space:nowrap;
 }
-.tab-row{display:flex;gap:4px;overflow-x:auto;padding-bottom:0;scrollbar-width:none}
+.tab-row{display:flex;gap:4px;overflow-x:auto;padding-bottom:0;scrollbar-width:none; scroll-behavior: smooth;}
 .tab-row::-webkit-scrollbar{display:none}
 .tab{
   padding:8px 14px;border:none;background:transparent;
@@ -82,12 +82,14 @@ body{
   cursor:pointer;border-radius:8px 8px 0 0;
   border-bottom:2px solid transparent;
   white-space:nowrap;transition:all .15s;font-weight:500;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .tab:hover{color:var(--text);background:var(--surface2)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);background:transparent}
 
 /* MAIN */
-.main{max-width:760px;margin:0 auto;padding:1.25rem 1rem 3rem}
+.main{max-width:760px;margin:0 auto;padding:1.25rem 1rem 3rem; overflow-x: hidden;}
 .page{display:none}.page.active{display:block}
 
 /* CARDS */
@@ -202,6 +204,7 @@ body{
   font-size:14px;font-weight:500;
   background:var(--surface);
   user-select:none;
+  -webkit-tap-highlight-color: transparent;
 }
 .acc-h:hover{background:var(--surface2)}
 .acc-b{
@@ -251,8 +254,8 @@ body{
 }
 
 /* ANIMATION */
-.page.active{animation:fadein .18s ease}
-@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.page.active{animation:fadein .2s ease-out}
+@keyframes fadein{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -266,7 +269,7 @@ body{
       </div>
       <div class="header-badge">J19 型</div>
     </div>
-    <div class="tab-row">
+    <div class="tab-row" id="tabContainer">
       <button class="tab active" onclick="switchTab('format',this)">3B 格式</button>
       <button class="tab" onclick="switchTab('program',this)">编程方法</button>
       <button class="tab" onclick="switchTab('operate',this)">开机操作</button>
@@ -277,9 +280,9 @@ body{
   </div>
 </header>
 
-<main class="main">
+<main class="main" id="mainArea">
 
-<div class="page" id="page-format">
+<div class="page active" id="page-format">
 
   <div class="card">
     <div class="card-title"><span class="badge b-purple">基础</span>3B 程序格式结构</div>
@@ -338,7 +341,7 @@ body{
 
 </div>
 
-<div class="page active" id="page-program">
+<div class="page" id="page-program">
 
   <div class="card">
     <div class="card-title"><span class="badge b-teal">类型一</span>直线编程</div>
@@ -759,20 +762,93 @@ body{
 </footer>
 
 <script>
-function switchTab(id, el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('page-'+id).classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+// 页面标识映射与当前索引
+const pageIds = ['format', 'program', 'operate', 'advanced', 'shortcuts', 'fault'];
+let currentIndex = 0;
+
+// 切换页面的核心函数
+function switchTab(id, el) {
+  currentIndex = pageIds.indexOf(id);
+  updateView(id, el);
 }
+
+// 供滑动事件调用的按索引切换函数
+function switchToIndex(index) {
+  currentIndex = index;
+  const id = pageIds[index];
+  const el = document.querySelector(`button[onclick="switchTab('${id}',this)"]`);
+  updateView(id, el);
+}
+
+// 更新界面视图状态
+function updateView(id, el) {
+  // 清除旧状态
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  
+  // 激活新状态
+  if (el) {
+    el.classList.add('active');
+    // 移动端体验优化：当标签被点击或滑动到时，自动将其滚动到可视区域居中位置
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+  
+  document.getElementById('page-' + id).classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// 手风琴逻辑
 function acc(head){
-  const body=head.nextElementSibling;
-  const arrow=head.querySelector('.arr');
-  const open=body.classList.contains('open');
-  document.querySelectorAll('.acc-b').forEach(b=>b.classList.remove('open'));
-  document.querySelectorAll('.arr').forEach(a=>a.classList.remove('open'));
-  if(!open){body.classList.add('open');arrow.classList.add('open');}
+  const body = head.nextElementSibling;
+  const arrow = head.querySelector('.arr');
+  const open = body.classList.contains('open');
+  document.querySelectorAll('.acc-b').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.arr').forEach(a => a.classList.remove('open'));
+  if(!open) {
+    body.classList.add('open');
+    arrow.classList.add('open');
+  }
+}
+
+// 移动端手势支持（左右滑动切换页面）
+const mainArea = document.getElementById('mainArea');
+let touchstartX = 0;
+let touchstartY = 0;
+let touchendX = 0;
+let touchendY = 0;
+const swipeThreshold = 60; // 判定为滑动的最小像素距离
+
+mainArea.addEventListener('touchstart', (e) => {
+  touchstartX = e.changedTouches[0].screenX;
+  touchstartY = e.changedTouches[0].screenY;
+}, {passive: true});
+
+mainArea.addEventListener('touchend', (e) => {
+  touchendX = e.changedTouches[0].screenX;
+  touchendY = e.changedTouches[0].screenY;
+  handleGesture();
+}, {passive: true});
+
+function handleGesture() {
+  const diffX = touchendX - touchstartX;
+  const diffY = touchendY - touchstartY;
+
+  // 判断主要滑动方向：如果垂直滑动距离大于水平滑动，说明用户在上下滚动阅读，不触发切换
+  if (Math.abs(diffY) > Math.abs(diffX)) {
+    return;
+  }
+
+  if (diffX < -swipeThreshold) {
+    // 向左滑动：切换到下一页
+    if (currentIndex < pageIds.length - 1) {
+      switchToIndex(currentIndex + 1);
+    }
+  } else if (diffX > swipeThreshold) {
+    // 向右滑动：切换到上一页
+    if (currentIndex > 0) {
+      switchToIndex(currentIndex - 1);
+    }
+  }
 }
 </script>
 </body>
