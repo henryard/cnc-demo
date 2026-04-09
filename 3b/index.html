@@ -2,257 +2,284 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>线切割单板机 3B 程序学习指南</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%237f77dd' /%3E%3Cstop offset='100%25' stop-color='%233c3489' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='120' height='120' rx='28' fill='url(%23bg)' /%3E%3Ctext x='60' y='84' font-family='system-ui, sans-serif' font-size='68' font-weight='800' fill='%23ffffff' text-anchor='middle' letter-spacing='-2'%3E3B%3C/text%3E%3Cpath d='M 25 30 L 95 30' stroke='%235dd4a8' stroke-width='6' stroke-linecap='round' stroke-dasharray='8 8'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M277.432637 293.177226L77.243245 482.660788c-15.280008 14.521738-16.044418 38.968523-1.521656 54.249555l187.953719 200.187345c6.877641 8.402367 17.575284 12.227486 27.506471 12.227486 9.17394 0 19.10615-3.060709 26.743084-9.93835 15.286148-14.516622 16.043395-38.962384 1.529843-54.242392L157.470451 512.462534l172.680874-163.514097c15.281031-14.514575 16.046464-38.969547 1.530866-54.249555-14.514575-15.278985-38.969547-16.045441-54.249554-1.521656zM946.753685 481.896378l-200.187345-189.485609c-15.278985-14.522762-39.726793-13.757329-54.241368 1.523703-14.521738 15.287171-13.757329 39.73498 1.521656 54.249555l172.681898 163.514098-162.750711 172.679851c-14.514575 15.281031-13.750165 39.727817 1.530866 54.249555 6.877641 6.872524 16.808828 10.698666 25.977651 10.698666 9.931187 0 20.627806-3.826142 28.271904-12.991896l188.726315-200.187345c14.514575-15.283078 13.750165-39.72884-1.530866-54.250578zM573.893652 199.192691c-20.62883-4.583388-41.265846 8.40953-45.849234 29.037337L403.499867 779.119757c-4.583388 20.629853 8.40953 41.258683 29.037337 45.842071 3.053546 0.76441 5.348821 0.76441 8.401344 0.76441 17.575284 0 33.621748-12.220323 37.437657-29.795607l124.545574-550.890752c4.584412-20.635993-8.401344-41.263799-29.028127-45.847188z' fill='%231890ff'/%3E%3C/svg%3E">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 
-:root{
-  --bg:#f7f6f2;
-  --surface:#ffffff;
-  --surface2:#f0efe9;
-  --border:#e2e0d8;
-  --border2:#ccc9be;
-  --text:#1a1916;
-  --text2:#5a5850;
-  --text3:#9a9788;
-  --purple-bg:#eeedfe;--purple-mid:#7f77dd;--purple-dark:#3c3489;
-  --teal-bg:#e1f5ee;--teal-mid:#1d9e75;--teal-dark:#085041;
-  --amber-bg:#faeeda;--amber-mid:#ba7517;--amber-dark:#633806;
-  --coral-bg:#faece7;--coral-mid:#d85a30;--coral-dark:#712b13;
-  --blue-bg:#e6f1fb;--blue-mid:#378add;--blue-dark:#0c447c;
-  --green-bg:#eaf3de;--green-mid:#639922;--green-dark:#27500a;
-  --accent:#534ab7;
-  --radius:10px;
-  --radius-lg:14px;
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Noto Sans SC',sans-serif;
+:root {
+  /* iOS Style Variables */
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --surface2: #F2F2F7;
+  --border: rgba(60, 60, 67, 0.1);
+  --border2: rgba(60, 60, 67, 0.15);
+  --text: #000000;
+  --text2: rgba(60, 60, 67, 0.6);
+  --text3: rgba(60, 60, 67, 0.3);
+  
+  /* Semantic Colors adapted for iOS */
+  --purple-bg: #EAE6FF; --purple-mid: #5E5CE6; --purple-dark: #3734A9;
+  --teal-bg: #E0F5EE; --teal-mid: #34C759; --teal-dark: #1F7A35;
+  --amber-bg: #FFEFD6; --amber-mid: #FF9500; --amber-dark: #995900;
+  --coral-bg: #FFE5E5; --coral-mid: #FF3B30; --coral-dark: #99231D;
+  --blue-bg: #E5F0FF; --blue-mid: #007AFF; --blue-dark: #004999;
+  --accent: #007AFF;
+  
+  --radius: 12px;
+  --radius-lg: 16px;
+  --mono: 'JetBrains Mono', monospace;
+  /* System Font Stack for iOS feel */
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 
-@media(prefers-color-scheme:dark){
-  :root{
-    --bg:#141412;
-    --surface:#1e1d1a;--surface2:#252420;
-    --border:#2e2d28;--border2:#3a3930;
-    --text:#f0ede6;--text2:#a09d90;--text3:#5a5850;
-    --purple-bg:#1e1c3a;--purple-dark:#b0a8f0;
-    --teal-bg:#0d2a20;--teal-dark:#5dd4a8;
-    --amber-bg:#2a1f08;--amber-dark:#f0b44a;
-    --coral-bg:#2a1308;--coral-dark:#f09a70;
-    --blue-bg:#081828;--blue-dark:#78b4f0;
-    --green-bg:#0e2008;--green-dark:#90cc50;
-    --accent:#9088e8;
+@media(prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #1C1C1E;
+    --surface2: #2C2C2E;
+    --border: rgba(84, 84, 88, 0.65);
+    --border2: rgba(84, 84, 88, 0.8);
+    --text: #FFFFFF;
+    --text2: rgba(235, 235, 245, 0.6);
+    --text3: rgba(235, 235, 245, 0.3);
+    
+    --purple-bg: #2C2959; --purple-dark: #BF5AF2;
+    --teal-bg: #1A3D2A; --teal-dark: #32D74B;
+    --amber-bg: #4A330B; --amber-dark: #FF9F0A;
+    --coral-bg: #4A1A1A; --coral-dark: #FF453A;
+    --blue-bg: #102A4A; --blue-dark: #0A84FF;
+    --accent: #0A84FF;
   }
 }
 
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:var(--sans);
-  background:var(--bg);
-  color:var(--text);
-  font-size:15px;
-  line-height:1.7;
-  min-height:100vh;
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  /* Prevent overscroll bounce on body to keep it native */
+  overscroll-behavior-y: none;
 }
 
-/* HEADER */
-.header{
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  padding:1.25rem 1rem 0;
-  position:sticky;top:0;z-index:100;
+/* HEADER (iOS Blur effect) */
+.header {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  padding-top: max(env(safe-area-inset-top), 1rem);
 }
-.header-inner{max-width:760px;margin:0 auto}
-.header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.9rem;gap:.5rem}
-.site-title{font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
-.site-sub{font-size:12px;color:var(--text3);margin-top:2px}
-.header-badge{
-  display:inline-flex;align-items:center;gap:5px;
-  background:var(--purple-bg);color:var(--purple-dark);
-  border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;
-  white-space:nowrap;
+@media(prefers-color-scheme: dark){
+  .header { background: rgba(28, 28, 30, 0.75); }
 }
-.tab-row{display:flex;gap:4px;overflow-x:auto;padding-bottom:0;scrollbar-width:none}
-.tab-row::-webkit-scrollbar{display:none}
-.tab{
-  padding:8px 14px;border:none;background:transparent;
-  font-family:var(--sans);font-size:13px;color:var(--text2);
-  cursor:pointer;border-radius:8px 8px 0 0;
-  border-bottom:2px solid transparent;
-  white-space:nowrap;transition:all .15s;font-weight:500;
+.header-inner { max-width: 760px; margin: 0 auto; padding: 0 1rem; }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.8rem; gap: 0.5rem; }
+.site-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+.site-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.header-badge {
+  display: inline-flex; align-items: center;
+  background: var(--surface2); color: var(--text2);
+  border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+  white-space: nowrap;
 }
-.tab:hover{color:var(--text);background:var(--surface2)}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:transparent}
+
+/* SCROLLABLE PILL TABS */
+.tab-row {
+  display: flex; gap: 8px; overflow-x: auto; 
+  padding-bottom: 12px; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.tab-row::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 8px 16px; border: none; 
+  background: transparent;
+  font-family: var(--sans); font-size: 14px; color: var(--text2);
+  cursor: pointer; border-radius: 20px;
+  white-space: nowrap; transition: all 0.2s ease; font-weight: 500;
+}
+.tab:hover { background: var(--surface2); }
+.tab.active {
+  color: #fff; background: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,122,255,0.3);
+}
 
 /* MAIN */
-.main{max-width:760px;margin:0 auto;padding:1.25rem 1rem 3rem}
-.page{display:none}.page.active{display:block}
+.main { max-width: 760px; margin: 0 auto; padding: 1.25rem 1rem 4rem; overflow-x: hidden; }
 
-/* CARDS */
-.card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius-lg);
-  padding:1.1rem 1.25rem;
-  margin-bottom:1rem;
+/* PAGE ANIMATIONS */
+.page { display: none; }
+.page.active { display: block; }
+.page.slide-left { animation: slideInLeft 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.page.slide-right { animation: slideInRight 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: none; }
 }
-.card-title{
-  font-size:15px;font-weight:700;
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:.9rem;
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* CARDS (iOS Style) */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 1.2rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
+}
+@media(prefers-color-scheme: dark){
+  .card { box-shadow: none; border: 0.5px solid var(--border); }
+}
+.card-title {
+  font-size: 16px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 1rem;
 }
 
 /* BADGES */
-.badge{
-  display:inline-block;padding:2px 10px;
-  border-radius:20px;font-size:11px;font-weight:700;
-  letter-spacing:.02em;
+.badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 8px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.02em; text-transform: uppercase;
 }
-.b-purple{background:var(--purple-bg);color:var(--purple-dark)}
-.b-teal{background:var(--teal-bg);color:var(--teal-dark)}
-.b-amber{background:var(--amber-bg);color:var(--amber-dark)}
-.b-coral{background:var(--coral-bg);color:var(--coral-dark)}
-.b-blue{background:var(--blue-bg);color:var(--blue-dark)}
-.b-green{background:var(--green-bg);color:var(--green-dark)}
+.b-purple { background: var(--purple-bg); color: var(--purple-dark); }
+.b-teal { background: var(--teal-bg); color: var(--teal-dark); }
+.b-amber { background: var(--amber-bg); color: var(--amber-dark); }
+.b-coral { background: var(--coral-bg); color: var(--coral-dark); }
+.b-blue { background: var(--blue-bg); color: var(--blue-dark); }
 
 /* FORMULA */
-.formula-wrap{
-  background:var(--surface2);
-  border-radius:var(--radius);
-  padding:1rem 1.1rem;
-  margin:.6rem 0;
-  overflow-x:auto;
+.formula-wrap {
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin: 0.6rem 0;
+  overflow-x: auto;
 }
-.formula{
-  display:flex;align-items:center;gap:4px;
-  font-family:var(--mono);font-size:15px;
-  white-space:nowrap;
+.formula {
+  display: flex; align-items: center; gap: 4px;
+  font-family: var(--mono); font-size: 16px;
+  white-space: nowrap;
 }
-.f{display:inline-block;padding:4px 10px;border-radius:6px;font-weight:500;font-size:14px}
-.f-b{background:#d5d0f8;color:#26215c}
-.f-x{background:#9fe1cb;color:#04342c}
-.f-y{background:#fac775;color:#412402}
-.f-j{background:#f5c4b3;color:#4a1b0c}
-.f-g{background:#b5d4f4;color:#042c53}
-.f-z{background:#c0dd97;color:#173404}
+.f { display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 14px; }
+.f-b{background:#d5d0f8;color:#26215c} .f-x{background:#9fe1cb;color:#04342c}
+.f-y{background:#fac775;color:#412402} .f-j{background:#f5c4b3;color:#4a1b0c}
+.f-g{background:#b5d4f4;color:#042c53} .f-z{background:#c0dd97;color:#173404}
 @media(prefers-color-scheme:dark){
-  .f-b{background:#2e2860;color:#c8c4f8}
-  .f-x{background:#0d3828;color:#6de0b0}
-  .f-y{background:#3a2808;color:#f8c070}
-  .f-j{background:#3a1808;color:#f8a880}
-  .f-g{background:#082038;color:#80c0f8}
-  .f-z{background:#183008;color:#a8d870}
+  .f-b{background:#2e2860;color:#c8c4f8} .f-x{background:#0d3828;color:#6de0b0}
+  .f-y{background:#3a2808;color:#f8c070} .f-j{background:#3a1808;color:#f8a880}
+  .f-g{background:#082038;color:#80c0f8} .f-z{background:#183008;color:#a8d870}
 }
-.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:.75rem}
-.leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 0.75rem; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text2); }
 
 /* TABLE */
-.tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin:.5rem 0}
-.tbl th{
-  background:var(--surface2);padding:7px 10px;
-  text-align:left;font-weight:700;font-size:12px;
-  color:var(--text2);border-bottom:1px solid var(--border);
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; margin: 0.5rem 0; }
+.tbl th {
+  background: var(--surface2); padding: 8px 12px;
+  text-align: left; font-weight: 600; font-size: 13px;
+  color: var(--text2); border-bottom: 0.5px solid var(--border);
 }
-.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
-.tbl tr:last-child td{border-bottom:none}
+.tbl th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+.tbl th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+.tbl td { padding: 10px 12px; border-bottom: 0.5px solid var(--border); vertical-align: top; }
+.tbl tr:last-child td { border-bottom: none; }
 
-/* EXAMPLE */
-.ex-block{
-  background:var(--surface2);
-  border-left:3px solid var(--purple-mid);
-  border-radius:0 var(--radius) var(--radius) 0;
-  padding:.75rem 1rem;margin:.6rem 0;
+/* EXAMPLE BLOCK */
+.ex-block {
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 1rem; margin: 0.8rem 0;
 }
-.ex-title{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:.4rem;letter-spacing:.04em}
-.ex-code{font-family:var(--mono);font-size:13px;line-height:1.9;color:var(--text)}
-.ex-note{font-size:12px;color:var(--text2);margin-top:.4rem}
+.ex-title { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 0.6rem; letter-spacing: 0.02em; }
+.ex-code { font-family: var(--mono); font-size: 14px; line-height: 2; color: var(--text); }
+.ex-note { font-size: 13px; color: var(--text2); margin-top: 0.6rem; }
 
 /* ALERTS */
-.warn{background:var(--amber-bg);border:1px solid #ef9f2744;border-radius:var(--radius);padding:.65rem 1rem;font-size:13px;color:var(--amber-dark);margin:.5rem 0}
-.info{background:var(--blue-bg);border:1px solid #85b7eb44;border-radius:var(--radius);padding:.65rem 1rem;font-size:13px;color:var(--blue-dark);margin:.5rem 0}
+.warn { background: var(--amber-bg); border-radius: var(--radius); padding: 0.8rem 1rem; font-size: 14px; color: var(--amber-dark); margin: 0.8rem 0; }
+.info { background: var(--blue-bg); border-radius: var(--radius); padding: 0.8rem 1rem; font-size: 14px; color: var(--blue-dark); margin: 0.8rem 0; }
 
 /* RULES */
-.rule-row{
-  display:grid;grid-template-columns:88px 1fr;
-  gap:.5rem;padding:.6rem 0;
-  border-bottom:1px solid var(--border);font-size:14px;
+.rule-row {
+  display: grid; grid-template-columns: 88px 1fr;
+  gap: 0.5rem; padding: 0.8rem 0;
+  border-bottom: 0.5px solid var(--border); font-size: 14px;
 }
-.rule-row:last-child{border-bottom:none}
-.rl{color:var(--text2);font-size:13px;font-weight:500;padding-top:1px}
+.rule-row:last-child { border-bottom: none; }
+.rl { color: var(--text2); font-size: 14px; font-weight: 500; }
 
 /* STEPS */
-.step{display:flex;gap:.75rem;margin-bottom:.85rem;align-items:flex-start}
-.step-n{
-  min-width:28px;height:28px;border-radius:50%;
-  background:var(--accent);color:#fff;
-  font-size:12px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:1px;
+.step { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: flex-start; }
+.step-n {
+  min-width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
 }
-.step-t{font-size:14px;line-height:1.65}
-.step-s{font-size:12px;color:var(--text2);margin-top:3px}
+.step-t { font-size: 15px; font-weight: 500; line-height: 1.5; color: var(--text); }
+.step-s { font-size: 13px; color: var(--text2); margin-top: 4px; }
 
-/* ACCORDION */
-.acc{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;overflow:hidden}
-.acc-h{
-  padding:.8rem 1rem;cursor:pointer;
-  display:flex;justify-content:space-between;align-items:center;
-  font-size:14px;font-weight:500;
-  background:var(--surface);
-  user-select:none;
+/* ACCORDION (iOS List style) */
+.acc { border-bottom: 0.5px solid var(--border); overflow: hidden; }
+.acc:last-child { border-bottom: none; }
+.acc-h {
+  padding: 1rem 0; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 15px; font-weight: 500;
+  user-select: none; transition: opacity 0.2s;
 }
-.acc-h:hover{background:var(--surface2)}
-.acc-b{
-  padding:0 1rem;max-height:0;overflow:hidden;
-  transition:max-height .25s ease,padding .2s;
-  font-size:13.5px;line-height:1.75;color:var(--text2);
-  border-top:0 solid var(--border);
+.acc-h:active { opacity: 0.6; }
+.acc-b {
+  padding: 0; max-height: 0; overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s;
+  font-size: 14px; line-height: 1.6; color: var(--text2);
 }
-.acc-b.open{max-height:500px;padding:.75rem 1rem;border-top-width:1px}
-.arr{transition:transform .2s;font-size:11px;color:var(--text3);flex-shrink:0}
-.arr.open{transform:rotate(90deg)}
+.acc-b.open { max-height: 500px; padding: 0 0 1rem 0; }
+.arr { transition: transform 0.3s; font-size: 12px; color: var(--text3); flex-shrink: 0; }
+.arr.open { transform: rotate(90deg); }
 
 /* INSTR GRID */
-.instr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin:.5rem 0}
-.instr-c{border-radius:8px;padding:.55rem .65rem;text-align:center}
-.instr-l{font-size:11px;opacity:.8;margin-bottom:2px}
-.instr-v{font-family:var(--mono);font-size:14px;font-weight:700}
+.instr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 0.8rem 0; }
+.instr-c { border-radius: var(--radius); padding: 0.6rem; text-align: center; }
+.instr-l { font-size: 12px; opacity: 0.8; margin-bottom: 4px; }
+.instr-v { font-family: var(--mono); font-size: 15px; font-weight: 700; }
 
 /* SHORTCUTS */
-.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-@media(max-width:500px){.sc-grid{grid-template-columns:1fr}}
-.sc-card{
-  background:var(--surface2);border-radius:var(--radius);
-  padding:.65rem .85rem;border:1px solid var(--border);
+.sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media(max-width: 500px) { .sc-grid { grid-template-columns: 1fr; } }
+.sc-card {
+  background: var(--surface2); border-radius: var(--radius);
+  padding: 0.8rem 1rem; border: 0.5px solid var(--border);
 }
-.sc-name{font-weight:700;font-size:13px;margin-bottom:4px;color:var(--text)}
-.sc-seq{font-family:var(--mono);font-size:11.5px;color:var(--accent);line-height:1.65}
+.sc-name { font-weight: 600; font-size: 14px; margin-bottom: 6px; color: var(--text); }
+.sc-seq { font-family: var(--mono); font-size: 13px; color: var(--accent); line-height: 1.5; }
 
 /* DIVIDER */
-.div{height:1px;background:var(--border);margin:.75rem 0}
+.div { height: 0.5px; background: var(--border); margin: 1rem 0; }
 
 /* FOOTER */
-.footer{
-  text-align:center;padding:2rem 1rem;
-  font-size:12px;color:var(--text3);
-  border-top:1px solid var(--border);
-  background:var(--surface);
-  margin-top:2rem;
+.footer {
+  text-align: center; padding: 2rem 1rem max(env(safe-area-inset-bottom), 2rem);
+  font-size: 12px; color: var(--text3);
 }
 
-/* MOBILE */
-@media(max-width:480px){
-  .card{padding:.9rem 1rem}
-  .rule-row{grid-template-columns:76px 1fr}
-  .formula{font-size:13px}
-  .f{padding:3px 7px;font-size:13px}
+/* MOBILE ADJUSTMENTS */
+@media(max-width: 480px){
+  .rule-row { grid-template-columns: 76px 1fr; }
+  .formula { font-size: 14px; }
+  .f { padding: 4px 8px; font-size: 13px; }
 }
-
-/* ANIMATION */
-.page.active{animation:fadein .18s ease}
-@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -261,38 +288,30 @@ body{
   <div class="header-inner">
     <div class="header-top">
       <div>
-        <div class="site-title">线切割单板机学习指南</div>
-        <div class="site-sub">3B 程序编写 · 控制器操作 · 快捷键速查 · 故障排查</div>
+        <div class="site-title">3B 程序学习指南</div>
+        <div class="site-sub">线切割单板机操作与故障排查</div>
       </div>
-      <div class="header-badge">J19 型 · V1.1</div>
+      <div class="header-badge">J19 型</div>
     </div>
-    <div class="tab-row">
-      <button class="tab" onclick="switchTab('format',this)">3B 格式</button>
-      <button class="tab active" onclick="switchTab('program',this)">编程方法</button>
-      <button class="tab" onclick="switchTab('operate',this)">开机操作</button>
-      <button class="tab" onclick="switchTab('advanced',this)">高级功能</button>
-      <button class="tab" onclick="switchTab('shortcuts',this)">快捷键</button>
-      <button class="tab" onclick="switchTab('fault',this)">故障排查</button>
+    <div class="tab-row" id="tabRow">
+      <button class="tab" data-target="format" onclick="switchTab('format')">3B 格式</button>
+      <button class="tab active" data-target="program" onclick="switchTab('program')">编程方法</button>
+      <button class="tab" data-target="operate" onclick="switchTab('operate')">开机操作</button>
+      <button class="tab" data-target="advanced" onclick="switchTab('advanced')">高级功能</button>
+      <button class="tab" data-target="shortcuts" onclick="switchTab('shortcuts')">快捷键</button>
+      <button class="tab" data-target="fault" onclick="switchTab('fault')">故障排查</button>
     </div>
   </div>
 </header>
 
-<main class="main">
+<main class="main" id="mainContainer">
 
 <div class="page" id="page-format">
-
   <div class="card">
     <div class="card-title"><span class="badge b-purple">基础</span>3B 程序格式结构</div>
     <div class="formula-wrap">
       <div class="formula">
-        <span class="f f-b">B</span>
-        <span class="f f-x">X</span>
-        <span class="f f-b">B</span>
-        <span class="f f-y">Y</span>
-        <span class="f f-b">B</span>
-        <span class="f f-j">J</span>
-        <span class="f f-g">G</span>
-        <span class="f f-z">Z</span>
+        <span class="f f-b">B</span><span class="f f-x">X</span><span class="f f-b">B</span><span class="f f-y">Y</span><span class="f f-b">B</span><span class="f f-j">J</span><span class="f f-g">G</span><span class="f f-z">Z</span>
       </div>
     </div>
     <div class="legend">
@@ -300,7 +319,7 @@ body{
       <div class="leg-item"><span class="f f-x" style="font-size:11px;padding:2px 6px">X</span>X 坐标值</div>
       <div class="leg-item"><span class="f f-y" style="font-size:11px;padding:2px 6px">Y</span>Y 坐标值</div>
       <div class="leg-item"><span class="f f-j" style="font-size:11px;padding:2px 6px">J</span>计数长度</div>
-      <div class="leg-item"><span class="f f-g" style="font-size:11px;padding:2px 6px">G</span>计数方向 GX/GY</div>
+      <div class="leg-item"><span class="f f-g" style="font-size:11px;padding:2px 6px">G</span>计数方向</div>
       <div class="leg-item"><span class="f f-z" style="font-size:11px;padding:2px 6px">Z</span>加工指令</div>
     </div>
   </div>
@@ -311,207 +330,151 @@ body{
     <div class="rule-row"><div class="rl">X / Y 值</div><div>坐标绝对值，单位 <b>μm（微米）</b>。数值为 0 时可省略不写，但 B 不能省</div></div>
     <div class="rule-row"><div class="rl">计数长度 J</div><div>直线/斜线：终点在计数方向上的坐标绝对值；圆弧：各象限投影长度之总和</div></div>
     <div class="rule-row"><div class="rl">计数方向 G</div><div>GX 或 GY，通过比较终点坐标大小决定，影响加工精度</div></div>
-    <div class="rule-row"><div class="rl">加工指令 Z</div><div>L1–L4（直线/斜线方向）、SR1–SR4（顺时针圆弧）、NR1–NR4（逆时针圆弧）</div></div>
+    <div class="rule-row"><div class="rl">加工指令 Z</div><div>L1–L4（直线/斜线）、SR1–SR4（顺时针圆弧）、NR1–NR4（逆时针圆弧）</div></div>
   </div>
 
   <div class="card">
     <div class="card-title"><span class="badge b-amber">速记</span>加工指令对照</div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:.6rem">数字 1–4 对应右上 → 左上 → 左下 → 右下四个象限/方向</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:0.8rem">数字 1–4 对应右上 → 左上 → 左下 → 右下四个象限/方向</p>
     <div class="instr-grid">
       <div class="instr-c" style="background:var(--teal-bg)"><div class="instr-l" style="color:var(--teal-dark)">沿 +X 方向</div><div class="instr-v" style="color:var(--teal-dark)">L1</div></div>
       <div class="instr-c" style="background:var(--teal-bg)"><div class="instr-l" style="color:var(--teal-dark)">沿 +Y 方向</div><div class="instr-v" style="color:var(--teal-dark)">L2</div></div>
       <div class="instr-c" style="background:var(--teal-bg)"><div class="instr-l" style="color:var(--teal-dark)">沿 −X 方向</div><div class="instr-v" style="color:var(--teal-dark)">L3</div></div>
       <div class="instr-c" style="background:var(--teal-bg)"><div class="instr-l" style="color:var(--teal-dark)">沿 −Y 方向</div><div class="instr-v" style="color:var(--teal-dark)">L4</div></div>
-      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆第一象限</div><div class="instr-v" style="color:var(--purple-dark)">SR1</div></div>
-      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆第二象限</div><div class="instr-v" style="color:var(--purple-dark)">SR2</div></div>
-      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆第三象限</div><div class="instr-v" style="color:var(--purple-dark)">SR3</div></div>
-      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆第四象限</div><div class="instr-v" style="color:var(--purple-dark)">SR4</div></div>
-      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆第一象限</div><div class="instr-v" style="color:var(--coral-dark)">NR1</div></div>
-      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆第二象限</div><div class="instr-v" style="color:var(--coral-dark)">NR2</div></div>
-      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆第三象限</div><div class="instr-v" style="color:var(--coral-dark)">NR3</div></div>
-      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆第四象限</div><div class="instr-v" style="color:var(--coral-dark)">NR4</div></div>
+      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆一象限</div><div class="instr-v" style="color:var(--purple-dark)">SR1</div></div>
+      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆二象限</div><div class="instr-v" style="color:var(--purple-dark)">SR2</div></div>
+      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆三象限</div><div class="instr-v" style="color:var(--purple-dark)">SR3</div></div>
+      <div class="instr-c" style="background:var(--purple-bg)"><div class="instr-l" style="color:var(--purple-dark)">顺圆四象限</div><div class="instr-v" style="color:var(--purple-dark)">SR4</div></div>
+      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆一象限</div><div class="instr-v" style="color:var(--coral-dark)">NR1</div></div>
+      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆二象限</div><div class="instr-v" style="color:var(--coral-dark)">NR2</div></div>
+      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆三象限</div><div class="instr-v" style="color:var(--coral-dark)">NR3</div></div>
+      <div class="instr-c" style="background:var(--coral-bg)"><div class="instr-l" style="color:var(--coral-dark)">逆圆四象限</div><div class="instr-v" style="color:var(--coral-dark)">NR4</div></div>
     </div>
-    <div class="info" style="margin-top:.75rem">
-      <b>停机符说明：</b>段末写 <code>D</code> 表示该段结束停机；程序最后一段写 <code>DD</code>（全部停机），加工结束后报警提示。
-    </div>
+    <div class="info"><b>停机符说明：</b>段末写 <code>D</code> 表示该段结束停机；程序最后一段写 <code>DD</code>（全部停机）。</div>
   </div>
-
 </div>
 
 <div class="page active" id="page-program">
-
   <div class="card">
     <div class="card-title"><span class="badge b-teal">类型一</span>直线编程</div>
     <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">起点在坐标原点，沿 X 轴或 Y 轴方向的直线。X、Y 值均为 0，可省略不写；计数长度 J 为终点坐标绝对值。</p>
-    
     <div class="ex-block">
       <div class="ex-title">示例 1：沿 +Y 方向走 15.8 mm（即 15800 μm）</div>
       <div class="ex-code">
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span style="background:var(--teal-bg);color:var(--teal-dark);padding:2px 9px;border-radius:5px;font-size:13px;font-family:var(--mono)">15800</span>&thinsp;
-        <span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;
-        <span class="f f-z" style="font-size:12px;padding:2px 7px">L2</span>
+        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span style="background:var(--teal-bg);color:var(--teal-dark);padding:2px 9px;border-radius:5px;font-size:13px;font-family:var(--mono)">15800</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L2</span>
       </div>
-      <div class="ex-note">X=0 省略，Y=0 省略，J=15800，计数方向 GY（与 L2 对应的 +Y 轴方向一致）</div>
+      <div class="ex-note">X=0 省略，Y=0 省略，J=15800，计数方向 GY</div>
     </div>
-
-    <div class="ex-block" style="margin-top:.65rem">
+    <div class="ex-block">
       <div class="ex-title">示例 2：沿 -X 方向走 20.0 mm（即 20000 μm）</div>
       <div class="ex-code">
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span style="background:var(--teal-bg);color:var(--teal-dark);padding:2px 9px;border-radius:5px;font-size:13px;font-family:var(--mono)">20000</span>&thinsp;
-        <span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;
-        <span class="f f-z" style="font-size:12px;padding:2px 7px">L3</span>
+        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span style="background:var(--teal-bg);color:var(--teal-dark);padding:2px 9px;border-radius:5px;font-size:13px;font-family:var(--mono)">20000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L3</span>
       </div>
-      <div class="ex-note">X=0 省略，Y=0 省略，J=20000，计数方向 GX（与 L3 对应的 -X 轴方向一致）</div>
+      <div class="ex-note">X=0 省略，Y=0 省略，J=20000，计数方向 GX</div>
     </div>
-    
     <div class="warn">⚠ B 分隔符必须写 3 个，即使 X 和 Y 省略，格式仍为 BBB[J][G][Z]</div>
   </div>
 
   <div class="card">
     <div class="card-title"><span class="badge b-purple">类型二</span>斜线编程</div>
-    <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">有斜率的直线（既不平行也不垂直于坐标轴）。起点默认为原点，X、Y 为终点坐标绝对值。</p>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">有斜率的直线。起点默认为原点，X、Y 为终点坐标绝对值。</p>
     <div class="div"></div>
-    <p style="font-size:13px;font-weight:700;margin-bottom:.4rem">计数方向选取规则（比较终点坐标绝对值）</p>
+    <p style="font-size:14px;font-weight:600;margin-bottom:.4rem">计数方向选取规则（比较终点坐标绝对值）</p>
     <table class="tbl">
       <tr><th>条件</th><th>取计数方向</th><th>J 值</th></tr>
       <tr><td>|Xe| &gt; |Ye|</td><td><span class="badge b-blue">GX</span></td><td>终点 X 坐标绝对值</td></tr>
       <tr><td>|Xe| &lt; |Ye|</td><td><span class="badge b-teal">GY</span></td><td>终点 Y 坐标绝对值</td></tr>
       <tr><td>|Xe| = |Ye|</td><td>GX 或 GY 均可</td><td>两者相等，取其一</td></tr>
     </table>
-    <div class="ex-block" style="margin-top:.65rem">
+    <div class="ex-block">
       <div class="ex-title">示例：终点 A(12, 8) → |12| &gt; |8| → 取 GX，J=12000</div>
       <div class="ex-code">
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-x" style="font-size:12px;padding:2px 9px">12000</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-y" style="font-size:12px;padding:2px 9px">8000</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-j" style="font-size:12px;padding:2px 9px">12000</span>&thinsp;
-        <span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;
-        <span class="f f-z" style="font-size:12px;padding:2px 7px">L1</span>
+        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-x" style="font-size:12px;padding:2px 9px">12000</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-y" style="font-size:12px;padding:2px 9px">8000</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">12000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L1</span>
       </div>
-      <div class="ex-note">起点在原点，终点 (12000, 8000) μm，斜线偏向 +X 方向，故取 GX，加工指令 L1</div>
+      <div class="ex-note">斜线偏向 +X 方向，故取 GX，加工指令 L1</div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-title"><span class="badge b-coral">类型三</span>圆弧编程</div>
-    <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">坐标原点为圆心，X、Y 为圆弧<b>起点</b>坐标绝对值。计数长度为各象限圆弧在计数方向投影的总和。</p>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">坐标原点为圆心，X、Y 为圆弧<b>起点</b>坐标绝对值。计数长度为各象限投影总和。</p>
     <div class="div"></div>
-    <p style="font-size:13px;font-weight:700;margin-bottom:.4rem">圆弧计数方向（注意：与斜线规则相反！）</p>
+    <p style="font-size:14px;font-weight:600;margin-bottom:.4rem">圆弧计数方向（与斜线规则相反！）</p>
     <table class="tbl">
       <tr><th>条件（终点坐标）</th><th>取计数方向</th></tr>
       <tr><td>|Xe| &lt; |Ye|</td><td><span class="badge b-blue">GX</span></td></tr>
       <tr><td>|Xe| &gt; |Ye|</td><td><span class="badge b-teal">GY</span></td></tr>
       <tr><td>|Xe| = |Ye|</td><td>GX 或 GY 均可</td></tr>
     </table>
-    <div class="warn" style="margin-top:.6rem">⚠ 圆弧选 G 方向与斜线规则完全相反（&lt; 取 GX，&gt; 取 GY），这是最易出错的地方！</div>
-    <div class="ex-block" style="margin-top:.5rem">
-      <div class="ex-title">示例：逆圆弧，起点 A(−2, 9)，终点 B(9, −2)，R≈9.22</div>
+    <div class="warn">⚠ 圆弧选 G 方向与斜线规则完全相反（&lt; 取 GX，&gt; 取 GY），最易出错！</div>
+    <div class="ex-block">
+      <div class="ex-title">示例：逆圆弧，起点 A(−2, 9)，终点 B(9, −2)</div>
       <div class="ex-code">
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-x" style="font-size:12px;padding:2px 9px">2000</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-y" style="font-size:12px;padding:2px 9px">9000</span>&thinsp;
-        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;
-        <span class="f f-j" style="font-size:12px;padding:2px 9px">25440</span>&thinsp;
-        <span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;
-        <span class="f f-z" style="font-size:12px;padding:2px 7px">NR2</span>
+        <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-x" style="font-size:12px;padding:2px 9px">2000</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-y" style="font-size:12px;padding:2px 9px">9000</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">25440</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">NR2</span>
       </div>
-      <div class="ex-note">终点 |9| &gt; |−2|，取 GY；J=各象限在GY投影之和=25440μm；NR2=逆圆从第二象限起</div>
+      <div class="ex-note">终点 |9| &gt; |−2|，取 GY；J=投影之和=25440μm</div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title"><span class="badge b-blue">类型四</span>连续图形（矩形）编程</div>
-    <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">将多条直线或圆弧指令连接起来形成封闭图形。最后一段指令后必须加 <b>DD</b> 表示全程序结束。</p>
+    <div class="card-title"><span class="badge b-blue">类型四</span>连续图形（矩形）</div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:.7rem">将多条直线或圆弧指令连接起来形成封闭图形。最后一段必须加 <b>DD</b> 全停机。</p>
     <div class="ex-block">
-      <div class="ex-title">示例：切割一个 20mm × 10mm 的矩形（起点为左下角，逆时针切割）</div>
+      <div class="ex-title">示例：20mm × 10mm 矩形（起点左下角，逆时针）</div>
       <div class="ex-code">
-        <div style="margin-bottom:4px">
+        <div style="margin-bottom:6px">
           <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段1</span>
           <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">20000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L1</span>
-          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 +X 走 20mm (底边)</span>
+          <div style="color:var(--text2);font-size:12px;margin-left:28px">// 沿 +X 走 20mm (底边)</div>
         </div>
-        <div style="margin-bottom:4px">
+        <div style="margin-bottom:6px">
           <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段2</span>
           <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">10000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L2</span>
-          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 +Y 走 10mm (右侧边)</span>
+          <div style="color:var(--text2);font-size:12px;margin-left:28px">// 沿 +Y 走 10mm (右侧边)</div>
         </div>
-        <div style="margin-bottom:4px">
+        <div style="margin-bottom:6px">
           <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段3</span>
           <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">20000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GX</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L3</span>
-          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 -X 走 20mm (顶边)</span>
+          <div style="color:var(--text2);font-size:12px;margin-left:28px">// 沿 -X 走 20mm (顶边)</div>
         </div>
         <div>
           <span style="color:var(--text3);font-size:11px;display:inline-block;width:24px">段4</span>
           <span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-b" style="font-size:12px;padding:2px 7px">B</span>&thinsp;<span class="f f-j" style="font-size:12px;padding:2px 9px">10000</span>&thinsp;<span class="f f-g" style="font-size:12px;padding:2px 7px">GY</span>&thinsp;<span class="f f-z" style="font-size:12px;padding:2px 7px">L4</span>&thinsp;<span style="background:var(--coral-bg);color:var(--coral-dark);padding:2px 7px;border-radius:4px;font-weight:bold;font-size:12px">DD</span>
-          <span style="color:var(--text2);font-size:12px;margin-left:8px">// 沿 -Y 走 10mm (左侧边) 并停机</span>
+          <div style="color:var(--text2);font-size:12px;margin-left:28px">// 沿 -Y 走 10mm (左侧边) 并停机</div>
         </div>
       </div>
     </div>
-    <div class="info" style="margin-top:.75rem">
-      <b>引线切割说明：</b>实际加工中，为避免在工件轮廓上留下起步痕迹，通常会从图形外的穿丝孔开始，先切一条<b>引线</b>进入图形轮廓，最后再切回穿丝孔。
-    </div>
   </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-amber">要点</span>完整程序编写注意事项</div>
-    <div style="font-size:14px;line-height:1.85;color:var(--text2)">
-      <p>① 每条指令固定由 3 个 <b>B</b> 分隔 X、Y、J 三段数据，格式不可改变</p>
-      <p>② 段末必须写停机符 <b>D</b>，整个程序最后一段写 <b>DD</b>（全部停机）</p>
-      <p>③ 封闭图形作间隙补偿时，第一条须是引线并加 <b>L</b>，最后一条方向相反加 <b>D</b> 或 <b>DD</b></p>
-      <p>④ 坐标值为 0 可省略，但 B 分隔符绝对不能省略</p>
-      <p>⑤ 坐标单位统一为 <b>μm</b>（微米），1 mm = 1000 μm</p>
-    </div>
-    <div class="div"></div>
-    <p style="font-size:13px;font-weight:700;margin-bottom:.5rem">常见编程类型代码对比</p>
-    <table class="tbl">
-      <tr><th>类型</th><th>示例代码</th><th>说明</th></tr>
-      <tr><td>直线</td><td style="font-family:var(--mono);font-size:12px">BBB15800GYL2</td><td style="font-size:12px">沿Y轴走15.8mm</td></tr>
-      <tr><td>斜线</td><td style="font-family:var(--mono);font-size:12px">B12000B8000B12000GXL1</td><td style="font-size:12px">终点(12,8)mm斜线</td></tr>
-      <tr><td>圆弧</td><td style="font-family:var(--mono);font-size:12px">B2000B9000B25440GYNR2</td><td style="font-size:12px">逆圆弧NR2</td></tr>
-      <tr><td>矩形</td><td style="font-family:var(--mono);font-size:12px">四段连续直线指令后接 DD</td><td style="font-size:12px">封闭图形全停机</td></tr>
-    </table>
-  </div>
-
 </div>
 
 <div class="page" id="page-operate">
-
   <div class="card">
     <div class="card-title"><span class="badge b-purple">流程</span>开机加工标准步骤</div>
-    <div class="step"><div class="step-n">1</div><div><div class="step-t">将空气开关往上拨，接通三相电源</div><div class="step-s">检查：急停按钮未按下，超行程触点未压下，否则启动失效</div></div></div>
-    <div class="step"><div class="step-n">2</div><div><div class="step-t">输入 3B 程序代码到控制器</div><div class="step-s">待命状态（显示P）→ 按起始段号数字键 → 按3B格式逐条输入 → 末段必须输入DD</div></div></div>
-    <div class="step"><div class="step-n">3</div><div><div class="step-t">按下启动按钮</div><div class="step-s">注意：前门门控开关打开时启动按钮失效，请关好前门</div></div></div>
-    <div class="step"><div class="step-n">4</div><div><div class="step-t">按下开运丝按钮，手动碰火花校正钼丝垂直度</div><div class="step-s">上丝用低速；正常切割用高速。调试LED亮表示调试模式，上丝完成后需关闭</div></div></div>
-    <div class="step"><div class="step-n">5</div><div><div class="step-t">按下开水泵按钮，确认喷水状态正常</div><div class="step-s">喷水以包住钼丝为原则；水量不足或水路不畅会引起断丝</div></div></div>
-    <div class="step"><div class="step-n">6</div><div><div class="step-t">执行加工：待命 → 起始段号 → 执行 → 执行</div><div class="step-s">显示器左侧为起始地址，右侧为结束地址，再按执行正式开始加工</div></div></div>
+    <div class="step"><div class="step-n">1</div><div><div class="step-t">将空气开关往上拨，接通三相电源</div><div class="step-s">检查：急停按钮未按下，超行程触点未压下</div></div></div>
+    <div class="step"><div class="step-n">2</div><div><div class="step-t">输入 3B 程序代码到控制器</div><div class="step-s">待命状态（显示P）→ 按起始段号数字键 → 逐条输入</div></div></div>
+    <div class="step"><div class="step-n">3</div><div><div class="step-t">按下启动按钮</div><div class="step-s">注意：前门门控开关打开时启动按钮失效</div></div></div>
+    <div class="step"><div class="step-n">4</div><div><div class="step-t">手动碰火花校正钼丝垂直度</div><div class="step-s">上丝用低速；正常切割用高速，调试完成后需关闭调试模式</div></div></div>
+    <div class="step"><div class="step-n">5</div><div><div class="step-t">开启水泵，确认喷水状态正常</div><div class="step-s">喷水需包住钼丝，水量不足会引起断丝</div></div></div>
+    <div class="step"><div class="step-n">6</div><div><div class="step-t">执行加工：待命 → 起始段号 → 执行 → 执行</div></div></div>
   </div>
 
   <div class="card">
-    <div class="card-title"><span class="badge b-teal">上电</span>控制器开机状态判断</div>
+    <div class="card-title"><span class="badge b-teal">状态</span>控制器开机状态判断</div>
     <div class="acc">
       <div class="acc-h" onclick="acc(this)"><span>显示 "Good"（正常状态）</span><span class="arr">▶</span></div>
-      <div class="acc-b">RAM 内部正常，停电保护有效。可直接输入程序或继续上次操作，是最理想的开机状态。</div>
+      <div class="acc-b">RAM 内部正常，停电保护有效。可直接输入程序或继续上次操作。</div>
     </div>
     <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>显示 "Good" 但喇叭鸣叫 + 屏幕闪烁</span><span class="arr">▶</span></div>
-      <div class="acc-b">RAM 状态不正常，程序数据可能有误或丢失。建议重新输入完整程序后再开始加工。</div>
+      <div class="acc-h" onclick="acc(this)"><span>显示 "Good" 但喇叭鸣叫闪烁</span><span class="arr">▶</span></div>
+      <div class="acc-b">RAM 状态不正常，程序数据可能有误或丢失。建议重新输入完整程序。</div>
     </div>
     <div class="acc">
       <div class="acc-h" onclick="acc(this)"><span>显示 "Error"（出错状态）</span><span class="arr">▶</span></div>
-      <div class="acc-b">加工过程中意外掉电后开机出现此状态，RAM中的指令很可能已损坏。需重新输入全部程序再加工。</div>
+      <div class="acc-b">加工过程中意外掉电后开机出现，RAM数据损坏。需重新输入全部程序。</div>
     </div>
     <div class="acc">
       <div class="acc-h" onclick="acc(this)"><span>显示掉电前正在加工的状态</span><span class="arr">▶</span></div>
-      <div class="acc-b">数据完好保留。只要开动机床，就可以从断点继续正常切割，无需重新输入程序。</div>
+      <div class="acc-b">数据完好保留。开动机床即可从断点继续正常切割。</div>
     </div>
   </div>
 
@@ -525,104 +488,44 @@ body{
       <tr><td>300 – 400 mm</td><td>≥ 3.0 A</td></tr>
       <tr><td>400 mm 以上</td><td>≥ 2.5 A</td></tr>
     </table>
-    <div class="info" style="margin-top:.7rem">
-      <b>工作液配比：</b>JR1A 复合工作液按 1:20 配制。切割面积达 250000 mm² 或累计加工约 35 小时后应更换工作液。
-    </div>
   </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-blue">高频</span>高频电源（J19）操作</div>
-    <div class="rule-row"><div class="rl">上电</div><div>数码管全亮约2秒后进入自检；自检正常后显示上次参数；异常则停留显示错误编号</div></div>
-    <div class="rule-row"><div class="rl">参数调整</div><div>按"功能"键选择脉宽/脉间/电流（对应参数闪动），再按"+"或"−"键改变数值</div></div>
-    <div class="rule-row"><div class="rl">组号切换</div><div>长按"功能"键2秒，第一位闪动，用"+/−"选择组号，再短按"功能"确认进入</div></div>
-    <div class="info" style="margin-top:.5rem">脉宽单位：微秒（μs）；脉间单位：倍数；电流单位：功放管个数</div>
-  </div>
-
 </div>
 
 <div class="page" id="page-advanced">
-
   <div class="card">
     <div class="card-title"><span class="badge b-purple">功能一</span>间隙补偿与校零</div>
-    <div style="font-size:14px;line-height:1.8;color:var(--text2)">
-      <p style="margin-bottom:.4rem">封闭图形才能做补偿，最后一条指令必须加停机符，否则无法切割或产生错误。</p>
-      <p style="margin-bottom:.4rem"><b>置入补偿值：</b>待命 → 上档 → 输入补偿量数字 → 按 X（正值/凸模逆时针）或 Y（负值/凹模逆时针）</p>
-      <p style="margin-bottom:.4rem"><b>校零验证：</b>待命 → 上档 → 起始段号 → 校零 → 等待段号停止跳动 → 再按校零 → X轴误差=0，Y轴误差=0则正确</p>
+    <div style="font-size:14px;color:var(--text2)">
+      <p style="margin-bottom:8px">封闭图形才能做补偿，最后一条指令必须加停机符。</p>
+      <p style="margin-bottom:8px"><b>置入：</b>待命 → 上档 → 补偿量 → 按 X(正) 或 Y(负)</p>
+      <p><b>校零：</b>待命 → 上档 → 起始段号 → 校零 → 等待 → 校零</p>
     </div>
-    <div class="warn">负号规定：逆时针编程时，割凸模补偿量取正，割凹模取负；顺时针编程时相反。</div>
-    <div class="info">补偿值范围：±1 至 ±9999 μm（四位十进制数）</div>
+    <div class="warn">负号规定：逆时针编程时，割凸模补偿量取正，割凹模取负；顺时针相反。</div>
   </div>
 
   <div class="card">
-    <div class="card-title"><span class="badge b-teal">功能二</span>旋转加工</div>
-    <p style="font-size:14px;color:var(--text2);margin-bottom:.6rem">适用于多齿轮、多孔等旋转对称零件，角度精度保留小数点后 6 位。</p>
-    <div class="ex-block">
-      <div class="ex-title">操作步骤示例：从第22条到第100条旋转12.345678°，共1次</div>
-      <div class="ex-code">
-        上档 → 按 22 → (…) → 按 100 → (…) → 按 1（次数）→ 旋转<br>
-        → 按 12（整数部分）→ 旋转 → 按 345678（小数部分）→ 旋转 → 待命
-      </div>
-    </div>
-    <div class="warn">⚠ 控制器内只能有一项旋转参数，再输入会覆盖前一项。执行加工时不能修改旋转参数。</div>
+    <div class="card-title"><span class="badge b-teal">功能二</span>旋转与缩放</div>
+    <div class="rule-row"><div class="rl">旋转加工</div><div>多齿轮等对称零件。操作：上档 → 起止段号 → 次数 → 旋转 → 整数 → 旋转 → 小数 → 旋转。</div></div>
+    <div class="rule-row"><div class="rl">缩放加工</div><div>1000为基数，1005即放大5‰。置入：上档 → 比例值 → 换档＋X/Y。</div></div>
   </div>
 
   <div class="card">
-    <div class="card-title"><span class="badge b-coral">功能三</span>缩放加工</div>
-    <p style="font-size:14px;color:var(--text2);margin-bottom:.5rem">以 1000 为基数，每增加 1 放大 1‰，每减少 1 缩小 1‰。</p>
-    <table class="tbl">
-      <tr><th>输入参数</th><th>效果</th><th>说明</th></tr>
-      <tr><td style="font-family:var(--mono)">1005</td><td>放大 5‰</td><td>比原图大 0.5%</td></tr>
-      <tr><td style="font-family:var(--mono)">995</td><td>缩小 5‰</td><td>比原图小 0.5%</td></tr>
-      <tr><td style="font-family:var(--mono)">1000</td><td>不缩放</td><td>原尺寸切割</td></tr>
-    </table>
-    <div style="font-size:13px;color:var(--text2);margin-top:.5rem">置入：上档 → 缩放参数值 → 换档＋X 或 Y。加工碰到 DD 后自动清除缩放参数，只能使用一次。</div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-amber">功能四</span>平移加工</div>
-    <p style="font-size:14px;color:var(--text2);margin-bottom:.5rem">对同一段程序重复执行多次，适用于批量相同形状加工。</p>
+    <div class="card-title"><span class="badge b-amber">功能三</span>平移加工</div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:.5rem">同一段程序重复执行多次，适用于批量加工。</p>
     <div class="ex-block">
       <div class="ex-title">示例：第8条到第88条平移18次</div>
       <div class="ex-code">上档 → 按 8 → (…) → 按 88 → (…) → 按 18 → 平移 → 待命</div>
-      <div class="ex-note">此设置将第8–88条加工完毕后再重复加工18次，共19次</div>
     </div>
-    <div style="font-size:13px;color:var(--text2);margin-top:.4rem">清除平移：上档 → 平移 → D → 显示P，清除完成，指示灯灭。</div>
   </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-blue">功能五</span>速度档位与短路回退</div>
-    <table class="tbl">
-      <tr><th>档位</th><th>执行速度</th><th>取样变频次数</th></tr>
-      <tr><td>第 1 档</td><td>250 μm/s</td><td>6 次</td></tr>
-      <tr><td>第 2 档</td><td>300 μm/s</td><td>5 次</td></tr>
-      <tr><td>第 3 档</td><td>350 μm/s</td><td>4 次</td></tr>
-      <tr><td>第 4 档</td><td>400 μm/s</td><td>3 次</td></tr>
-      <tr><td>第 5 档</td><td>450 μm/s</td><td>2 次</td></tr>
-      <tr><td>第 6 档</td><td>500 μm/s</td><td>1 次</td></tr>
-    </table>
-    <div class="div"></div>
-    <div style="font-size:14px;line-height:1.8;color:var(--text2)">
-      <p><b>速度调节：</b>待命 → 换档＋L3 → 显示 —w— → X键增速 / Y键减速</p>
-      <p><b>短路回退延时：</b>待命 → L3 → 输入时间（1–99秒）→ 待命</p>
-      <p><b>手动回退：</b>上档 → 按住执行不放（持续回退）→ 松开停止</p>
-    </div>
-    <div class="info" style="margin-top:.5rem">自动回退：短路超时后最多自动回退两次，每次200步。两次后仍无法解决则报警约2.5分钟后关机。</div>
-  </div>
-
 </div>
 
 <div class="page" id="page-shortcuts">
-
   <div class="card">
     <div class="card-title"><span class="badge b-blue">速查</span>程序输入与编辑</div>
     <div class="sc-grid">
       <div class="sc-card"><div class="sc-name">指令输入</div><div class="sc-seq">段号→B→X→B→Y→B→J→G→Z</div></div>
       <div class="sc-card"><div class="sc-name">控制器通讯</div><div class="sc-seq">上档→起始段号→B</div></div>
-      <div class="sc-card"><div class="sc-name">指令检查</div><div class="sc-seq">起始段号 → 检查</div></div>
-      <div class="sc-card"><div class="sc-name">指令插入</div><div class="sc-seq">段号→插入→B→X→B→Y→B→J→G→Z</div></div>
+      <div class="sc-card"><div class="sc-name">指令插入</div><div class="sc-seq">段号→插入→代码输入</div></div>
       <div class="sc-card"><div class="sc-name">指令删除</div><div class="sc-seq">段号 → 删除 → 待命</div></div>
-      <div class="sc-card"><div class="sc-name">指令作废</div><div class="sc-seq">上档→起始→(…)→结束→(…)→作废</div></div>
-      <div class="sc-card"><div class="sc-name">指令恢复</div><div class="sc-seq">起始→(…)→结束→(…)→恢复</div></div>
     </div>
   </div>
 
@@ -630,150 +533,139 @@ body{
     <div class="card-title"><span class="badge b-purple">速查</span>加工执行与控制</div>
     <div class="sc-grid">
       <div class="sc-card"><div class="sc-name">加工执行</div><div class="sc-seq">待命→起始段号→执行→执行</div></div>
-      <div class="sc-card"><div class="sc-name">快速校零</div><div class="sc-seq">上档→起始段号→校零→校零</div></div>
       <div class="sc-card"><div class="sc-name">逆向加工</div><div class="sc-seq">上档→起始→(…)→结束→执行→执行</div></div>
       <div class="sc-card"><div class="sc-name">指令暂停</div><div class="sc-seq">换档＋D</div></div>
       <div class="sc-card"><div class="sc-name">退出加工</div><div class="sc-seq">暂停后→退出→退出→退出</div></div>
-      <div class="sc-card"><div class="sc-name">上下异型</div><div class="sc-seq">待命→下面起始→(…)→上面起始→执行→执行</div></div>
-      <div class="sc-card"><div class="sc-name">高频开关</div><div class="sc-seq">换档＋高频开关</div></div>
-      <div class="sc-card"><div class="sc-name">高频允许</div><div class="sc-seq">换档＋高频允许</div></div>
     </div>
   </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-teal">速查</span>补偿与变换功能</div>
-    <div class="sc-grid">
-      <div class="sc-card"><div class="sc-name">间隙补偿</div><div class="sc-seq">上档→补偿量→X（正）或Y（负）</div></div>
-      <div class="sc-card"><div class="sc-name">旋转设置</div><div class="sc-seq">上档→起止→(…)→次数→旋转→整数→旋转→小数→旋转</div></div>
-      <div class="sc-card"><div class="sc-name">平移设置</div><div class="sc-seq">上档→起止段号→(…)→次数→平移</div></div>
-      <div class="sc-card"><div class="sc-name">缩放设置</div><div class="sc-seq">上档→缩放比例→换档＋X或Y</div></div>
-      <div class="sc-card"><div class="sc-name">齿隙补偿</div><div class="sc-seq">换档＋L4→X量→L4→Y量→L4→U量→L4→V量</div></div>
-      <div class="sc-card"><div class="sc-name">高度参数</div><div class="sc-seq">换档＋高度→X或Y→H1→高度→H2→…→H5→待命</div></div>
-      <div class="sc-card"><div class="sc-name">角度参数</div><div class="sc-seq">上档→换档＋角度→X或Y→整数→角度→小数→角度</div></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-amber">速查</span>回原点与速度调节</div>
-    <div class="sc-grid">
-      <div class="sc-card"><div class="sc-name">XY 回原点</div><div class="sc-seq">待命 → 上档 → L3</div></div>
-      <div class="sc-card"><div class="sc-name">UV 回原点</div><div class="sc-seq">待命 → 上档 → L4</div></div>
-      <div class="sc-card"><div class="sc-name">原点清零</div><div class="sc-seq">待命 → 上档 → D</div></div>
-      <div class="sc-card"><div class="sc-name">速度调节</div><div class="sc-seq">待命→换档＋L3→X增速/Y减速</div></div>
-      <div class="sc-card"><div class="sc-name">短路回退延时</div><div class="sc-seq">待命 → L3 → 时间参数 → 待命</div></div>
-      <div class="sc-card"><div class="sc-name">高频延时</div><div class="sc-seq">待命 → L4 → 时间参数 → 待命</div></div>
-      <div class="sc-card"><div class="sc-name">手动回退</div><div class="sc-seq">上档 → 按住执行不放</div></div>
-      <div class="sc-card"><div class="sc-name">开关进给</div><div class="sc-seq">待命 → 换档＋进给</div></div>
-    </div>
-  </div>
-
 </div>
 
 <div class="page" id="page-fault">
-
   <div class="card">
-    <div class="card-title"><span class="badge b-coral">断丝类</span>钼丝相关故障</div>
+    <div class="card-title"><span class="badge b-coral">故障</span>钼丝与加工问题</div>
     <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>钼丝跳动厉害，容易断丝</span><span class="arr">▶</span></div>
-      <div class="acc-b"><b>可能原因：</b>钼丝粗细不均；导轮V形槽磨损；导轮轴承损坏（按住导轮座抖动大、噪声大）<br><b>处理：</b>更换钼丝；更换导轮；更换导轮轴承</div>
+      <div class="acc-h" onclick="acc(this)"><span>容易断丝 / 跳动厉害</span><span class="arr">▶</span></div>
+      <div class="acc-b">检查导轮V形槽是否磨损，轴承是否损坏。必要时更换钼丝或导轮组件。</div>
     </div>
     <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>火花时有时无，易短路/开路</span><span class="arr">▶</span></div>
-      <div class="acc-b"><b>可能原因：</b>跟踪速度未调好；工作液太脏或水路不畅；工件材质差，有焊渣等杂质<br><b>处理：</b>调整跟踪速度；更换工作液；疏通水路；检查工件材质</div>
-    </div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>导电块冒火花，或未开高频也断丝</span><span class="arr">▶</span></div>
-      <div class="acc-b"><b>可能原因：</b>导电块、挡丝棒上有凹槽（长期磨损形成）；功放管击穿（碰工件出现弧光电流很大）<br><b>处理：</b>拆下打磨或更换导电块；★更换已坏功放管</div>
-    </div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>断丝保护不正常（换向时停机/断丝不停机）</span><span class="arr">▶</span></div>
-      <div class="acc-b">换向时停机：钼丝太松与导电块接触不良，重新紧好钼丝。<br>钼丝断了却不停机：KA3 继电器损坏，★需更换 KA3。</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-coral">电源类</span>电源与电机故障</div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>总电源不能开启</span><span class="arr">▶</span></div>
-      <div class="acc-b"><b>可能原因：</b>限位器碰到超行程保护开关SQ3；SB1/SB3急停按钮自锁；电源缺相；KM1损坏<br><b>处理：</b>移开限位器；解除自锁；恢复电源；★更换KM1</div>
-    </div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>水泵电机不能开启</span><span class="arr">▶</span></div>
-      <div class="acc-b">按手控盒开水按钮后 KM3 不吸合：变频器故障或 KM3 损坏。<br>KM3 吸合但水泵不转：380V 供电线断路或水泵电机烧坏。<br><b>处理：</b>★维修变频器；★更换KM3；★接通供电线；★更换水泵</div>
-    </div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>运丝电机不能开启 / 不换向</span><span class="arr">▶</span></div>
-      <div class="acc-b">不能开启：SB5按钮损坏或变频器故障。<br>不换向：行程开关SQ1/SQ2触点不通或变频器故障。<br><b>处理：</b>★更换SB5；★维修变频器；★更换行程开关</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-coral">电机类</span>步进电机故障</div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>步进电机锁不住</span><span class="arr">▶</span></div>
-      <div class="acc-b">一个轴锁不住：连接该步进电机的导线断，或对应功放管烧坏。<br>两个方向都锁不住：驱动电源保险丝断。<br><b>处理：</b>★接通线路；★换损坏元器件；★更换保险丝</div>
-    </div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>步进电机失步 / 运行抖动</span><span class="arr">▶</span></div>
-      <div class="acc-b">快速运动时失步：速度设置过快，重新调慢；或驱动滤波电容容量不足。<br>运行抖动：驱动线路缺相损坏或驱动信号不正常，指示灯常亮/常灭时对应功放管坏。<br><b>处理：</b>重新调整速度；★更换滤波电容；★更换已坏元器件/功放管</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><span class="badge b-coral">加工类</span>加工质量问题</div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>无火花 / 高频打不开</span><span class="arr">▶</span></div>
-      <div class="acc-b">检查：①控制台高频开关是否已打开 ②运丝电机是否已开（未开时高频无法输出）③高频电源是否故障 ④电压/电流表是否开路</div>
+      <div class="acc-h" onclick="acc(this)"><span>导电块冒火花 / 未开高频断丝</span><span class="arr">▶</span></div>
+      <div class="acc-b">导电块磨损产生凹槽，或功放管击穿。打磨更换导电块，排查损坏的功放管。</div>
     </div>
     <div class="acc">
       <div class="acc-h" onclick="acc(this)"><span>切割面光洁度差</span><span class="arr">▶</span></div>
-      <div class="acc-b"><b>可能原因：</b>导轮/轴承磨损有跳动；运丝丝杆与螺母有间隙；乳化液变质或配比不合适；跟踪调节过紧或过松；钼丝张力不均（一边松一边紧）；工件材质差<br><b>处理：</b>更换磨损件，更换工作液，重新调整跟踪速度，均匀张紧钼丝</div>
-    </div>
-    <div class="acc">
-      <div class="acc-h" onclick="acc(this)"><span>加工不稳定（倒计数字忽快忽慢）</span><span class="arr">▶</span></div>
-      <div class="acc-b"><b>可能原因：</b>乳化液太脏；功放管偏少；跟踪调节不好；取样线接触不良；导轮及轴承故障；钼丝过松；高频脉冲间隔太小，排屑困难<br><b>处理：</b>更换工作液，增加功放管，调整跟踪，检查取样线和导轮</div>
+      <div class="acc-b">可能是乳化液变质、跟踪调节不当、钼丝张力不均。需重新张紧并更换工作液。</div>
     </div>
   </div>
-
+  
   <div class="card">
-    <div class="card-title"><span class="badge b-amber">钼丝</span>钼丝使用寿命参考</div>
+    <div class="card-title"><span class="badge b-amber">参考</span>钼丝使用寿命</div>
     <table class="tbl">
       <tr><th>丝径状态</th><th>建议操作</th></tr>
-      <tr><td>新 18 丝</td><td>≤ 3.5A 小电流切割；切割 10000 mm² 后或丝面发白后，可转大电流</td></tr>
-      <tr><td>磨损至 16 丝</td><td>将丝筒两侧钼丝分别向内侧偏移，防止换向时卡在加工间隙中断丝</td></tr>
-      <tr><td>磨损至 13 丝</td><td>建议更换新钼丝；过细会导致光洁度下降，大电流下极易断丝</td></tr>
+      <tr><td>新 18 丝</td><td>≤ 3.5A 小电流起步，丝面发白后转大电流</td></tr>
+      <tr><td>磨损至 16 丝</td><td>将丝筒两侧向内侧偏移，防换向断丝</td></tr>
+      <tr><td>磨损至 13 丝</td><td>极易断丝，强烈建议更换</td></tr>
     </table>
-    <div class="info" style="margin-top:.6rem">
-      <b>经验数据：</b>18丝新钼丝切割60mm钢材（5A电流），平均效率约8000 mm²/h，累计可切割约 350000 mm²（累计40小时以上）。<br>
-      <b>寿命应以切割面积计算，而非使用时间。</b>
-    </div>
   </div>
-
 </div>
 
 </main>
 
-<footer class="footer">
-  <div>线切割单板机 3B 程序学习指南 · 基于 J19 型线切割电控柜</div>
-  <div style="margin-top:4px">★ 标注项目仅供专业维修人员参考</div>
-</footer>
-
 <script>
-function switchTab(id, el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('page-'+id).classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+const pages = ['format', 'program', 'operate', 'advanced', 'shortcuts', 'fault'];
+let currentIndex = 1; // 默认停留在编程方法
+
+// 页面切换逻辑
+function switchTab(id, direction = null) {
+  const newIndex = pages.indexOf(id);
+  if (newIndex === currentIndex && !direction) return;
+  
+  // 决定动画方向
+  let animClass = 'slide-left';
+  if (direction === 'right' || (!direction && newIndex < currentIndex)) {
+    animClass = 'slide-right';
+  }
+  
+  currentIndex = newIndex;
+  
+  // 更新 Tabs 状态
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const activeTab = document.querySelector(`.tab[data-target="${id}"]`);
+  if (activeTab) {
+    activeTab.classList.add('active');
+    // iOS 风格：使选中的 Tab 滚动到可视区域中心
+    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  // 更新页面与动画
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active', 'slide-left', 'slide-right');
+  });
+  const activePage = document.getElementById('page-' + id);
+  if (activePage) {
+    activePage.classList.add('active', animClass);
+  }
+  
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
-function acc(head){
-  const body=head.nextElementSibling;
-  const arrow=head.querySelector('.arr');
-  const open=body.classList.contains('open');
-  document.querySelectorAll('.acc-b').forEach(b=>b.classList.remove('open'));
-  document.querySelectorAll('.arr').forEach(a=>a.classList.remove('open'));
-  if(!open){body.classList.add('open');arrow.classList.add('open');}
+
+// 手风琴交互
+function acc(head) {
+  const body = head.nextElementSibling;
+  const arrow = head.querySelector('.arr');
+  const open = body.classList.contains('open');
+  
+  // 互斥展开
+  document.querySelectorAll('.acc-b').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.arr').forEach(a => a.classList.remove('open'));
+  
+  if (!open) {
+    body.classList.add('open');
+    arrow.classList.add('open');
+  }
 }
+
+// iOS 手势滑动切换支持
+const mainEl = document.getElementById('mainContainer');
+let startX = 0;
+let startY = 0;
+let isSwiping = false;
+
+mainEl.addEventListener('touchstart', e => {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  isSwiping = true;
+}, {passive: true});
+
+mainEl.addEventListener('touchmove', e => {
+  if (!isSwiping) return;
+  const currentX = e.touches[0].clientX;
+  const currentY = e.touches[0].clientY;
+  const diffX = startX - currentX;
+  const diffY = startY - currentY;
+  
+  // 如果上下滑动大于左右滑动，说明是在滚动页面，取消左右切换意图
+  if (Math.abs(diffY) > Math.abs(diffX)) {
+    isSwiping = false;
+  }
+}, {passive: true});
+
+mainEl.addEventListener('touchend', e => {
+  if (!isSwiping) return;
+  const endX = e.changedTouches[0].clientX;
+  const diffX = startX - endX;
+  
+  // 滑动阈值 60px
+  if (Math.abs(diffX) > 60) {
+    if (diffX > 0 && currentIndex < pages.length - 1) {
+      // 向左滑 -> 下一页
+      switchTab(pages[currentIndex + 1], 'left');
+    } else if (diffX < 0 && currentIndex > 0) {
+      // 向右滑 -> 上一页
+      switchTab(pages[currentIndex - 1], 'right');
+    }
+  }
+  isSwiping = false;
+});
 </script>
 </body>
 </html>
