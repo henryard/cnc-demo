@@ -246,7 +246,8 @@ canvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
           <button class="qp-btn" onclick="setArcPreset(0,5,-5,0,'NR')">NR II→III (0,5)→(-5,0)</button>
           <button class="qp-btn" onclick="setArcPreset(5,0,0,-5,'SR')">SR I→IV (5,0)→(0,-5)</button>
           <button class="qp-btn" onclick="setArcPreset(0,5,5,0,'SR')">SR II→I (0,5)→(5,0)</button>
-          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'SR')" style="grid-column:span 2;background:var(--orange-lt);border-color:#fed7aa;color:var(--orange)">SR 跨3象限 (5,0)→(0,5) ↻Q4→Q3→Q2</button>
+          <button class="qp-btn" onclick="setArcPreset(6,8,10,0,'SR')" style="background:var(--green-lt);border-color:#bbf7d0;color:var(--green)">SR 同象限短弧 (6,8)→(10,0)</button>
+          <button class="qp-btn" onclick="setArcPreset(5,0,0,5,'SR')" style="grid-column:span 2;background:var(--orange-lt);border-color:#fed7aa;color:var(--orange)">SR 跨3象限 (5,0)→(0,5) ↻Q1→Q4→Q3→Q2</button>
         </div>
         <div class="fbox" id="arc-fbox">
           <div class="fh">偏差 F = Xᵢ² + Yᵢ² − R²</div>
@@ -435,11 +436,18 @@ function updateArcFormula(){
   let q=getArcQuadrant(xs,ys);
   let el=document.getElementById('arc-fb');
   if(!el)return;
-  // 计算实际总步数（已修复跨象限问题）
   let N=calcArcTotalN(xs,ys,xe,ye,arcDir);
   let rules=getArcRules(q,arcDir);
+  // 检测是否为同象限长弧
+  let startQ=getArcQuadrant(xs,ys), endQ=getArcQuadrant(xe,ye);
+  let arcTypeHint='';
+  if(startQ===endQ){
+    let angS=Math.atan2(ys,xs), angE=Math.atan2(ye,xe);
+    let diff=arcDir==='NR'?(angE-angS<=0?angE-angS+2*Math.PI:angE-angS):(angS-angE<=0?angS-angE+2*Math.PI:angS-angE);
+    arcTypeHint=diff>Math.PI/2?'&nbsp;<span style="color:var(--orange);font-weight:700">★同象限长弧</span>':'&nbsp;<span style="color:var(--green);font-weight:700">★同象限短弧</span>';
+  }
   el.innerHTML=
-    `起点象限: 第${['','I','II','III','IV'][q]}象限 | ${arcDir==='NR'?'逆圆 NR':'顺圆 SR'}<br>`+
+    `起点象限: 第${['','I','II','III','IV'][q]}象限 | ${arcDir==='NR'?'逆圆 NR':'顺圆 SR'}${arcTypeHint}<br>`+
     `<b style="color:var(--accent)">总步数 N = ${N}</b>（跨象限累加）<br>`+
     `<span class="fvx">F ≥ 0</span>：${rules.geq}<br>`+
     `<span class="fvy">F &lt; 0</span>：${rules.lt}`;
@@ -522,7 +530,7 @@ function calcLine(xe,ye){
 }
 
 // ================================================================
-// ★ 关键修复：计算圆弧插补正确的总步数（支持跨象限）
+// ★ 关键修复：计算圆弧插补正确的总步数（支持跨象限 + 同象限长弧）
 //
 // 原理：逐象限累加曼哈顿距离
 //   NR(逆圆/CCW) 象限顺序：Q1→Q2→Q3→Q4→Q1
@@ -531,36 +539,68 @@ function calcLine(xe,ye){
 // 各象限在不同方向下的「出口坐标轴点」：
 //   NR: Q1→(0,R), Q2→(-R,0), Q3→(0,-R), Q4→(R,0)
 //   SR: Q1→(R,0), Q2→(0,R),  Q3→(-R,0), Q4→(0,-R)
+//
+// ★ 新增：同象限长弧判断
+//   当起点和终点在同一象限时，需要用角度判断是短弧（不跨象限）
+//   还是长弧（需要转过约3个象限后再回到本象限）。
 // ================================================================
 function calcArcTotalN(xs,ys,xe,ye,dir){
   let R=Math.round(Math.sqrt(xs*xs+ys*ys));
   let startQ=getArcQuadrant(xs,ys);
   let endQ=getArcQuadrant(xe,ye);
 
-  // 下一象限（按方向）
   function nxtQ(q){
     return dir==='NR' ? (q%4+1) : (q===1?4:q-1);
   }
 
-  // 当前象限在给定方向下的出口坐标点
   function exitPt(q){
-    // NR出口: Q1:(0,R) Q2:(-R,0) Q3:(0,-R) Q4:(R,0)
-    // SR出口: Q1:(R,0) Q2:(0,R)  Q3:(-R,0) Q4:(0,-R)
-    const nrPts=[[0,R],[-R,0],[0,-R],[R,0]]; // index q-1
-    const srPts=[[R,0],[0,R],[-R,0],[0,-R]]; // index q-1
+    const nrPts=[[0,R],[-R,0],[0,-R],[R,0]];
+    const srPts=[[R,0],[0,R],[-R,0],[0,-R]];
     return dir==='NR' ? nrPts[q-1] : srPts[q-1];
+  }
+
+  // ★ 同象限长弧检测：若起终点在同一象限，用弧度判断走向
+  if(startQ===endQ){
+    let angS=Math.atan2(ys,xs);
+    let angE=Math.atan2(ye,xe);
+    // 计算从angS到angE沿插补方向的角度差
+    let diff;
+    if(dir==='NR'){ // CCW，角度增大
+      diff=angE-angS;
+      if(diff<=0) diff+=2*Math.PI;
+    } else {        // CW，角度减小
+      diff=angS-angE;
+      if(diff<=0) diff+=2*Math.PI;
+    }
+    // 若圆弧超过90°（跨越了象限边界，是长弧），需要走完多个象限
+    // 短弧：diff <= π/2（在同一象限内）；长弧：diff > π/2
+    if(diff > Math.PI/2){
+      // 长弧：绕行多个象限
+      let N=0, cx=xs, cy=ys, cq=startQ;
+      // 先走完当前象限到出口
+      for(let iter=0;iter<4;iter++){
+        let[ex,ey]=exitPt(cq);
+        N+=Math.abs(ex-cx)+Math.abs(ey-cy);
+        cx=ex; cy=ey;
+        cq=nxtQ(cq);
+        if(cq===endQ){
+          N+=Math.abs(xe-cx)+Math.abs(ye-cy);
+          break;
+        }
+      }
+      return Math.max(N,1);
+    }
+    // 短弧：直接累加曼哈顿距离
+    return Math.max(Math.abs(xe-xs)+Math.abs(ye-ys),1);
   }
 
   let N=0, cx=xs, cy=ys, cq=startQ;
 
-  // 最多循环4个象限（不处理整圆）
   for(let iter=0;iter<5;iter++){
     if(cq===endQ){
-      // 已到达终点所在象限，累加当前位置到终点的曼哈顿距离
       N+=Math.abs(xe-cx)+Math.abs(ye-cy);
       break;
     }
-    // 累加从当前位置到本象限出口的步数
     let[ex,ey]=exitPt(cq);
     N+=Math.abs(ex-cx)+Math.abs(ey-cy);
     cx=ex; cy=ey;
@@ -572,12 +612,13 @@ function calcArcTotalN(xs,ys,xe,ye,dir){
 // ================================================================
 // 算法：全象限圆弧插补
 // 偏差判别规则（逐点比较法标准规则表），自动处理象限转换
-// ★ 修复：N 使用 calcArcTotalN 计算，支持 SR/NR 跨多象限情形
+// ★ 修复1：N 使用 calcArcTotalN 计算，支持 SR/NR 跨多象限及同象限长弧
+// ★ 修复2：到达终点坐标时立即终止，防止过冲
+// ★ 修复3：偏差更新使用进给前坐标（标准逐点比较法）
 // ================================================================
 function calcArc(xs,ys,xe,ye,dir){
   let R2=xs*xs+ys*ys;
 
-  // ★ 修复：替换原来的曼哈顿距离公式
   let N=calcArcTotalN(xs,ys,xe,ye,dir);
 
   let s=[],x=xs,y=ys,F=0;
@@ -589,6 +630,16 @@ function calcArc(xs,ys,xe,ye,dir){
     let oF=F,oX=x,oY=y;
     let q=getArcQuadrant(x,y);
     let feed,nF,dx=0,dy=0,judge;
+
+    // ★ 偏差更新公式：使用进给前坐标（即当前 x,y）
+    // NR(逆圆CCW): Q1: F≥0→-X: F_new=F-2x+1; F<0→+Y: F_new=F+2y+1
+    //              Q2: F≥0→-Y: F_new=F-2y+1; F<0→-X: F_new=F-2x+1
+    //              Q3: F≥0→+X: F_new=F+2x+1; F<0→-Y: F_new=F-2y+1
+    //              Q4: F≥0→+Y: F_new=F+2y+1; F<0→+X: F_new=F+2x+1
+    // SR(顺圆CW):  Q1: F≥0→-Y: F_new=F-2y+1; F<0→+X: F_new=F+2x+1
+    //              Q2: F≥0→+X: F_new=F+2x+1; F<0→+Y: F_new=F+2y+1
+    //              Q3: F≥0→+Y: F_new=F+2y+1; F<0→-X: F_new=F-2x+1
+    //              Q4: F≥0→-X: F_new=F-2x+1; F<0→-Y: F_new=F-2y+1
 
     if(dir==='NR'){
       switch(q){
@@ -609,10 +660,16 @@ function calcArc(xs,ys,xe,ye,dir){
     }
     F=nF; x+=dx; y+=dy;
     let qAfter=getArcQuadrant(x,y);
-    // 检测是否发生了象限跨越（用于表格着色）
     let qCross=(q!==qAfter);
-    s.push({i:k,x,y,F,feed,nF,rem:N-k,judge,oF,oX,oY,quadrant:q,qAfter,qCross,
+    let remSteps=N-k;
+    s.push({i:k,x,y,F,feed,nF,rem:remSteps,judge,oF,oX,oY,quadrant:q,qAfter,qCross,
       det:`Q${qNames[q]} F=${oF}(${oF>=0?'≥0':'<0'}) → ${judge} → F_new=${nF}${qCross?'  ⟳象限变化:Q'+qNames[q]+'→Q'+qNames[qAfter]:''}`});
+    // ★ 到达终点时立即停止
+    if(x===xe&&y===ye){
+      // 修正最后一步的余步数为0
+      s[s.length-1].rem=0;
+      break;
+    }
   }
   return s;
 }
@@ -892,13 +949,15 @@ function drawScene(idx){
     // 圆弧理想轨迹（虚线圆弧）
     let xs=num('axs',5),ys=num('ays',0),xe=num('axe',0),ye=num('aye',5);
     let R=Math.sqrt(xs*xs+ys*ys),cc=toC(0,0);
-    // canvas arc 方向：NR=逆时针在数学坐标=canvas顺时针(y轴翻转)，SR反之
-    // canvas: anticlockwise=false → CW in screen (= CCW in math)
-    let angS=-Math.atan2(ys,xs);  // canvas角度（y轴翻转）
+    // 数学坐标 → canvas坐标：Y轴取反，角度 = -atan2(y, x)
+    // canvas 中 Y 轴朝下，0°=右，90°=下，180°=左，270°=上
+    // 数学 CCW（NR/逆圆）在 canvas 中仍表现为 CCW（右→上→左→下），anticlockwise=true
+    // 数学 CW（SR/顺圆）在 canvas 中仍表现为 CW（右→下→左→上），anticlockwise=false
+    let angS=-Math.atan2(ys,xs);  // canvas角度
     let angE=-Math.atan2(ye,xe);
     ctx.save();ctx.strokeStyle='rgba(107,114,128,0.5)';ctx.lineWidth=isMobile?2:2.5;ctx.setLineDash([6,4]);
     ctx.beginPath();
-    // NR(逆圆/数学CCW) → canvas中是anticlockwise=true（canvas y轴朝下）
+    // NR(逆圆/数学CCW) → anticlockwise=true；SR(顺圆/数学CW) → anticlockwise=false
     ctx.arc(cc.cx,cc.cy,Math.max(0,R*gs),angS,angE,arcDir==='NR');
     ctx.stroke();ctx.restore();
     let ps=toC(xs,ys),pe=toC(xe,ye);
